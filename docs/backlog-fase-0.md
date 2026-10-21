@@ -14,7 +14,7 @@ Legenda: **[código]** pode ser feito numa sessão na nuvem · **[Paulo]** depen
   - Pode migrar para .NET 10 depois (equivalente funcional); registrado no `CLAUDE.md`.
 
 - [x] **T0.2 Estrutura do repositório** [código] ✅ 21/10/2026 — depende de T0.1
-  - Pastas: `src/Ponte` (servidor), `tests/` com `tests/fixtures/`, `extension/` (vazia por ora), `grok/skills`, `grok/rotinas`, `vault-template/`, `tools/importador`.
+  - Pastas: `src/ponte` (servidor), `tests/` com `tests/fixtures/`, `extension/` (vazia por ora), `grok/skills`, `grok/rotinas`, `vault-template/`, `tools/importador`.
   - Build e testes rodando com um comando; CI simples no GitHub Actions (build + testes).
   - Configuração por variáveis de ambiente e arquivo local ignorado pelo Git; exemplo versionado (`.env.example` ou `appsettings.example.json`).
   - Pronto quando: build e testes vazios passam no CI.
@@ -38,7 +38,7 @@ Legenda: **[código]** pode ser feito numa sessão na nuvem · **[Paulo]** depen
 
 - [x] **T0.6 Ferramentas do vault** [código] ✅ 21/10/2026 — depende de T0.4
   - `vault_listar(pasta)`, `vault_ler(caminho)`, `vault_buscar(texto, filtros)` por palavra-chave (o índice vetorial vem na fase 2), `vault_criar_nota(tipo, titulo, conteudo, fontes)`.
-  - Notas criadas pelo Copiloto vão para `inbox/` com `revisado: false` no frontmatter.
+  - Notas criadas pelo Copiloto vão para `inbox/` com `revisado: false` no frontmatter, nível `sozinho` (plano.md) e sem sobrescrever notas existentes.
   - Caminho do vault configurável; bloqueio de path traversal (nada fora da raiz do vault).
   - Área restrita (`pessoas/` e afins): exige ferramenta específica; `vault_buscar` genérico não devolve conteúdo dela.
   - Pronto quando: testes com um vault de fixture cobrem leitura, busca, criação, traversal e área restrita.

@@ -1,11 +1,13 @@
 /**
- * Database layer — wraps sql.js (dev/cloud) or better-sqlite3 (production).
- * In production on Paulo's machine, replace sql.js with better-sqlite3 for persistence.
+ * Database layer — sql.js (SQLite in WASM, no native build).
+ * The database lives in memory and is flushed to DB_PATH after every write (see persist),
+ * so the audit log and the approval queue survive restarts.
  */
 import initSqlJs, { type Database } from 'sql.js';
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, renameSync, existsSync } from 'fs';
 
 let _db: Database | null = null;
+const _paths = new WeakMap<Database, string>();
 
 export async function getDb(dbPath?: string): Promise<Database> {
   if (_db) return _db;
@@ -20,6 +22,7 @@ export async function getDb(dbPath?: string): Promise<Database> {
   }
 
   initSchema(_db);
+  if (dbPath) _paths.set(_db, dbPath);
   return _db;
 }
 
@@ -55,11 +58,13 @@ function initSchema(db: Database): void {
   `);
 }
 
-/** Persiste o banco em arquivo (para usar na máquina do Paulo com better-sqlite3 instalado) */
-export function saveDb(db: Database, dbPath: string): void {
-  const { writeFileSync } = require('fs');
-  const data = db.export();
-  writeFileSync(dbPath, Buffer.from(data));
+/** Writes the database to its file, atomically. No-op for databases opened without a path. */
+export function persist(db: Database): void {
+  const dbPath = _paths.get(db);
+  if (!dbPath) return;
+  const tmp = `${dbPath}.tmp`;
+  writeFileSync(tmp, Buffer.from(db.export()));
+  renameSync(tmp, dbPath);
 }
 
 export function closeDb(): void {

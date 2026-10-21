@@ -6,6 +6,8 @@ import initSqlJs from 'sql.js';
 import type { Database } from 'sql.js';
 import { enqueue, updateQueueState, getPendingItems, getQueueItem } from '../../src/ponte/db/queue.js';
 import { enforcePolicy } from '../../src/ponte/middleware/autonomy.js';
+import { executeApproved } from '../../src/ponte/middleware/executor.js';
+import { queryAudit } from '../../src/ponte/db/audit.js';
 
 let db: Database;
 
@@ -90,5 +92,44 @@ describe('autonomy policy', () => {
       const item = getQueueItem(db, r.queueId);
       expect(item?.state).toBe('pendente'); // never 'executado' without approval
     }
+  });
+});
+
+describe('queue state machine', () => {
+  it('rejects invalid transitions', () => {
+    const id = enqueue(db, { tool: 'discord_postar', action: 'teste' });
+    expect(() => updateQueueState(db, id, 'executado')).toThrow('Transição inválida');
+    updateQueueState(db, id, 'recusado');
+    expect(() => updateQueueState(db, id, 'aprovado')).toThrow('Transição inválida');
+    expect(() => updateQueueState(db, 9999, 'aprovado')).toThrow('não existe');
+  });
+});
+
+describe('executor', () => {
+  it('only executes approved items', async () => {
+    const calls: string[] = [];
+    const handlers = { discord_postar: async (_i: unknown, c?: string) => { calls.push(c ?? ''); } };
+    const pending = enqueue(db, { tool: 'discord_postar', action: 'a', content: 'pendente' });
+    const refused = enqueue(db, { tool: 'discord_postar', action: 'b', content: 'recusado' });
+    const approved = enqueue(db, { tool: 'discord_postar', action: 'c', content: 'aprovado' });
+    const edited = enqueue(db, { tool: 'discord_postar', action: 'd', content: 'original' });
+    updateQueueState(db, refused, 'recusado');
+    updateQueueState(db, approved, 'aprovado');
+    updateQueueState(db, edited, 'editado', { edited_content: 'editado' });
+
+    expect(await executeApproved(db, handlers)).toBe(2);
+    expect(calls).toEqual(['aprovado', 'editado']);
+    expect(getQueueItem(db, pending)?.state).toBe('pendente');
+    expect(getQueueItem(db, refused)?.state).toBe('recusado');
+    expect(getQueueItem(db, approved)?.state).toBe('executado');
+    expect(await executeApproved(db, handlers)).toBe(0); // never runs twice
+  });
+
+  it('keeps the item approved and logs the error when the handler fails', async () => {
+    const id = enqueue(db, { tool: 'discord_postar', action: 'x' });
+    updateQueueState(db, id, 'aprovado');
+    await executeApproved(db, { discord_postar: async () => { throw new Error('falhou'); } });
+    expect(getQueueItem(db, id)?.state).toBe('aprovado');
+    expect(queryAudit(db)[0].result).toBe('error');
   });
 });

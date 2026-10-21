@@ -53,7 +53,7 @@ export function enforcePolicy(db: Database, call: ToolCall): PolicyResult {
     });
     logAudit(db, {
       tool: call.tool,
-      params: call.params,
+      params: { ...call.params, fila: queueId },
       origin: call.origin,
       result: 'ok',
       duration_ms: Date.now() - start,
