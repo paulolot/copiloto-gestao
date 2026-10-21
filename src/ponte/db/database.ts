@@ -55,6 +55,91 @@ function initSchema(db: Database): void {
       edited_content TEXT,
       discord_msg_id TEXT
     );
+
+    -- Fase 1: boards, código, métricas, sinais e tarefas
+    CREATE TABLE IF NOT EXISTS work_items (
+      id INTEGER PRIMARY KEY,
+      time_id TEXT NOT NULL,
+      tipo TEXT NOT NULL,
+      estado TEXT NOT NULL,
+      titulo TEXT,
+      iteration_path TEXT,
+      criado_em TEXT,
+      alterado_em TEXT,
+      mudanca_estado_em TEXT,
+      ativado_em TEXT,
+      fechado_em TEXT,
+      pontos REAL,
+      tags TEXT,
+      tem_dono INTEGER NOT NULL DEFAULT 0,
+      dono TEXT           -- só para WIP agregado; nenhuma ferramenta devolve este campo
+    );
+    CREATE INDEX IF NOT EXISTS idx_wi_time ON work_items(time_id, estado);
+
+    CREATE TABLE IF NOT EXISTS iteracoes (
+      time_id TEXT NOT NULL,
+      caminho TEXT NOT NULL,
+      nome TEXT NOT NULL,
+      inicio TEXT,
+      fim TEXT,
+      PRIMARY KEY (time_id, caminho)
+    );
+
+    CREATE TABLE IF NOT EXISTS commits_dia (
+      time_id TEXT NOT NULL,
+      repo TEXT NOT NULL,
+      dia TEXT NOT NULL,
+      qtd INTEGER NOT NULL,
+      PRIMARY KEY (time_id, repo, dia)
+    );
+
+    CREATE TABLE IF NOT EXISTS pull_requests (
+      time_id TEXT NOT NULL,
+      repo TEXT NOT NULL,
+      id INTEGER NOT NULL,
+      estado TEXT,
+      criado_em TEXT,
+      fechado_em TEXT,
+      PRIMARY KEY (time_id, repo, id)
+    );
+
+    CREATE TABLE IF NOT EXISTS sync_estado (
+      time_id TEXT PRIMARY KEY,
+      ultimo_sync TEXT,
+      ultimo_erro TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS metric_snapshots (
+      time_id TEXT NOT NULL,
+      periodo TEXT NOT NULL,   -- 'semana:2026-W43' ou 'sprint:<caminho>'
+      metrica TEXT NOT NULL,
+      valor REAL,
+      calculado_em TEXT NOT NULL,
+      PRIMARY KEY (time_id, periodo, metrica)
+    );
+
+    CREATE TABLE IF NOT EXISTS sinais (
+      time_id TEXT NOT NULL,
+      chave TEXT NOT NULL,
+      descricao TEXT NOT NULL,
+      severidade TEXT NOT NULL,
+      desde TEXT NOT NULL,
+      ultimo_visto TEXT NOT NULL,
+      ativo INTEGER NOT NULL DEFAULT 1,
+      avisado INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (time_id, chave)
+    );
+
+    CREATE TABLE IF NOT EXISTS tarefas (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      titulo TEXT NOT NULL,
+      prioridade TEXT NOT NULL DEFAULT 'media' CHECK(prioridade IN ('alta','media','baixa')),
+      origem TEXT,
+      prazo TEXT,
+      estado TEXT NOT NULL DEFAULT 'aberta' CHECK(estado IN ('aberta','feita')),
+      criada_em TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+      concluida_em TEXT
+    );
   `);
 }
 

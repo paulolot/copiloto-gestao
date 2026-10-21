@@ -21,38 +21,38 @@ Premissas (confirmar com o Paulo, ver checklist): o Azure DevOps é acessado só
   - Sincronização incremental (primeira carga: 12 semanas + tudo que está aberto).
   - Pronto quando: teste prova carga inicial, carga incremental e idempotência.
 
-- [x] **T1.3 Métricas por time** [código] — depende de T1.2 (RF-03, RF-06)
+- [ ] **T1.3 Métricas por time** [código] — depende de T1.2 (RF-03, RF-06)
   - Itens envelhecendo, bloqueados, WIP por coluna e por pessoa (só agregado), cycle e lead time, throughput, compromisso e escopo adicionado da sprint, bugs abertos/escapados, bug rate, MTTR (Bug Externo), frequência de commit por repositório.
   - Histórico em `metric_snapshots` (por semana e por sprint).
   - Pronto quando: testes com fixture conferem cada métrica e provam que nenhuma saída traz nome de pessoa.
 
-- [x] **T1.4 Alertas e itens-problema** [código] — depende de T1.3 (RF-04, RF-05)
+- [ ] **T1.4 Alertas e itens-problema** [código] — depende de T1.3 (RF-04, RF-05)
   - Limites padrão do `plano.md`; sem limite, desvio contra a linha de base das últimas 8 semanas.
   - Itens parados, bloqueados, sem dono e sem estimativa.
   - Tabela `sinais` guarda a data em que cada sinal surgiu (alimenta os pontos de atenção do CTO).
   - Pronto quando: testes cobrem cada alerta, a linha de base e a data do primeiro sinal.
 
-- [x] **T1.5 Ferramentas MCP de boards** [código] — depende de T1.4
+- [ ] **T1.5 Ferramentas MCP de boards** [código] — depende de T1.4
   - `boards_sincronizar`, `boards_saude(time?)`, `boards_alertas(time?)`, `boards_itens_problema(time, tipo)`, `metricas_time(time, periodo)`; nível `sozinho` (leitura), todas pelo log de auditoria.
   - Pronto quando: cliente MCP de teste chama cada uma e o log registra.
 
-- [x] **T1.6 Sincronização agendada e alertas no Discord** [código] — depende de T1.4 (RNF-01)
+- [ ] **T1.6 Sincronização agendada e alertas no Discord** [código] — depende de T1.4 (RNF-01)
   - A cada hora, dias úteis, 7h às 19h; sinal novo vai para `#alertas`; falha de sincronização também avisa.
   - Pronto quando: teste do agendador (relógio simulado) e da postagem só de sinais novos.
 
-- [x] **T1.7 Tarefas do Paulo** [código] (RF-08)
+- [ ] **T1.7 Tarefas do Paulo** [código] (RF-08)
   - `tarefa_criar`, `tarefa_listar`, `tarefa_concluir` (prioridade, origem, prazo); nível `sozinho` (lista interna).
   - Pronto quando: testes cobrem ciclo completo. Marcar como feita por botão no Discord fica para o Paulo validar junto com T1.11.
 
-- [x] **T1.8 Registro de conquistas** [código] (RF-27)
+- [ ] **T1.8 Registro de conquistas** [código] (RF-27)
   - `conquista_registrar(titulo, descricao, times, fontes)` cria nota `tipo: conquista` em `inbox/`, com crédito ao time.
   - Pronto quando: teste confirma a nota e o frontmatter.
 
-- [x] **T1.9 Rotinas do Grok Bot** [código] (RF-07, RF-09, RF-10, RF-11)
+- [ ] **T1.9 Rotinas do Grok Bot** [código] (RF-07, RF-09, RF-10, RF-11)
   - `grok/rotinas/briefing-diario.md` (7h30), `resumo-semanal.md` (sexta), `observador-boards.md` (hora em hora).
   - Pronto quando: textos prontos para colar, citando fontes e sem ranking individual.
 
-- [x] **T1.10 Documentação** [código]
+- [ ] **T1.10 Documentação** [código]
   - `docs/conectar.md` com as variáveis do Azure DevOps; `.env.example` atualizado; checklist do Paulo.
 
 - [ ] **T1.11 Validação com dados reais** [Paulo + máquina] — depende de todas
