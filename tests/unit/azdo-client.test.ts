@@ -34,7 +34,8 @@ describe('AzdoClient', () => {
   it('normalizes work items and hides nothing needed for metrics', async () => {
     const itens = await make().workItems([2, 3]);
     const bloqueado = itens.find((i) => i.id === 2)!;
-    expect(bloqueado.tags).toEqual(['Blocked', 'fiscal']);
+    expect(bloqueado.paralisado).toBe(true);
+    expect(itens.find((i) => i.id === 3)!.paralisado).toBe(false);
     expect(bloqueado.temDono).toBe(true);
     const semDono = itens.find((i) => i.id === 3)!;
     expect(semDono.temDono).toBe(false);
@@ -64,5 +65,16 @@ describe('AzdoClient', () => {
     expect((err as Error).message).toContain('401');
     expect((err as Error).message).not.toContain(PAT);
     expect((err as Error).message).not.toContain('segredo');
+  });
+});
+
+describe('campos personalizados', () => {
+  it('reads Paralisado and Tipo Bug, with configurable reference names', async () => {
+    const { normalizarWorkItem, ehVerdadeiro } = await import('../../src/ponte/azure/client.js');
+    const w = normalizarWorkItem({ id: 1, fields: { 'Meu.Par': true, 'Meu.Tipo': 'Bug Externo' } }, { paralisado: 'Meu.Par', tipoBug: 'Meu.Tipo' });
+    expect(w.paralisado).toBe(true);
+    expect(w.tipoBug).toBe('Bug Externo');
+    expect([true, 'Sim', 'yes', 'Paralisado'].map(ehVerdadeiro)).toEqual([true, true, true, true]);
+    expect([false, 'Não', 'nao', '', undefined, 'False'].map(ehVerdadeiro)).toEqual([false, false, false, false, false, false]);
   });
 });

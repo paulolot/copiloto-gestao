@@ -51,10 +51,10 @@ export async function sincronizarTime(db: Database, client: AzdoClient, time: Ti
       for (const w of itens) {
         db.run(
           `INSERT OR REPLACE INTO work_items (id, time_id, tipo, estado, titulo, iteration_path, criado_em, alterado_em,
-             mudanca_estado_em, ativado_em, fechado_em, pontos, tags, tem_dono, dono)
-           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+             mudanca_estado_em, ativado_em, fechado_em, pontos, tags, tem_dono, paralisado, tipo_bug, dono)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
           [w.id, time.id, w.tipo, w.estado, w.titulo, w.iterationPath, w.criadoEm, w.alteradoEm, w.mudancaEstadoEm ?? null,
-            w.ativadoEm ?? null, w.fechadoEm ?? null, w.pontos ?? null, w.tags.join(';'), w.temDono ? 1 : 0, w.dono ?? null],
+            w.ativadoEm ?? null, w.fechadoEm ?? null, w.pontos ?? null, w.tags.join(';'), w.temDono ? 1 : 0, w.paralisado ? 1 : 0, w.tipoBug ?? null, w.dono ?? null],
         );
       }
       for (const i of iteracoes) {

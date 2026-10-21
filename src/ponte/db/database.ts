@@ -22,6 +22,7 @@ export async function getDb(dbPath?: string): Promise<Database> {
   }
 
   initSchema(_db);
+  migrate(_db);
   if (dbPath) _paths.set(_db, dbPath);
   return _db;
 }
@@ -72,6 +73,8 @@ function initSchema(db: Database): void {
       pontos REAL,
       tags TEXT,
       tem_dono INTEGER NOT NULL DEFAULT 0,
+      paralisado INTEGER NOT NULL DEFAULT 0,
+      tipo_bug TEXT,
       dono TEXT           -- só para WIP agregado; nenhuma ferramenta devolve este campo
     );
     CREATE INDEX IF NOT EXISTS idx_wi_time ON work_items(time_id, estado);
@@ -141,6 +144,13 @@ function initSchema(db: Database): void {
       concluida_em TEXT
     );
   `);
+}
+
+/** Adds columns introduced after the first release to databases created before them. */
+function migrate(db: Database): void {
+  const cols = (db.exec('PRAGMA table_info(work_items)')[0]?.values ?? []).map((v) => v[1] as string);
+  if (!cols.includes('paralisado')) db.run('ALTER TABLE work_items ADD COLUMN paralisado INTEGER NOT NULL DEFAULT 0');
+  if (!cols.includes('tipo_bug')) db.run('ALTER TABLE work_items ADD COLUMN tipo_bug TEXT');
 }
 
 /** Writes the database to its file, atomically. No-op for databases opened without a path. */

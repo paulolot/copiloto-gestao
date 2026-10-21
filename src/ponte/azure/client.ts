@@ -20,6 +20,10 @@ export interface WorkItem {
   pontos?: number;
   tags: string[];
   temDono: boolean;
+  /** Field "Paralisado": the item is blocked. */
+  paralisado: boolean;
+  /** Field "Tipo Bug" of Bug items: "Bug Interno" or "Bug Externo" (production). */
+  tipoBug?: string;
   /** Owner identity, kept only for aggregate WIP; never returned by tools. */
   dono?: string;
 }
@@ -43,8 +47,18 @@ export interface PullRequest {
   fechadoEm?: string;
 }
 
+/** Reference names of the custom fields; override with AZDO_CAMPO_PARALISADO and AZDO_CAMPO_TIPO_BUG. */
+export interface Campos {
+  paralisado: string;
+  tipoBug: string;
+}
+export function camposDoAmbiente(env: NodeJS.ProcessEnv = process.env): Campos {
+  return { paralisado: env.AZDO_CAMPO_PARALISADO || 'Custom.Paralisado', tipoBug: env.AZDO_CAMPO_TIPO_BUG || 'Custom.TipoBug' };
+}
+
 export interface AzdoOptions {
   org: string;
+  campos?: Campos;
   pat: string;
   fetch?: FetchLike;
   baseUrl?: string;
@@ -64,6 +78,7 @@ export class AzdoClient {
   private readonly fetchFn: FetchLike;
   private readonly base: string;
   private readonly timeoutMs: number;
+  private readonly campos: Campos;
 
   constructor(opts: AzdoOptions) {
     if (!opts.pat) throw new Error('AZDO_PAT não configurado');
@@ -72,6 +87,7 @@ export class AzdoClient {
     this.fetchFn = opts.fetch ?? fetch;
     this.base = (opts.baseUrl ?? 'https://dev.azure.com').replace(/\/$/, '') + '/' + encodeURIComponent(opts.org);
     this.timeoutMs = opts.timeoutMs ?? 20_000;
+    this.campos = opts.campos ?? camposDoAmbiente();
   }
 
   private async request<T>(path: string, init: RequestInit = {}): Promise<T> {
@@ -106,9 +122,9 @@ export class AzdoClient {
       const lote = ids.slice(i, i + 200);
       const r = await this.request<{ value: { id: number; fields: Record<string, unknown> }[] }>(
         `/_apis/wit/workitemsbatch?${API}`,
-        { method: 'POST', body: JSON.stringify({ ids: lote, fields: FIELDS }) },
+        { method: 'POST', body: JSON.stringify({ ids: lote, fields: [...FIELDS, this.campos.paralisado, this.campos.tipoBug] }) },
       );
-      out.push(...r.value.map(normalizarWorkItem));
+      out.push(...r.value.map((w) => normalizarWorkItem(w, this.campos)));
     }
     return out;
   }
@@ -149,7 +165,15 @@ export class AzdoClient {
   }
 }
 
-export function normalizarWorkItem(w: { id: number; fields: Record<string, unknown> }): WorkItem {
+/** Yes/no fields come as boolean, "Sim"/"Yes"/"True" or a picklist value. */
+export function ehVerdadeiro(v: unknown): boolean {
+  if (typeof v === 'boolean') return v;
+  if (typeof v === 'number') return v !== 0;
+  if (typeof v !== 'string') return false;
+  return !['', 'não', 'nao', 'no', 'false', '0', 'n/a'].includes(v.trim().toLowerCase());
+}
+
+export function normalizarWorkItem(w: { id: number; fields: Record<string, unknown> }, campos: Campos = camposDoAmbiente()): WorkItem {
   const f = w.fields;
   const str = (k: string) => (typeof f[k] === 'string' ? (f[k] as string) : undefined);
   const dono = f['System.AssignedTo'];
@@ -170,6 +194,8 @@ export function normalizarWorkItem(w: { id: number; fields: Record<string, unkno
     pontos: typeof pontos === 'number' ? pontos : undefined,
     tags: (str('System.Tags') ?? '').split(';').map((t) => t.trim()).filter(Boolean),
     temDono: !!donoNome,
+    paralisado: ehVerdadeiro(f[campos.paralisado]),
+    tipoBug: str(campos.tipoBug),
     dono: donoNome,
   };
 }

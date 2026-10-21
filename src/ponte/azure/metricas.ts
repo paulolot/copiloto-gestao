@@ -8,8 +8,8 @@ import { persist } from '../db/database.js';
 
 export const ESTADOS_PRONTO = ['Done', 'Closed', 'Resolved'];
 const ESTADOS_NAO_INICIADO = ['New', 'To Do', 'Proposed', 'Approved'];
-const TAGS_BLOQUEIO = ['blocked', 'bloqueado'];
-const BUG_EXTERNO = 'Bug Externo';
+const TAGS_BLOQUEIO = ['blocked', 'bloqueado']; // old convention, still honored next to the Paralisado field
+const BUG_EXTERNO = 'bug externo';
 const DIA = 86_400_000;
 
 export interface Limites {
@@ -42,6 +42,8 @@ export interface ItemBoard {
   pontos?: number;
   tags: string[];
   temDono: boolean;
+  paralisado: boolean;
+  tipoBug?: string;
   dono?: string;
 }
 
@@ -114,19 +116,23 @@ export function semanaIso(d: Date): string {
 }
 
 export const ehPronto = (i: ItemBoard) => ESTADOS_PRONTO.includes(i.estado);
-export const ehBloqueado = (i: ItemBoard) => i.tags.some((t) => TAGS_BLOQUEIO.includes(t.toLowerCase()));
+export const ehBug = (i: ItemBoard) => i.tipo.toLowerCase() === 'bug';
+/** Production bug: type Bug with "Tipo Bug" = Bug Externo (a work item type with that name also counts). */
+export const ehBugExterno = (i: ItemBoard) => i.tipoBug?.trim().toLowerCase() === BUG_EXTERNO || i.tipo.toLowerCase() === BUG_EXTERNO;
+export const ehBloqueado = (i: ItemBoard) => i.paralisado || i.tags.some((t) => TAGS_BLOQUEIO.includes(t.toLowerCase()));
 export const dataFechamento = (i: ItemBoard): number => (ehPronto(i) ? ms(i.fechadoEm ?? i.mudancaEstadoEm ?? i.alteradoEm) : NaN);
 
 export function carregarItens(db: Database, timeId: string): ItemBoard[] {
   const r = db.exec(
     `SELECT id, tipo, estado, titulo, iteration_path, criado_em, alterado_em, mudanca_estado_em, ativado_em, fechado_em,
-            pontos, tags, tem_dono, dono FROM work_items WHERE time_id = ?`, [timeId]);
+            pontos, tags, tem_dono, dono, paralisado, tipo_bug FROM work_items WHERE time_id = ?`, [timeId]);
   return (r[0]?.values ?? []).map((v) => ({
     id: v[0] as number, tipo: v[1] as string, estado: v[2] as string, titulo: (v[3] as string) ?? '',
     iterationPath: (v[4] as string) ?? '', criadoEm: (v[5] as string) ?? undefined, alteradoEm: (v[6] as string) ?? undefined,
     mudancaEstadoEm: (v[7] as string) ?? undefined, ativadoEm: (v[8] as string) ?? undefined, fechadoEm: (v[9] as string) ?? undefined,
     pontos: (v[10] as number) ?? undefined, tags: ((v[11] as string) ?? '').split(';').filter(Boolean),
     temDono: v[12] === 1, dono: (v[13] as string) ?? undefined,
+    paralisado: v[14] === 1, tipoBug: (v[15] as string) ?? undefined,
   }));
 }
 
@@ -141,7 +147,7 @@ export function metricasDeSprint(itens: ItemBoard[], it: { caminho: string; nome
   const noInicio = da.filter((i) => !(ms(i.criadoEm) > inicio + DIA));
   const adicionados = da.length - noInicio.length;
   const prontos = da.filter(ehPronto);
-  const bugs = da.filter((i) => i.tipo === BUG_EXTERNO);
+  const bugs = da.filter(ehBugExterno);
   const encerrada = Number.isFinite(fim) && fim < agora.getTime();
   return {
     sprint: it.nome, inicio: it.inicio, fim: it.fim, encerrada,
@@ -172,7 +178,7 @@ export function calcularMetricas(db: Database, timeId: string, agora = new Date(
   }
   const wips = [...porPessoa.values()];
 
-  const bugsAbertos = abertos.filter((i) => i.tipo.toLowerCase().startsWith('bug'));
+  const bugsAbertos = abertos.filter((i) => ehBug(i) || ehBugExterno(i));
 
   const throughputSemanal: MetricasTime['throughputSemanal'] = [];
   const commitsSemanais: MetricasTime['commitsSemanais'] = [];
@@ -208,7 +214,7 @@ export function calcularMetricas(db: Database, timeId: string, agora = new Date(
     wipPorPessoa: { maximo: wips.length ? Math.max(...wips) : 0, pessoasAcimaDoLimite: wips.filter((n) => n > limites.wipPorPessoa).length },
     bugs: {
       abertos: bugsAbertos.length,
-      externosAbertos: bugsAbertos.filter((i) => i.tipo === BUG_EXTERNO).length,
+      externosAbertos: bugsAbertos.filter(ehBugExterno).length,
       semDono: bugsAbertos.filter((i) => !i.temDono).length,
     },
     throughputSemanal,

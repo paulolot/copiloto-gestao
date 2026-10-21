@@ -27,8 +27,8 @@ export const TIMES: TimeEscopo[] = [
   {
     id: 'desktop',
     nome: 'Squad Desktop',
-    projeto: 'AutoXPert',
-    areaPath: 'AutoXPert\\Squad Desktop',
+    projeto: 'Metanet',
+    areaPath: 'Metanet\\Squad Desktop',
     repos: [
       { projeto: 'ATXDados', repo: 'AtxDados-DB' },
       ...['AtxExec', 'AtxRelat', 'EAtxFiscal', 'AtxNFSe', 'Admin'].map((repo) => ({ projeto: 'AutoXPert', repo })),
