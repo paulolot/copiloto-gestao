@@ -24,14 +24,19 @@ async function main() {
 
   const { DISCORD_BOT_TOKEN, DISCORD_OWNER_ID, DISCORD_CANAL_APROVACOES } = process.env;
   if (DISCORD_BOT_TOKEN && DISCORD_OWNER_ID && DISCORD_CANAL_APROVACOES) {
-    await startBot({
-      db,
-      ownerId: DISCORD_OWNER_ID,
-      token: DISCORD_BOT_TOKEN,
-      canalAprovacoesId: DISCORD_CANAL_APROVACOES,
-      onDecision: runExecutor,
-    });
-    console.log('Bot do Discord conectado (fila de aprovações em #aprovacoes)');
+    // The bridge is useful without the approval bot, so a bad Discord config must not stop it.
+    try {
+      await startBot({
+        db,
+        ownerId: DISCORD_OWNER_ID,
+        token: DISCORD_BOT_TOKEN,
+        canalAprovacoesId: DISCORD_CANAL_APROVACOES,
+        onDecision: runExecutor,
+      });
+      console.log('Bot do Discord conectado (fila de aprovações em #aprovacoes)');
+    } catch (e) {
+      console.error(`Bot do Discord NÃO iniciou: ${(e as Error).message}. Confira DISCORD_BOT_TOKEN, DISCORD_OWNER_ID e DISCORD_CANAL_APROVACOES no .env; a ponte segue sem a fila de aprovações.`);
+    }
   } else {
     console.warn('Bot do Discord desativado: defina DISCORD_BOT_TOKEN, DISCORD_OWNER_ID e DISCORD_CANAL_APROVACOES');
   }
