@@ -11,7 +11,7 @@ import { logAudit } from './db/audit.js';
 import { enforcePolicy } from './middleware/autonomy.js';
 import { vaultListar, vaultLer, vaultBuscar, vaultCriarNota } from './tools/vault.js';
 import { discordPostar } from './tools/discord.js';
-import { metricasColaborador, boardsAlertas, boardsItensProblema, boardsSaude, boardsSincronizar, metricasTime, type BoardsDeps } from './tools/boards.js';
+import { boardsRoadmap, metricasColaborador, boardsAlertas, boardsItensProblema, boardsSaude, boardsSincronizar, metricasTime, type BoardsDeps } from './tools/boards.js';
 import { tarefaConcluir, tarefaCriar, tarefaListar } from './tools/tarefas.js';
 import { mensagemTarefasAbertas } from './discord/tarefas.js';
 import { conquistaRegistrar } from './tools/conquistas.js';
@@ -114,7 +114,7 @@ export function createMcpServer(db: Database, deps: Omit<BoardsDeps, 'db'> = {})
 
   mcp.tool(
     'boards_sincronizar',
-    'Atualiza os dados do Azure DevOps (work items, sprints, commits, PRs) dos times ativos',
+    'Atualiza os dados do Azure DevOps (work items, commits, PRs) dos times ativos',
     { time },
     ({ time }) => audited(db, 'boards_sincronizar', { time }, () => boardsSincronizar({ db, ...deps }, time)),
   );
@@ -141,8 +141,15 @@ export function createMcpServer(db: Database, deps: Omit<BoardsDeps, 'db'> = {})
   );
 
   mcp.tool(
+    'boards_roadmap',
+    'Andamento dos roadmaps marcados por tag nos work items: total, entregues, em andamento, aguardando release, paralisados e parados (os times não usam sprints)',
+    { time, tag: z.string().optional().describe('Um roadmap específico (a tag inteira); sem ele, todos') },
+    ({ time, tag }) => audited(db, 'boards_roadmap', { time, tag }, () => boardsRoadmap(db, { time, tag })),
+  );
+
+  mcp.tool(
     'metricas_time',
-    'Métricas de um time: atuais, ou o histórico guardado por semana e por sprint',
+    'Métricas de um time: atuais, ou o histórico guardado por semana e por mês',
     { time: z.string().describe('Time: fiscal, desktop ou retaguarda'), periodo: z.enum(['atual', 'historico']).default('atual') },
     ({ time, periodo }) => audited(db, 'metricas_time', { time, periodo }, () => metricasTime(db, time, periodo)),
   );

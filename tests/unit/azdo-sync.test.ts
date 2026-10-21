@@ -24,7 +24,6 @@ describe('sincronizarTime', () => {
     const r = await sincronizarTime(db, client, fiscal, AGORA);
     expect(r).toMatchObject({ workItems: 8, incremental: false, commits: 5, pullRequests: 1 });
     expect(count('work_items')).toBe(8);
-    expect(count('iteracoes')).toBe(2);
     expect(count('commits_dia')).toBe(5);
     expect(count('pull_requests')).toBe(1);
   });

@@ -54,19 +54,18 @@ export interface ItemBoard {
   dono?: string;
 }
 
-export interface MetricasSprint {
-  sprint: string;
-  inicio?: string;
-  fim?: string;
-  encerrada: boolean;
-  itens: number;
-  entregues: number;
-  compromisso?: number;       // % dos itens do início da sprint que ficaram prontos
-  escopoAdicionado: number;   // itens criados depois do início
-  cycleTimeDias?: number;     // mediana
-  leadTimeDias?: number;      // mediana
-  bugRate?: number;           // % de Bug Externo entre os itens da sprint
-  mttrDias?: number;          // média de abertura a fechamento dos Bug Externo
+/** The team has no sprints, so trends are read per calendar month (UTC). */
+export interface MetricasMes {
+  mes: string;               // 2026-10
+  inicio: string;
+  fim: string;
+  encerrado: boolean;
+  criados: number;           // itens criados no mês
+  entregues: number;         // itens que chegaram a Concluído no mês
+  cycleTimeDias?: number;    // mediana dos que terminaram o ciclo no mês
+  leadTimeDias?: number;     // mediana dos entregues no mês
+  bugRate?: number;          // % de bugs (Interno e Externo) entre os itens criados no mês
+  mttrDias?: number;         // média de Backlog a Concluído dos bugs entregues no mês
 }
 
 export interface MetricasTime {
@@ -84,7 +83,7 @@ export interface MetricasTime {
   leadTimeDias?: number;
   commitsSemanais: { semana: string; commits: number }[];
   commitsPorRepo: { repo: string; ultimoCommit?: string; commits28Dias: number }[];
-  sprints: MetricasSprint[];
+  meses: MetricasMes[];
 }
 
 const ms = (s?: string) => (s ? new Date(s).getTime() : NaN);
@@ -162,24 +161,24 @@ export const inicioCiclo = (i: ItemBoard) => ms(i.analiseEm ?? i.ativadoEm ?? i.
 export const cycleDias = (i: ItemBoard) => (fimCiclo(i) - inicioCiclo(i)) / DIA;
 const validos = (v: number[]) => v.filter((n) => Number.isFinite(n) && n >= 0);
 
-export function metricasDeSprint(itens: ItemBoard[], it: { caminho: string; nome: string; inicio?: string; fim?: string }, agora: Date): MetricasSprint {
-  const da = itens.filter((i) => i.iterationPath === it.caminho);
-  const inicio = ms(it.inicio);
-  const fim = ms(it.fim);
-  const noInicio = da.filter((i) => !(ms(i.criadoEm) > inicio + DIA));
-  const adicionados = da.length - noInicio.length;
-  const prontos = da.filter(ehPronto);
-  const bugs = da.filter((i) => ehBug(i) || ehBugExterno(i)); // Interno and Externo both count for bug rate and MTTR
-  const encerrada = Number.isFinite(fim) && fim < agora.getTime();
+const doMes = (d: Date) => d.toISOString().slice(0, 7);
+
+export function metricasDoMes(itens: ItemBoard[], mes: string, agora: Date): MetricasMes {
+  const [ano, m] = mes.split('-').map(Number);
+  const inicio = Date.UTC(ano, m - 1, 1);
+  const fim = Date.UTC(ano, m, 1);
+  const dentro = (t: number) => t >= inicio && t < fim;
+  const criados = itens.filter((i) => dentro(ms(i.criadoEm)));
+  const entregues = itens.filter((i) => ehPronto(i) && dentro(dataFechamento(i)));
+  const bugs = criados.filter((i) => ehBug(i) || ehBugExterno(i)); // Interno and Externo both count
+  const bugsEntregues = entregues.filter((i) => ehBug(i) || ehBugExterno(i));
   return {
-    sprint: it.nome, inicio: it.inicio, fim: it.fim, encerrada,
-    itens: da.length, entregues: prontos.length,
-    compromisso: noInicio.length ? Math.round((noInicio.filter(ehPronto).length / noInicio.length) * 100) : undefined,
-    escopoAdicionado: adicionados,
-    cycleTimeDias: mediana(validos(da.filter(terminouOCiclo).map(cycleDias))),
-    leadTimeDias: mediana(validos(prontos.map(leadDias))),
-    bugRate: da.length ? Math.round((bugs.length / da.length) * 1000) / 10 : undefined,
-    mttrDias: media(validos(bugs.filter(ehPronto).map(leadDias))),
+    mes, inicio: new Date(inicio).toISOString(), fim: new Date(fim).toISOString(), encerrado: fim <= agora.getTime(),
+    criados: criados.length, entregues: entregues.length,
+    cycleTimeDias: mediana(validos(itens.filter((i) => terminouOCiclo(i) && dentro(fimCiclo(i))).map(cycleDias))),
+    leadTimeDias: mediana(validos(entregues.map(leadDias))),
+    bugRate: criados.length ? Math.round((bugs.length / criados.length) * 1000) / 10 : undefined,
+    mttrDias: media(validos(bugsEntregues.map(leadDias))),
   };
 }
 
@@ -225,10 +224,10 @@ export function calcularMetricas(db: Database, timeId: string, agora = new Date(
     };
   });
 
-  const iteracoes = (db.exec('SELECT caminho, nome, inicio, fim FROM iteracoes WHERE time_id = ? ORDER BY inicio', [timeId])[0]?.values ?? [])
-    .map((v) => ({ caminho: v[0] as string, nome: v[1] as string, inicio: v[2] as string, fim: v[3] as string }))
-    .filter((it) => ms(it.inicio) <= agora.getTime());
-  const sprints = iteracoes.map((it) => metricasDeSprint(itens, it, agora)).filter((s) => s.itens > 0).slice(-6);
+  const meses = Array.from({ length: 6 }, (_, k) => {
+    const d = new Date(Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth() - (5 - k), 1));
+    return metricasDoMes(itens, doMes(d), agora);
+  }).filter((x) => x.criados > 0 || x.entregues > 0);
 
   const m: MetricasTime = {
     time: timeId, geradoEm: agora.toISOString(),
@@ -243,13 +242,13 @@ export function calcularMetricas(db: Database, timeId: string, agora = new Date(
     throughputSemanal,
     cycleTimeDias: mediana(validos(itens.filter((i) => terminouOCiclo(i) && agora.getTime() - fimCiclo(i) <= 28 * DIA).map(cycleDias))),
     leadTimeDias: mediana(validos(recentes.map(leadDias))),
-    commitsSemanais, commitsPorRepo, sprints,
+    commitsSemanais, commitsPorRepo, meses,
   };
   guardarHistorico(db, m);
   return m;
 }
 
-/** Keeps the history (RF-03): weekly numbers and per-sprint numbers, overwritten while the period is open. */
+/** Keeps the history (RF-03): weekly numbers and per-month numbers, overwritten while the period is open. */
 function guardarHistorico(db: Database, m: MetricasTime): void {
   const grava = (periodo: string, metrica: string, valor: number | undefined) => {
     if (valor === undefined || !Number.isFinite(valor)) return;
@@ -258,14 +257,14 @@ function guardarHistorico(db: Database, m: MetricasTime): void {
   };
   m.throughputSemanal.forEach((s) => grava(`semana:${s.semana}`, 'throughput', s.entregues));
   m.commitsSemanais.forEach((s) => grava(`semana:${s.semana}`, 'commits', s.commits));
-  for (const s of m.sprints) {
-    const p = `sprint:${s.sprint}`;
-    grava(p, 'compromisso', s.compromisso);
-    grava(p, 'escopo_adicionado', s.escopoAdicionado);
-    grava(p, 'cycle_time', s.cycleTimeDias);
-    grava(p, 'lead_time', s.leadTimeDias);
-    grava(p, 'bug_rate', s.bugRate);
-    grava(p, 'mttr', s.mttrDias);
+  for (const x of m.meses) {
+    const p = `mes:${x.mes}`;
+    grava(p, 'criados', x.criados);
+    grava(p, 'entregues', x.entregues);
+    grava(p, 'cycle_time', x.cycleTimeDias);
+    grava(p, 'lead_time', x.leadTimeDias);
+    grava(p, 'bug_rate', x.bugRate);
+    grava(p, 'mttr', x.mttrDias);
   }
   persist(db);
 }

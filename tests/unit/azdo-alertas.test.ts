@@ -6,7 +6,7 @@ import type { Database } from 'sql.js';
 import { AzdoClient } from '../../src/ponte/azure/client.js';
 import { TIMES } from '../../src/ponte/azure/escopo.js';
 import { sincronizarTime } from '../../src/ponte/azure/sync.js';
-import { LIMITES_PADRAO, type MetricasTime, type MetricasSprint } from '../../src/ponte/azure/metricas.js';
+import { LIMITES_PADRAO, type MetricasTime, type MetricasMes } from '../../src/ponte/azure/metricas.js';
 import {
   atualizarSinais, avaliarSinais, avaliarTime, itensProblema, marcarAvisado, sinaisAtivos, sinaisNaoAvisados,
 } from '../../src/ponte/azure/alertas.js';
@@ -18,9 +18,9 @@ const base = (o: Partial<MetricasTime> = {}): MetricasTime => ({
   wipPorColuna: {}, wipPorPessoa: { maximo: 0, pessoasAcimaDoLimite: 0 }, bugs: { abertos: 0, externosAbertos: 0, semDono: 0 },
   throughputSemanal: Array.from({ length: 8 }, (_, i) => ({ semana: `s${i}`, entregues: 5 })),
   commitsSemanais: Array.from({ length: 8 }, (_, i) => ({ semana: `s${i}`, commits: 20 })),
-  commitsPorRepo: [], sprints: [], ...o,
+  commitsPorRepo: [], meses: [], ...o,
 });
-const sprint = (nome: string, o: Partial<MetricasSprint> = {}): MetricasSprint => ({ sprint: nome, encerrada: true, itens: 10, entregues: 9, escopoAdicionado: 0, ...o });
+const mes = (nome: string, o: Partial<MetricasMes> = {}): MetricasMes => ({ mes: nome, inicio: '', fim: '', encerrado: true, criados: 10, entregues: 9, ...o });
 const chaves = (m: MetricasTime) => avaliarSinais(m, AGORA, LIMITES_PADRAO).map((s) => s.chave);
 
 describe('avaliarSinais', () => {
@@ -48,22 +48,17 @@ describe('avaliarSinais', () => {
     expect(chaves(base({ commitsPorRepo: [{ repo: 'r1', ultimoCommit: '2026-10-20', commits28Dias: 9 }] }))).toEqual([]);
   });
 
-  it('flags commitment below target for 2 sprints in a row, not 1', () => {
-    expect(chaves(base({ sprints: [sprint('1'), sprint('2', { compromisso: 60 }), sprint('3', { compromisso: 70 })] }))).toContain('compromisso');
-    expect(chaves(base({ sprints: [sprint('1'), sprint('2', { compromisso: 95 }), sprint('3', { compromisso: 70 })] }))).not.toContain('compromisso');
+  it('flags cycle time high for 2 months against earlier ones', () => {
+    const s = [mes('1', { cycleTimeDias: 4 }), mes('2', { cycleTimeDias: 4 }), mes('3', { cycleTimeDias: 7 }), mes('4', { cycleTimeDias: 8 })];
+    expect(chaves(base({ meses: s }))).toContain('cycle_time');
+    expect(chaves(base({ meses: [s[0], s[1], s[3], mes('5', { cycleTimeDias: 4 })] }))).not.toContain('cycle_time');
   });
 
-  it('flags cycle time high for 2 sprints against earlier ones', () => {
-    const s = [sprint('1', { cycleTimeDias: 4 }), sprint('2', { cycleTimeDias: 4 }), sprint('3', { cycleTimeDias: 7 }), sprint('4', { cycleTimeDias: 8 })];
-    expect(chaves(base({ sprints: s }))).toContain('cycle_time');
-    expect(chaves(base({ sprints: [s[0], s[1], s[3], sprint('5', { cycleTimeDias: 4 })] }))).not.toContain('cycle_time');
-  });
-
-  it('flags bug rate above 10%, MTTR above baseline and added scope', () => {
+  it('flags bug rate above 10% and MTTR above baseline', () => {
     const k = chaves(base({
-      sprints: [sprint('1', { mttrDias: 2 }), sprint('2', { bugRate: 12, mttrDias: 5 }), sprint('3', { encerrada: false, itens: 10, escopoAdicionado: 4 })],
+      meses: [mes('1', { mttrDias: 2 }), mes('2', { bugRate: 12, mttrDias: 5 }), mes('3', { encerrado: false, criados: 5 })],
     }));
-    expect(k).toEqual(expect.arrayContaining(['bug_rate', 'mttr', 'escopo']));
+    expect(k).toEqual(['bug_rate', 'mttr']);
   });
 });
 
@@ -106,7 +101,7 @@ describe('itensProblema e avaliarTime (fixture)', () => {
   it('evaluates the team end to end and registers signals', () => {
     const r = avaliarTime(db, 'fiscal', AGORA);
     const k = r.sinais.ativos.map((s) => s.chave);
-    expect(k).toEqual(expect.arrayContaining(['envelhecimento', 'bloqueio', 'bug_sem_dono', 'escopo']));
+    expect(k).toEqual(expect.arrayContaining(['envelhecimento', 'bloqueio', 'bug_sem_dono']));
     expect(sinaisAtivos(db, 'fiscal').length).toBe(r.sinais.ativos.length);
   });
 });

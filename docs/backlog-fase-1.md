@@ -7,7 +7,7 @@
 
 Legenda: **[código]** pode ser feito numa sessão na nuvem · **[Paulo]** depende do Paulo (ver `checklist-paulo.md`) · **[máquina]** precisa da máquina do Paulo.
 
-Premissas: o Azure DevOps é acessado só por leitura com PAT; Squad Fiscal primeiro, os outros dois times já configurados mas ligados por variável de ambiente. Respostas do Paulo (21/10/2026): os três times estão no projeto Metanet (área `Metanet\Squad Desktop` incluída); bloqueio = campo Paralisado (`Custom.Status`, com texto); campo **Tipo Bug** = "Bug Interno" ou "Bug Externo" (os dois contam em bug rate e MTTR); colunas do board em `docs/plano.md` (Ideias e UX fora de tudo; lead time de *Backlog* a *Concluído*; cycle time de *Fazendo Análise* a *Pronto pra release*; Squad Fiscal sem *Release candidate*). A confirmar: nome técnico do campo Tipo Bug.
+Premissas: o Azure DevOps é acessado só por leitura com PAT; Squad Fiscal primeiro, os outros dois times já configurados mas ligados por variável de ambiente. Respostas do Paulo (21/10/2026): os três times estão no projeto Metanet (área `Metanet\Squad Desktop` incluída); bloqueio = campo Paralisado (`Custom.Status`, com texto); campo **Tipo Bug** = "Bug Interno" ou "Bug Externo" (os dois contam em bug rate e MTTR); colunas do board em `docs/plano.md` (Ideias e UX fora de tudo; lead time de *Backlog* a *Concluído*; cycle time de *Fazendo Análise* a *Pronto pra release*; Squad Fiscal sem *Release candidate*). Nome técnico do campo Tipo Bug confirmado (`Custom.TipoBug`). Os times não usam sprints; roadmaps são combinados em conversa e, às vezes, marcados por uma tag.
 
 ## Tarefas
 
@@ -22,8 +22,8 @@ Premissas: o Azure DevOps é acessado só por leitura com PAT; Squad Fiscal prim
   - Pronto quando: teste prova carga inicial, carga incremental e idempotência.
 
 - [x] **T1.3 Métricas por time** [código] — depende de T1.2 (RF-03, RF-06)
-  - Itens envelhecendo, bloqueados, WIP por coluna e por pessoa (só agregado), cycle e lead time, throughput, compromisso e escopo adicionado da sprint, bugs abertos/escapados, bug rate, MTTR (Tipo Bug = Bug Externo), frequência de commit por repositório.
-  - Histórico em `metric_snapshots` (por semana e por sprint).
+  - Itens envelhecendo, bloqueados, WIP por coluna e por pessoa (só agregado), cycle e lead time, throughput, bugs abertos/escapados, bug rate, MTTR, frequência de commit por repositório.
+  - Histórico em `metric_snapshots` (por semana e por mês; os times não usam sprints, ver T1.10f).
   - Pronto quando: testes com fixture conferem cada métrica e provam que nenhuma saída traz nome de pessoa.
 
 - [x] **T1.4 Alertas e itens-problema** [código] — depende de T1.3 (RF-04, RF-05)
@@ -74,6 +74,11 @@ Premissas: o Azure DevOps é acessado só por leitura com PAT; Squad Fiscal prim
   - Essas datas vêm das revisões do item, buscadas uma vez por item que chegou a Resolved ou Closed (até 300 por sincronização; falha de um item não derruba a sincronização). Sem a revisão, usa criação, ativação e a data da mudança de estado.
   - Bug rate e MTTR passam a contar Bug Interno e Externo.
   - Pronto quando: testes cobrem as colunas, Ideias fora, cycle time pelas revisões e Bug Interno.
+
+- [x] **T1.10f Sem sprints: janelas mensais e roadmap por tag** [código] (resposta do Paulo, 21/10/2026)
+  - Saem as métricas e alertas de sprint (compromisso, escopo adicionado) e a leitura de iterações do Azure DevOps. Tendências passam a ser por semana (throughput, commits) e por mês (cycle e lead time, bug rate = bugs criados ÷ itens criados, MTTR = Backlog→Concluído dos bugs entregues); alertas de "2 sprints" viram "2 meses seguidos".
+  - `boards_roadmap(time?, tag?)`: roadmaps são marcados por tag nos work items (prefixo em `AZDO_TAG_ROADMAP`, padrão `roadmap`, sem diferenciar maiúsculas); mostra total, entregues (Concluído), em andamento, aguardando release, paralisados e parados.
+  - Pronto quando: testes cobrem os meses, os alertas mensais e o agrupamento por tag.
 
 - [ ] **T1.11 Validação com dados reais** [Paulo + máquina] — depende de todas
   - Criar o PAT, ligar `AZDO_PAT`, sincronizar o Squad Fiscal, conferir métricas contra o board, colar as rotinas no Grok Bot.

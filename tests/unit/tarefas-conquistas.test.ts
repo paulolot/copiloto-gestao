@@ -50,9 +50,9 @@ describe('conquistas', () => {
     process.env.VAULT_PATH = tmp;
     const caminho = conquistaRegistrar({
       titulo: 'Fechamos o módulo fiscal da NFC-e',
-      descricao: '12 itens entregues na sprint 42.',
+      descricao: '12 itens entregues no mês.',
       times: ['Squad Fiscal'],
-      fontes: ['Azure DevOps: Sprint 42, Squad Fiscal'],
+      fontes: ['Azure DevOps: Squad Fiscal, itens concluídos em outubro'],
     });
     expect(caminho).toMatch(/^inbox\/\d{4}-\d{2}-\d{2}-.+\.md$/);
     const nota = readFileSync(join(tmp, caminho), 'utf8');
@@ -60,7 +60,7 @@ describe('conquistas', () => {
     expect(nota).toContain('times: ["Squad Fiscal"]');
     expect(nota).toContain('revisado: false');
     expect(nota).toContain('**Crédito:** Squad Fiscal');
-    expect(nota).toContain('Azure DevOps: Sprint 42');
+    expect(nota).toContain('Azure DevOps: Squad Fiscal');
   });
 
   it('requires a source', () => {

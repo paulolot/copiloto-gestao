@@ -15,7 +15,8 @@ Regras: cite a fonte de cada afirmação; métricas do resumo sempre por time (n
 Chame `boards_sincronizar` e `metricas_time` (periodo `atual`) para cada time ativo. Por time:
 - itens entregues na semana e comparação com a média das semanas anteriores (throughput);
 - cycle time e lead time (mediana);
-- sprint em curso: compromisso, escopo adicionado.
+- tendência do mês (cycle e lead time, bug rate) comparada com os meses anteriores, quando houver dado;
+- roadmaps: chame `boards_roadmap` e, para cada roadmap com tag, diga o andamento (entregues de total), o que está aguardando release e o que está parado ou paralisado. Se não houver tag de roadmap, omita esta linha. Os times não usam sprints.
 Destaque o que melhorou. Comece sempre pelo que foi bem: o CTO e o time precisam ver as evoluções primeiro.
 
 ## 2. O que travou
@@ -28,7 +29,7 @@ Use `vault_buscar` em `decisoes/` e `reunioes/` com a data da semana e liste as 
 Use `vault_buscar` por notas `tipo: conquista` da semana e some as que você identificou nos boards (entregas relevantes, metas batidas, bug rate ou MTTR melhorando). Para cada conquista nova ainda sem nota, chame `conquista_registrar` com título, descrição com números, times a creditar e fontes. Sempre com crédito ao time.
 
 ## 5. Riscos da semana seguinte
-Leia a agenda da próxima semana (Calendar) e as tarefas abertas (`tarefa_listar`). Liste: reuniões importantes (CTO, planejamento, review), prazos de tarefas, sprints que fecham, riscos que os sinais ativos indicam. Cada risco: o que pode acontecer, desde quando se sabe, o que já foi feito, o que o Paulo precisa decidir.
+Leia a agenda da próxima semana (Calendar) e as tarefas abertas (`tarefa_listar`). Liste: reuniões importantes (CTO, planejamento, review), prazos de tarefas, riscos que os sinais ativos indicam. Cada risco: o que pode acontecer, desde quando se sabe, o que já foi feito, o que o Paulo precisa decidir.
 
 ## 6. Postagem
 Ordem: o que andou, conquistas, o que travou, decisões, riscos. Máximo de 1 página. Termine com "Fontes consultadas:". Poste com `discord_postar` no canal `briefing` (divida em mensagens numeradas se passar de 2000 caracteres).

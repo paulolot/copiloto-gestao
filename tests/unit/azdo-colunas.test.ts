@@ -97,7 +97,7 @@ describe('colunas no sync e nas métricas', () => {
   it('counts Bug Interno in bug rate and MTTR', async () => {
     await sincronizarTime(db, client(), TIMES[0], AGORA);
     db.run(`UPDATE work_items SET estado = 'Closed', coluna = 'Concluído', fechado_em = ? WHERE id = 6`, [new Date(AGORA.getTime() - 4 * 86_400_000).toISOString()]);
-    const s = calcularMetricas(db, 'fiscal', AGORA).sprints.find((x) => x.sprint === 'Sprint 42')!;
+    const s = calcularMetricas(db, 'fiscal', AGORA).meses.find((x) => x.mes === '2026-10')!;
     // item 5 (Externo): 8→6 days = 2; item 6 (Interno): created 20 days ago, closed 4 days ago = 16; mean 9
     expect(s.mttrDias).toBe(9);
     expect(s.bugRate).toBe(28.6);

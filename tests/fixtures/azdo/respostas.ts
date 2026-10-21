@@ -36,13 +36,6 @@ export const REVISOES: Record<number, { col: string; estado?: string; dias: numb
   5: [{ col: 'Disponível para Dev', dias: 8 }, { col: 'Concluído', estado: 'Closed', dias: 6 }],
 };
 
-export const ITERACOES = {
-  name: 'Metanet', children: [
-    { name: 'Sprint 41', attributes: { startDate: dias(28), finishDate: dias(15) } },
-    { name: 'Sprint 42', attributes: { startDate: dias(14), finishDate: dias(-1) } },
-  ],
-};
-
 /** A fetch that answers the Azure DevOps routes used by the sync; `chamadas` records the paths. */
 export function fakeFetch(chamadas: { url: string; body?: string; auth?: string }[] = [], opts: { status?: number } = {}): FetchLike {
   return async (url, init) => {
@@ -57,7 +50,6 @@ export function fakeFetch(chamadas: { url: string; body?: string; auth?: string 
     if (rev) {
       return json({ value: (REVISOES[Number(rev[1])] ?? []).map((r) => ({ fields: { 'System.BoardColumn': r.col, 'System.State': r.estado ?? 'New', 'System.ChangedDate': dias(r.dias) } })) });
     }
-    if (url.includes('/classificationnodes/iterations')) return json(ITERACOES);
     if (url.includes('/commits')) {
       return json({ value: [0, 1, 2, 9, 10].map((d, n) => ({ commitId: `c${n}`, committer: { date: dias(d) } })) });
     }

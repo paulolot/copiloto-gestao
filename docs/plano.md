@@ -92,16 +92,16 @@ Toda ação fica num log com motivo e fonte.
 | Itens envelhecendo | Sem mudança de estado acima do limite do time |
 | Itens bloqueados | Bloqueio acima de 2 dias úteis |
 | WIP por pessoa e por coluna | Acima do limite combinado |
-| Cycle time e lead time | Alta por 2 sprints |
+| Cycle time e lead time | Alta por 2 meses seguidos contra os anteriores |
 | Throughput | Queda forte contra a média |
-| Compromisso da sprint | Abaixo do combinado em 2 sprints seguidas |
 | Bugs abertos e escapados | Acima do usual ou sem dono |
-| Escopo adicionado na sprint | Acima do limite do time |
-| Bug rate | Acima de 10% (nível essencial) ou em alta por 2 sprints |
+| Andamento dos roadmaps (por tag) | Roadmap com itens paralisados ou parados; informativo, sem limite fixo |
+| Bug rate | Acima de 10% (nível essencial) ou em alta por 2 meses seguidos (bugs criados ÷ itens criados no mês, Interno e Externo) |
 | MTTR | Média em alta contra a linha de base; sem tempo-alvo |
 | Frequência de commit | Repositório ativo parado por dias, ou queda forte |
 
 - Limites começam pela linha de base das últimas 8 semanas de cada time.
+- **Os times não usam sprints.** As tendências são lidas por semana (throughput, commits) e por mês (cycle e lead time, bug rate, MTTR). Roadmaps não ficam explícitos no board: quando existem, são marcados por uma tag nos work items (prefixo em `AZDO_TAG_ROADMAP`) e acompanhados por `boards_roadmap`.
 - Frequência de commit por time e repositório, nunca por pessoa.
 - Métricas por colaborador (decisão de 21/10/2026) existem além das do time, em ferramenta específica: WIP, entregas, cycle e lead time, itens parados e paralisados, bugs. São área restrita: sem ranking, sem comparação entre pessoas, só para 1:1 e PDI.
 - Bloqueio = campo **Paralisado** (`Custom.Status`): preenchido com algum texto, o item está paralisado.
@@ -111,7 +111,7 @@ Toda ação fica num log com motivo e fonte.
   - **Ideias** e **UX** não entram em nenhuma métrica.
   - **Lead time:** da entrada em *Backlog* até *Concluído*.
   - **Cycle time:** da entrada em *Fazendo Análise* até a primeira chegada a *Pronto pra release* (ou *Release candidate*, ou estado Resolved).
-  - **WIP** = de *Fazendo Análise* até *Aguardando pipeline*. "Entregue" (throughput, compromisso da sprint) = *Concluído*.
+  - **WIP** = de *Fazendo Análise* até *Aguardando pipeline*. "Entregue" (throughput) = *Concluído*.
   - Nomes de coluna são comparados sem diferenciar maiúsculas, acentos e espaços extras. Coluna com nome desconhecido aparece em `colunasDesconhecidas` na fonte das respostas de boards.
   - Item parado = dias sem nenhuma alteração (o Azure DevOps não guarda a data de mudança de coluna dentro de um estado).
 

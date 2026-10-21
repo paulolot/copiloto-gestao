@@ -61,20 +61,18 @@ describe('calcularMetricas', () => {
     expect(m.commitsPorRepo[0]).toMatchObject({ repo: 'projeto-metaposto-net', commits28Dias: 5 });
   });
 
-  it('computes sprint metrics, MTTR and bug rate', () => {
+  it('computes monthly metrics (no sprints), MTTR and bug rate', () => {
     const m = calcularMetricas(db, 'fiscal', AGORA);
-    const s = m.sprints.find((x) => x.sprint === 'Sprint 42')!;
-    expect(s.itens).toBe(7);
-    expect(s.entregues).toBe(2);
-    expect(s.encerrada).toBe(false);
-    expect(s.bugRate).toBe(28.6); // Bug Interno and Externo both count: 2 of 7
-    expect(s.mttrDias).toBe(2); // item 5
-    expect(s.escopoAdicionado).toBe(2); // items 4 and 5 were created after the sprint started
+    expect(m.meses.map((x) => x.mes)).toEqual(['2026-10']);
+    const o = m.meses[0];
+    expect(o).toMatchObject({ encerrado: false, criados: 7, entregues: 2, cycleTimeDias: 4.5, leadTimeDias: 5 });
+    expect(o.bugRate).toBe(28.6); // Bug Interno and Externo both count: 2 of 7 created
+    expect(o.mttrDias).toBe(2); // item 5, Backlog → Concluído
   });
 
   it('keeps history in snapshots', () => {
     calcularMetricas(db, 'fiscal', AGORA);
-    const r = db.exec(`SELECT valor FROM metric_snapshots WHERE periodo = 'sprint:Sprint 42' AND metrica = 'mttr'`);
+    const r = db.exec(`SELECT valor FROM metric_snapshots WHERE periodo = 'mes:2026-10' AND metrica = 'mttr'`);
     expect(r[0].values[0][0]).toBe(2);
   });
 

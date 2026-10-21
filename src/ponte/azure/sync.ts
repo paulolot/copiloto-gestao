@@ -33,7 +33,6 @@ export async function sincronizarTime(db: Database, client: AzdoClient, time: Ti
   try {
     const ids = await client.consultarIds(time.projeto, time.areaPath, { desde, apenasAlterados: incremental });
     const itens = await client.workItems(ids);
-    const iteracoes = await client.iteracoes(time.projeto);
     const commits = new Map<string, number>();
     const prs: { repo: string; id: number; estado: string; criadoEm: string; fechadoEm?: string }[] = [];
     let totalCommits = 0;
@@ -62,10 +61,6 @@ export async function sincronizarTime(db: Database, client: AzdoClient, time: Ti
             w.ativadoEm ?? null, w.fechadoEm ?? null, w.pontos ?? null, w.tags.join(';'), w.temDono ? 1 : 0, w.paralisado ? 1 : 0,
             w.tipoBug ?? null, w.coluna ?? null, w.dono ?? null],
         );
-      }
-      for (const i of iteracoes) {
-        db.run('INSERT OR REPLACE INTO iteracoes (time_id, caminho, nome, inicio, fim) VALUES (?,?,?,?,?)',
-          [time.id, i.caminho, i.nome, i.inicio ?? null, i.fim ?? null]);
       }
       // A day is rewritten as a whole: the fetch window always covers full days from `desde`.
       for (const [k, qtd] of commits) {

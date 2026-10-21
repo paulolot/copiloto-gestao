@@ -38,13 +38,6 @@ export interface Marcos {
   prontoEm?: string;
 }
 
-export interface Iteracao {
-  caminho: string;
-  nome: string;
-  inicio?: string;
-  fim?: string;
-}
-
 export interface Commit {
   id: string;
   data: string;
@@ -158,19 +151,6 @@ export class AzdoClient {
       if (!m.prontoEm && (terminouCiclo(coluna) || estado === 'Resolved' || estado === 'Closed')) m.prontoEm = quando;
     }
     return m;
-  }
-
-  async iteracoes(projeto: string): Promise<Iteracao[]> {
-    type Node = { name: string; path?: string; attributes?: { startDate?: string; finishDate?: string }; children?: Node[] };
-    const raiz = await this.request<Node>(`/${encodeURIComponent(projeto)}/_apis/wit/classificationnodes/iterations?$depth=5&${API}`);
-    const out: Iteracao[] = [];
-    const walk = (n: Node, caminho: string) => {
-      const atual = caminho ? `${caminho}\\${n.name}` : n.name;
-      if (n.attributes?.startDate) out.push({ caminho: atual, nome: n.name, inicio: n.attributes.startDate, fim: n.attributes.finishDate });
-      n.children?.forEach((c) => walk(c, atual));
-    };
-    walk(raiz, '');
-    return out;
   }
 
   async commits(projeto: string, repo: string, desde: string): Promise<Commit[]> {

@@ -1,7 +1,7 @@
 /**
  * T1.4 — Alerts and problem items (RF-04, RF-05)
  * Fixed limits where the plan has them (plano.md → Métricas iniciais); otherwise deviation against
- * the baseline of the last 8 weeks / previous sprints. A signal remembers the date it first appeared,
+ * the baseline of the last 8 weeks / previous months. A signal remembers the date it first appeared,
  * so a yellow signal can go to the CTO agenda before it turns red.
  */
 import type { Database } from 'sql.js';
@@ -27,14 +27,12 @@ export interface SinalRegistrado extends Sinal {
 
 export interface LimitesAlerta {
   bugRatePercent: number;
-  compromissoPercent: number;
-  escopoAdicionadoPercent: number;
   quedaForte: number;   // fraction of the baseline below which a drop is "strong"
   altaForte: number;    // multiple of the baseline above which a rise is "high"
   commitParadoDiasUteis: number;
 }
 export const LIMITES_ALERTA_PADRAO: LimitesAlerta = {
-  bugRatePercent: 10, compromissoPercent: 80, escopoAdicionadoPercent: 20, quedaForte: 0.5, altaForte: 1.25, commitParadoDiasUteis: 3,
+  bugRatePercent: 10, quedaForte: 0.5, altaForte: 1.25, commitParadoDiasUteis: 3,
 };
 
 export function limitesAlertaDoAmbiente(env: NodeJS.ProcessEnv = process.env): LimitesAlerta {
@@ -42,8 +40,6 @@ export function limitesAlertaDoAmbiente(env: NodeJS.ProcessEnv = process.env): L
   return {
     ...LIMITES_ALERTA_PADRAO,
     bugRatePercent: n(env.LIMITE_BUG_RATE_PERCENT, LIMITES_ALERTA_PADRAO.bugRatePercent),
-    compromissoPercent: n(env.LIMITE_COMPROMISSO_PERCENT, LIMITES_ALERTA_PADRAO.compromissoPercent),
-    escopoAdicionadoPercent: n(env.LIMITE_ESCOPO_PERCENT, LIMITES_ALERTA_PADRAO.escopoAdicionadoPercent),
     commitParadoDiasUteis: n(env.LIMITE_COMMIT_PARADO_DIAS_UTEIS, LIMITES_ALERTA_PADRAO.commitParadoDiasUteis),
   };
 }
@@ -81,32 +77,25 @@ export function avaliarSinais(m: MetricasTime, agora: Date, lim: Limites, la: Li
     }
   }
 
-  // Sprint series: closed sprints, oldest first
-  const fechadas = m.sprints.filter((s) => s.encerrada);
+  // Monthly series (no sprints): closed months, oldest first
+  const fechadas = m.meses.filter((x) => x.encerrado);
   const ult2 = fechadas.slice(-2);
   const anteriores = fechadas.slice(0, -2);
-  const duasAltas = (get: (s: (typeof fechadas)[number]) => number | undefined, fator: number) => {
+  const duasAltas = (get: (x: (typeof fechadas)[number]) => number | undefined, fator: number) => {
     const base = media(anteriores.map(get).filter((v): v is number => v !== undefined));
     const v = ult2.map(get);
     return base !== undefined && v.length === 2 && v.every((x) => x !== undefined && x > base * fator);
   };
-  if (duasAltas((s) => s.cycleTimeDias, la.altaForte)) add('cycle_time', 'amarelo', 'Cycle time em alta nas últimas 2 sprints contra as anteriores');
-  if (ult2.length === 2 && ult2.every((s) => s.compromisso !== undefined && s.compromisso < la.compromissoPercent)) {
-    add('compromisso', 'amarelo', `Compromisso da sprint abaixo de ${la.compromissoPercent}% nas últimas 2 sprints (${ult2.map((s) => s.compromisso + '%').join(' e ')})`);
-  }
+  if (duasAltas((x) => x.cycleTimeDias, la.altaForte)) add('cycle_time', 'amarelo', 'Cycle time em alta nos últimos 2 meses contra os anteriores');
   const ultima = fechadas.at(-1);
   if (ultima?.bugRate !== undefined && ultima.bugRate > la.bugRatePercent) {
-    add('bug_rate', 'amarelo', `Bug rate de ${ultima.bugRate}% na ${ultima.sprint} (limite ${la.bugRatePercent}%)`);
+    add('bug_rate', 'amarelo', `Bug rate de ${ultima.bugRate}% em ${ultima.mes} (limite ${la.bugRatePercent}%)`);
   } else if (ult2.length === 2 && ult2[0].bugRate !== undefined && ult2[1].bugRate !== undefined && ult2[1].bugRate > ult2[0].bugRate && ult2[0].bugRate > (fechadas.at(-3)?.bugRate ?? Infinity)) {
-    add('bug_rate', 'amarelo', 'Bug rate em alta por 2 sprints');
+    add('bug_rate', 'amarelo', 'Bug rate em alta por 2 meses');
   }
   if (ultima?.mttrDias !== undefined) {
-    const base = media(fechadas.slice(0, -1).map((s) => s.mttrDias).filter((v): v is number => v !== undefined));
-    if (base !== undefined && ultima.mttrDias > base * 1.5) add('mttr', 'amarelo', `MTTR de ${ultima.mttrDias} dias na ${ultima.sprint}, acima da linha de base (${base} dias)`);
-  }
-  const atual = m.sprints.find((s) => !s.encerrada);
-  if (atual && atual.itens > 0 && (atual.escopoAdicionado / atual.itens) * 100 > la.escopoAdicionadoPercent) {
-    add('escopo', 'amarelo', `${atual.escopoAdicionado} de ${atual.itens} itens da ${atual.sprint} entraram depois do início (limite ${la.escopoAdicionadoPercent}%)`);
+    const base = media(fechadas.slice(0, -1).map((x) => x.mttrDias).filter((v): v is number => v !== undefined));
+    if (base !== undefined && ultima.mttrDias > base * 1.5) add('mttr', 'amarelo', `MTTR de ${ultima.mttrDias} dias em ${ultima.mes}, acima da linha de base (${base} dias)`);
   }
   return out;
 }

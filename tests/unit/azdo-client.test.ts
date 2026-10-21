@@ -17,7 +17,7 @@ describe('AzdoClient', () => {
 
   it('authenticates with Basic and the PAT only in the header', async () => {
     const chamadas: { url: string; auth?: string }[] = [];
-    await make(chamadas).iteracoes('Metanet');
+    await make(chamadas).commits('Metanet', 'repo', '2026-09-01');
     expect(chamadas[0].auth).toBe('Basic ' + Buffer.from(`:${PAT}`).toString('base64'));
     expect(chamadas[0].url).not.toContain(PAT);
   });
@@ -48,11 +48,6 @@ describe('AzdoClient', () => {
     expect(chamadas).toHaveLength(3);
   });
 
-  it('flattens iterations with their dates', async () => {
-    const it = await make().iteracoes('Metanet');
-    expect(it.map((i) => i.caminho)).toEqual(['Metanet\\Sprint 41', 'Metanet\\Sprint 42']);
-  });
-
   it('reads commits and pull requests', async () => {
     const c = make();
     expect(await c.commits('Metanet', 'repo', '2026-09-01')).toHaveLength(5);
@@ -61,7 +56,7 @@ describe('AzdoClient', () => {
 
   it('errors without leaking the token or the response body', async () => {
     const chamadas: { url: string }[] = [];
-    const err = await make(chamadas, 401).iteracoes('Metanet').catch((e: Error) => e);
+    const err = await make(chamadas, 401).commits('Metanet', 'repo', '2026-09-01').catch((e: Error) => e);
     expect((err as Error).message).toContain('401');
     expect((err as Error).message).not.toContain(PAT);
     expect((err as Error).message).not.toContain('segredo');

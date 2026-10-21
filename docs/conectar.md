@@ -33,6 +33,7 @@ Abra `.env` e preencha:
 | `AZDO_PAT` | Personal Access Token **somente leitura** (Work Items, Code, Analytics). Só no `.env`: nunca em chat, commit ou URL |
 | `AZDO_CAMPO_PARALISADO` / `AZDO_CAMPO_TIPO_BUG` | Nome técnico dos campos Paralisado e Tipo Bug (padrão `Custom.Status` e `Custom.TipoBug`) |
 | `AZDO_COLUNAS_IGNORADAS` | Colunas fora de toda métrica (padrão `Ideias,UX`) |
+| `AZDO_TAG_ROADMAP` | Começo do nome da tag que marca os itens de um roadmap (padrão `roadmap`) |
 | `AZDO_TIMES` | Times sincronizados: `fiscal`, `desktop`, `retaguarda` (padrão: só `fiscal`) |
 
 ## Passo 2 — Instalar dependências e testar
@@ -119,7 +120,7 @@ cloudflared tunnel run copiloto-gestao
    - **URL:** `https://copiloto.SEUDOMINIO.com/mcp/SEU_PONTE_TOKEN` (o mesmo token do `.env`, no fim da URL)
    - Se o Grok pedir "credenciais OAuth", a URL está sem o token ou com o token errado.
    - O token na URL pode aparecer em logs: use um token longo e aleatório, nunca o compartilhe e troque-o se vazar. Clientes que aceitam cabeçalho podem usar `Authorization: Bearer` na URL `/mcp`.
-4. Clique em **Testar conexão** — deve listar as ferramentas: `ping`, `vault_listar`, `vault_ler`, `vault_buscar`, `vault_criar_nota`, `discord_postar`, `boards_sincronizar`, `boards_saude`, `boards_alertas`, `boards_itens_problema`, `metricas_time`, `metricas_colaborador`, `metricas_colaboradores`, `tarefa_criar`, `tarefa_listar`, `tarefa_concluir`, `tarefas_postar`, `conquista_registrar`
+4. Clique em **Testar conexão** — deve listar as ferramentas: `ping`, `vault_listar`, `vault_ler`, `vault_buscar`, `vault_criar_nota`, `discord_postar`, `boards_sincronizar`, `boards_saude`, `boards_alertas`, `boards_itens_problema`, `boards_roadmap`, `metricas_time`, `metricas_colaborador`, `metricas_colaboradores`, `tarefa_criar`, `tarefa_listar`, `tarefa_concluir`, `tarefas_postar`, `conquista_registrar`
 5. Salve
 
 ## Passo 7 — Rodar o teste de fundação

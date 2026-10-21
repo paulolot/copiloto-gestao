@@ -9,6 +9,7 @@ import { colunaDesconhecida } from '../azure/colunas.js';
 import { acharTime, timesAtivos, type TimeEscopo } from '../azure/escopo.js';
 import { sincronizarTime } from '../azure/sync.js';
 import { metricasColaboradores } from '../azure/metricas-pessoa.js';
+import { prefixoRoadmap, roadmaps } from '../azure/roadmap.js';
 import { avaliarTime, itensProblema, sinaisAtivos, type TipoProblema } from '../azure/alertas.js';
 
 export interface BoardsDeps {
@@ -87,4 +88,16 @@ export function metricasColaborador(db: Database, opts: { time?: string; pessoa?
   const r = metricasColaboradores(db, { timeIds: times.map((t) => t.id), pessoa: opts.pessoa, agora });
   if (opts.pessoa && !r.colaboradores.length) throw new Error('Nenhum colaborador com itens atribuídos corresponde a essa busca');
   return JSON.stringify({ fonte: times.map((t) => fonte(db, t)), ...r }, null, 2);
+}
+
+/** Progress of the roadmaps marked by tag (the teams have no sprints). */
+export function boardsRoadmap(db: Database, opts: { time?: string; tag?: string }, agora = new Date()): string {
+  return JSON.stringify(resolverTimes(opts.time).map((t) => {
+    exigirDados(db, t);
+    const r = roadmaps(db, t.id, { tag: opts.tag, agora });
+    return {
+      time: t.nome, fonte: fonte(db, t), roadmaps: r,
+      ...(r.length ? {} : { aviso: `Nenhum item com tag que comece por "${prefixoRoadmap()}". A tag usada nos roadmaps é configurada em AZDO_TAG_ROADMAP.` }),
+    };
+  }), null, 2);
 }

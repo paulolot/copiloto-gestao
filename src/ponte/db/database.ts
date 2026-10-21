@@ -85,15 +85,6 @@ function initSchema(db: Database): void {
     );
     CREATE INDEX IF NOT EXISTS idx_wi_time ON work_items(time_id, estado);
 
-    CREATE TABLE IF NOT EXISTS iteracoes (
-      time_id TEXT NOT NULL,
-      caminho TEXT NOT NULL,
-      nome TEXT NOT NULL,
-      inicio TEXT,
-      fim TEXT,
-      PRIMARY KEY (time_id, caminho)
-    );
-
     CREATE TABLE IF NOT EXISTS commits_dia (
       time_id TEXT NOT NULL,
       repo TEXT NOT NULL,
@@ -120,7 +111,7 @@ function initSchema(db: Database): void {
 
     CREATE TABLE IF NOT EXISTS metric_snapshots (
       time_id TEXT NOT NULL,
-      periodo TEXT NOT NULL,   -- 'semana:2026-W43' ou 'sprint:<caminho>'
+      periodo TEXT NOT NULL,   -- 'semana:2026-W43' ou 'mes:2026-10'
       metrica TEXT NOT NULL,
       valor REAL,
       calculado_em TEXT NOT NULL,
