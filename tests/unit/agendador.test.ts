@@ -1,0 +1,69 @@
+/**
+ * T1.6 — Scheduler: window, new-signals-only posting, failure reporting
+ */
+import { describe, it, expect, beforeEach } from '@jest/globals';
+import type { Database } from 'sql.js';
+import { AzdoClient } from '../../src/ponte/azure/client.js';
+import { TIMES } from '../../src/ponte/azure/escopo.js';
+import { dentroDaJanela, executarCiclo, formatarSinal } from '../../src/ponte/agendador.js';
+import { queryAudit } from '../../src/ponte/db/audit.js';
+import { AGORA, fakeFetch } from '../fixtures/azdo/respostas.js';
+import { makeTestDb } from './helpers.js';
+
+let db: Database;
+const posts: { canal: string; texto: string }[] = [];
+const postar = async (canal: string, texto: string) => void posts.push({ canal, texto });
+const client = (status?: number) => new AzdoClient({ org: 'o', pat: 'p', fetch: fakeFetch([], { status }) });
+
+beforeEach(async () => {
+  db = await makeTestDb();
+  posts.length = 0;
+});
+
+describe('dentroDaJanela', () => {
+  it('is true on weekdays between 7h and 19h in São Paulo', () => {
+    expect(dentroDaJanela(new Date('2026-10-21T10:00:00Z'))).toBe(true);  // Wed 07:00
+    expect(dentroDaJanela(new Date('2026-10-21T09:59:00Z'))).toBe(false); // Wed 06:59
+    expect(dentroDaJanela(new Date('2026-10-21T21:59:00Z'))).toBe(true);  // Wed 18:59
+    expect(dentroDaJanela(new Date('2026-10-21T22:00:00Z'))).toBe(false); // Wed 19:00
+    expect(dentroDaJanela(new Date('2026-10-24T15:00:00Z'))).toBe(false); // Sat
+  });
+});
+
+describe('executarCiclo', () => {
+  it('posts new signals to #alertas once, and not again on the next cycle', async () => {
+    const r1 = await executarCiclo({ db, azdo: client(), postar, times: [TIMES[0]], agora: AGORA });
+    expect(r1.sincronizados).toEqual(['fiscal']);
+    expect(r1.alertasPostados).toBeGreaterThan(0);
+    expect(posts.every((p) => p.canal === 'alertas')).toBe(true);
+    expect(posts.some((p) => p.texto.includes('Squad Fiscal') && p.texto.includes('Azure DevOps'))).toBe(true);
+
+    posts.length = 0;
+    const r2 = await executarCiclo({ db, azdo: client(), postar, times: [TIMES[0]], agora: new Date(AGORA.getTime() + 3_600_000) });
+    expect(r2.alertasPostados).toBe(0);
+    expect(posts).toHaveLength(0);
+  });
+
+  it('keeps a signal unannounced when Discord fails, and retries next cycle', async () => {
+    const falha = async () => { throw new Error('discord fora'); };
+    const r1 = await executarCiclo({ db, azdo: client(), postar: falha, times: [TIMES[0]], agora: AGORA });
+    expect(r1.alertasPostados).toBe(0);
+    const r2 = await executarCiclo({ db, azdo: client(), postar, times: [TIMES[0]], agora: AGORA });
+    expect(r2.alertasPostados).toBeGreaterThan(0);
+  });
+
+  it('reports a sync failure once per distinct error and logs it', async () => {
+    const r1 = await executarCiclo({ db, azdo: client(503), postar, times: [TIMES[0]], agora: AGORA });
+    expect(r1.falhas).toEqual(['fiscal']);
+    expect(posts).toHaveLength(1);
+    expect(posts[0].texto).toContain('503');
+    await executarCiclo({ db, azdo: client(503), postar, times: [TIMES[0]], agora: AGORA });
+    expect(posts).toHaveLength(1);
+    expect(queryAudit(db).filter((a) => a.tool === 'boards_sync_agendado' && a.result === 'error')).toHaveLength(2);
+  });
+
+  it('formats a signal with severity, team and first-seen date', () => {
+    const t = formatarSinal('Squad Fiscal', { time: 'fiscal', chave: 'k', descricao: 'algo', severidade: 'vermelho', desde: '2026-10-19T15:00:00Z' });
+    expect(t).toBe('🔴 **Squad Fiscal** — algo (desde 19/10) · fonte: Azure DevOps');
+  });
+});
