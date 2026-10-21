@@ -48,7 +48,7 @@ Premissas (confirmar com o Paulo, ver checklist): o Azure DevOps é acessado só
   - `conquista_registrar(titulo, descricao, times, fontes)` cria nota `tipo: conquista` em `inbox/`, com crédito ao time.
   - Pronto quando: teste confirma a nota e o frontmatter.
 
-- [ ] **T1.9 Rotinas do Grok Bot** [código] (RF-07, RF-09, RF-10, RF-11)
+- [x] **T1.9 Rotinas do Grok Bot** [código] (RF-07, RF-09, RF-10, RF-11)
   - `grok/rotinas/briefing-diario.md` (7h30), `resumo-semanal.md` (sexta), `observador-boards.md` (hora em hora).
   - Pronto quando: textos prontos para colar, citando fontes e sem ranking individual.
 
