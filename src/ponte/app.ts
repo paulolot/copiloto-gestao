@@ -16,11 +16,27 @@ export function safeCompare(a: string, b: string): boolean {
   return timingSafeEqual(ha, hb);
 }
 
-function authenticate(req: IncomingMessage, token: string): boolean {
+/**
+ * The token may come in the Authorization header or as the last URL segment (/mcp/<token>).
+ * The URL form exists for clients that cannot set headers (the Grok Bot connector only takes a URL).
+ */
+function authenticate(req: IncomingMessage, urlToken: string | undefined, token: string): boolean {
   if (!token) return false; // token must be configured
   const auth = req.headers['authorization'] ?? '';
   const bearer = auth.startsWith('Bearer ') ? auth.slice(7) : '';
-  return safeCompare(bearer, token);
+  return safeCompare(bearer, token) || (urlToken !== undefined && safeCompare(urlToken, token));
+}
+
+/** Splits `/mcp` and `/mcp/<token>`; returns null for any other path. */
+function parseMcpPath(path: string): { urlToken?: string } | null {
+  if (path === '/mcp') return {};
+  const m = /^\/mcp\/([^/]+)$/.exec(path);
+  if (!m) return null;
+  try {
+    return { urlToken: decodeURIComponent(m[1]) };
+  } catch {
+    return { urlToken: '' };
+  }
 }
 
 function sendJson(res: ServerResponse, status: number, body: unknown): void {
@@ -40,12 +56,13 @@ export function createApp(db: Database, token: string): Server {
         return;
       }
 
-      if (!authenticate(req, token)) {
+      const mcpPath = parseMcpPath(path);
+      if (!authenticate(req, mcpPath?.urlToken, token)) {
         sendJson(res, 401, { error: 'Unauthorized' });
         return;
       }
 
-      if (path !== '/mcp') {
+      if (!mcpPath) {
         sendJson(res, 404, { error: 'Not found' });
         return;
       }

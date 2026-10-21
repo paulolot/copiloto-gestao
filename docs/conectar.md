@@ -109,11 +109,11 @@ cloudflared tunnel run copiloto-gestao
 
 1. Acesse [grok.com/connectors](https://grok.com/connectors)
 2. Clique em **Adicionar conector** → **MCP personalizado**
-3. Preencha:
+3. Preencha só o nome e a URL (o conector do Grok não tem campo de cabeçalho):
    - **Nome:** Copiloto Gestão
-   - **URL:** `https://copiloto.SEUDOMINIO.com/mcp` (ou a URL temporária, sempre terminando em `/mcp`)
-   - **Cabeçalho de autenticação:** `Authorization`
-   - **Valor:** `Bearer SEU_PONTE_TOKEN` (o mesmo do `.env`)
+   - **URL:** `https://copiloto.SEUDOMINIO.com/mcp/SEU_PONTE_TOKEN` (o mesmo token do `.env`, no fim da URL)
+   - Se o Grok pedir "credenciais OAuth", a URL está sem o token ou com o token errado.
+   - O token na URL pode aparecer em logs: use um token longo e aleatório, nunca o compartilhe e troque-o se vazar. Clientes que aceitam cabeçalho podem usar `Authorization: Bearer` na URL `/mcp`.
 4. Clique em **Testar conexão** — deve listar as ferramentas: `ping`, `vault_listar`, `vault_ler`, `vault_buscar`, `vault_criar_nota`, `discord_postar`
 5. Salve
 
