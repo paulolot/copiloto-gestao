@@ -31,9 +31,9 @@ export const ITENS = [
 ];
 
 /** Column history of the finished items: when each one entered "Fazendo Análise". */
-export const REVISOES: Record<number, { col: string; dias: number }[]> = {
-  4: [{ col: 'Backlog', dias: 10 }, { col: 'Fazendo Análise', dias: 9 }, { col: 'Dev implementando', dias: 6 }, { col: 'Concluído', dias: 2 }],
-  5: [{ col: 'Disponível para Dev', dias: 8 }, { col: 'Concluído', dias: 6 }],
+export const REVISOES: Record<number, { col: string; estado?: string; dias: number }[]> = {
+  4: [{ col: 'Ideias', dias: 12 }, { col: 'Backlog', dias: 10 }, { col: 'Fazendo Análise', dias: 9 }, { col: 'Dev implementando', estado: 'Active', dias: 6 }, { col: 'Concluído', estado: 'Closed', dias: 2 }],
+  5: [{ col: 'Disponível para Dev', dias: 8 }, { col: 'Concluído', estado: 'Closed', dias: 6 }],
 };
 
 export const ITERACOES = {
@@ -55,7 +55,7 @@ export function fakeFetch(chamadas: { url: string; body?: string; auth?: string 
     }
     const rev = /\/workitems\/(\d+)\/revisions/.exec(url);
     if (rev) {
-      return json({ value: (REVISOES[Number(rev[1])] ?? []).map((r) => ({ fields: { 'System.BoardColumn': r.col, 'System.ChangedDate': dias(r.dias) } })) });
+      return json({ value: (REVISOES[Number(rev[1])] ?? []).map((r) => ({ fields: { 'System.BoardColumn': r.col, 'System.State': r.estado ?? 'New', 'System.ChangedDate': dias(r.dias) } })) });
     }
     if (url.includes('/classificationnodes/iterations')) return json(ITERACOES);
     if (url.includes('/commits')) {

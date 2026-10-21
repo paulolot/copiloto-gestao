@@ -5,6 +5,7 @@
  */
 import type { Database } from 'sql.js';
 import type { AzdoClient } from '../azure/client.js';
+import { colunaDesconhecida } from '../azure/colunas.js';
 import { acharTime, timesAtivos, type TimeEscopo } from '../azure/escopo.js';
 import { sincronizarTime } from '../azure/sync.js';
 import { metricasColaboradores } from '../azure/metricas-pessoa.js';
@@ -24,7 +25,11 @@ function resolverTimes(time?: string): TimeEscopo[] {
 
 function fonte(db: Database, t: TimeEscopo) {
   const ultimo = db.exec('SELECT ultimo_sync, ultimo_erro FROM sync_estado WHERE time_id = ?', [t.id])[0]?.values[0];
-  return { sistema: 'Azure DevOps', areaPath: t.areaPath, sincronizadoEm: (ultimo?.[0] as string) ?? null, ultimoErro: (ultimo?.[1] as string) ?? null };
+  // Board columns the code does not recognize (a typo, a rename, a column only this team has): their items
+  // are placed by state, so the numbers may be off until the name is added in azure/colunas.ts.
+  const colunasDesconhecidas = (db.exec('SELECT DISTINCT coluna FROM work_items WHERE time_id = ? AND coluna IS NOT NULL', [t.id])[0]?.values ?? [])
+    .map((v) => v[0] as string).filter(colunaDesconhecida).sort();
+  return { sistema: 'Azure DevOps', areaPath: t.areaPath, sincronizadoEm: (ultimo?.[0] as string) ?? null, ultimoErro: (ultimo?.[1] as string) ?? null, colunasDesconhecidas };
 }
 
 function exigirDados(db: Database, t: TimeEscopo): void {

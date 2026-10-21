@@ -86,7 +86,7 @@ export async function sincronizarTime(db: Database, client: AzdoClient, time: Ti
       db.run('ROLLBACK');
       throw e;
     }
-    await completarInicioDoCiclo(db, client, time.id);
+    await completarMarcos(db, client, time.id, agora);
     persist(db);
     return { time: time.id, workItems: itens.length, commits: totalCommits, pullRequests: prs.length, incremental };
   } catch (e) {
@@ -103,18 +103,20 @@ export async function sincronizarTime(db: Database, client: AzdoClient, time: Ti
 const MAX_REVISOES_POR_SYNC = 300;
 
 /**
- * The cycle starts when the item enters "Fazendo Análise", which only the revisions tell.
- * Only finished items need it, and each is fetched once. A failure on one item never fails the sync;
- * the item is tried again on the next run (the cycle time falls back to creation/activation meanwhile).
+ * Lead and cycle time need dates the work item does not hold (when it entered Backlog, Fazendo Análise,
+ * Pronto pra release): they come from the revisions. Only items that reached Resolved or Closed need them,
+ * and each is fetched once. A failure on one item never fails the sync; it is tried again on the next run
+ * (meanwhile the metrics fall back to creation, activation and state-change dates).
  */
-async function completarInicioDoCiclo(db: Database, client: AzdoClient, timeId: string): Promise<void> {
+async function completarMarcos(db: Database, client: AzdoClient, timeId: string, agora: Date): Promise<void> {
   const ids = (db.exec(
-    `SELECT id FROM work_items WHERE time_id = ? AND estado IN ('Closed','Done') AND analise_em IS NULL
-       AND (coluna IS NULL OR coluna <> 'Ideias') ORDER BY fechado_em DESC LIMIT ${MAX_REVISOES_POR_SYNC}`, [timeId])[0]?.values ?? []).map((v) => v[0] as number);
+    `SELECT id FROM work_items WHERE time_id = ? AND estado IN ('Resolved','Closed','Done') AND marcos_em IS NULL
+       ORDER BY alterado_em DESC LIMIT ${MAX_REVISOES_POR_SYNC}`, [timeId])[0]?.values ?? []).map((v) => v[0] as number);
   for (const id of ids) {
     try {
-      const quando = await client.inicioDoCiclo(id);
-      if (quando) db.run('UPDATE work_items SET analise_em = ? WHERE id = ?', [quando, id]);
+      const m = await client.marcos(id);
+      db.run('UPDATE work_items SET backlog_em = ?, analise_em = ?, pronto_em = ?, marcos_em = ? WHERE id = ?',
+        [m.backlogEm ?? null, m.analiseEm ?? null, m.prontoEm ?? null, agora.toISOString(), id]);
     } catch {
       // keep going; retried next time
     }

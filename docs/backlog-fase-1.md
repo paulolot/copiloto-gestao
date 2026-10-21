@@ -7,7 +7,7 @@
 
 Legenda: **[código]** pode ser feito numa sessão na nuvem · **[Paulo]** depende do Paulo (ver `checklist-paulo.md`) · **[máquina]** precisa da máquina do Paulo.
 
-Premissas: o Azure DevOps é acessado só por leitura com PAT; Squad Fiscal primeiro, os outros dois times já configurados mas ligados por variável de ambiente. Respostas do Paulo (21/10/2026): os três times estão no projeto Metanet (área `Metanet\Squad Desktop` incluída); bloqueio = campo Paralisado (`Custom.Status`, com texto); campo **Tipo Bug** = "Bug Interno" ou "Bug Externo" (os dois contam em bug rate e MTTR); colunas do board em `docs/plano.md` (Ideias fora de tudo, cycle time a partir de *Fazendo Análise*). A confirmar: nome técnico do campo Tipo Bug e se "entregue" = só *Concluído*.
+Premissas: o Azure DevOps é acessado só por leitura com PAT; Squad Fiscal primeiro, os outros dois times já configurados mas ligados por variável de ambiente. Respostas do Paulo (21/10/2026): os três times estão no projeto Metanet (área `Metanet\Squad Desktop` incluída); bloqueio = campo Paralisado (`Custom.Status`, com texto); campo **Tipo Bug** = "Bug Interno" ou "Bug Externo" (os dois contam em bug rate e MTTR); colunas do board em `docs/plano.md` (Ideias e UX fora de tudo; lead time de *Backlog* a *Concluído*; cycle time de *Fazendo Análise* a *Pronto pra release*; Squad Fiscal sem *Release candidate*). A confirmar: nome técnico do campo Tipo Bug.
 
 ## Tarefas
 
@@ -69,8 +69,9 @@ Premissas: o Azure DevOps é acessado só por leitura com PAT; Squad Fiscal prim
   - Pronto quando: testes com interação simulada cobrem conclusão, usuário não autorizado e tarefa já concluída. Validação real: checklist do Paulo.
 
 - [x] **T1.10e Colunas do board e cycle time** [código]
-  - `src/ponte/azure/colunas.ts` guarda a ordem das colunas; `Ideias` fica fora de toda métrica; WIP = *Fazendo Análise* até *Release candidate*; entregue = *Concluído*.
-  - O início do cycle time vem das revisões do item (primeira vez em *Fazendo Análise* ou depois), buscadas uma vez por item concluído (até 300 por sincronização; falha de um item não derruba a sincronização). Sem a revisão, usa ativação/criação.
+  - `src/ponte/azure/colunas.ts` guarda a ordem das colunas (nomes comparados sem maiúsculas, acentos e espaços extras); `Ideias` e `UX` ficam fora de toda métrica (`AZDO_COLUNAS_IGNORADAS`); WIP = *Fazendo Análise* até *Aguardando pipeline*; entregue = *Concluído*.
+  - Lead time: *Backlog* → *Concluído*. Cycle time: *Fazendo Análise* → primeira chegada a *Pronto pra release* ou depois (ou estado Resolved).
+  - Essas datas vêm das revisões do item, buscadas uma vez por item que chegou a Resolved ou Closed (até 300 por sincronização; falha de um item não derruba a sincronização). Sem a revisão, usa criação, ativação e a data da mudança de estado.
   - Bug rate e MTTR passam a contar Bug Interno e Externo.
   - Pronto quando: testes cobrem as colunas, Ideias fora, cycle time pelas revisões e Bug Interno.
 

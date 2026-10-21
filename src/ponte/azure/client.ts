@@ -3,7 +3,7 @@
  * Only GET requests and the WIQL query (a POST that reads). The PAT never leaves this file:
  * errors carry the status and the path, never headers or the token.
  */
-import { jaIniciouCiclo } from './colunas.js';
+import { iniciouCiclo, iniciouLead, terminouCiclo } from './colunas.js';
 
 export type FetchLike = (url: string, init?: RequestInit) => Promise<Response>;
 
@@ -30,6 +30,12 @@ export interface WorkItem {
   tipoBug?: string;
   /** Owner identity, kept only for aggregate WIP; never returned by tools. */
   dono?: string;
+}
+
+export interface Marcos {
+  backlogEm?: string;
+  analiseEm?: string;
+  prontoEm?: string;
 }
 
 export interface Iteracao {
@@ -133,15 +139,25 @@ export class AzdoClient {
     return out;
   }
 
-  /** When the item first reached "Fazendo Análise" or a later column (start of the cycle time), from its revisions. */
-  async inicioDoCiclo(id: number): Promise<string | undefined> {
+  /**
+   * Milestones from the item's revisions (the first time each happened):
+   * entering Backlog or later (lead time start), Fazendo Análise or later (cycle start),
+   * Pronto pra release or later, or state Resolved/Closed (cycle end).
+   */
+  async marcos(id: number): Promise<Marcos> {
     const r = await this.request<{ value: { fields: Record<string, unknown> }[] }>(`/_apis/wit/workitems/${id}/revisions?${API}`);
+    const m: Marcos = {};
     for (const rev of r.value) {
       const col = rev.fields['System.BoardColumn'];
+      const estado = rev.fields['System.State'];
       const quando = rev.fields['System.ChangedDate'];
-      if (typeof col === 'string' && typeof quando === 'string' && jaIniciouCiclo(col)) return quando;
+      if (typeof quando !== 'string') continue;
+      const coluna = typeof col === 'string' ? col : undefined;
+      if (!m.backlogEm && iniciouLead(coluna)) m.backlogEm = quando;
+      if (!m.analiseEm && iniciouCiclo(coluna)) m.analiseEm = quando;
+      if (!m.prontoEm && (terminouCiclo(coluna) || estado === 'Resolved' || estado === 'Closed')) m.prontoEm = quando;
     }
-    return undefined;
+    return m;
   }
 
   async iteracoes(projeto: string): Promise<Iteracao[]> {

@@ -107,9 +107,12 @@ Toda ação fica num log com motivo e fonte.
 - Bloqueio = campo **Paralisado** (`Custom.Status`): preenchido com algum texto, o item está paralisado.
 - Bug = work item do tipo **Bug**; o campo **Tipo Bug** os separa em "Bug Interno" e "Bug Externo" (produção). **Bug rate e MTTR contam os dois**; bugs escapados e a gravidade de "sem dono" olham o Externo.
 - Colunas do board, em ordem (iguais nos três times): Ideias · Backlog · Fazendo Análise · Disponível para Dev · Dev implementando · Disponível Revisão de Código · Realizando revisão de código · Disponível para teste · Testando · Aguardando pipeline · Pronto pra release · Release candidate · Concluído.
-  - **Ideias** não entra em nenhuma métrica.
-  - O **cycle time** começa na entrada em *Fazendo Análise* e termina em *Concluído*; o lead time vai da criação a *Concluído*.
-  - **WIP** = itens de *Fazendo Análise* até *Release candidate*. "Entregue" = *Concluído*.
+  - O Squad Fiscal não tem *Release candidate*; o Retaguarda WEB tem uma coluna extra, **UX**. A ordem é o que vale, então coluna que falta não atrapalha.
+  - **Ideias** e **UX** não entram em nenhuma métrica.
+  - **Lead time:** da entrada em *Backlog* até *Concluído*.
+  - **Cycle time:** da entrada em *Fazendo Análise* até a primeira chegada a *Pronto pra release* (ou *Release candidate*, ou estado Resolved).
+  - **WIP** = de *Fazendo Análise* até *Aguardando pipeline*. "Entregue" (throughput, compromisso da sprint) = *Concluído*.
+  - Nomes de coluna são comparados sem diferenciar maiúsculas, acentos e espaços extras. Coluna com nome desconhecido aparece em `colunasDesconhecidas` na fonte das respostas de boards.
   - Item parado = dias sem nenhuma alteração (o Azure DevOps não guarda a data de mudança de coluna dentro de um estado).
 
 ## Persona de liderança

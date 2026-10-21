@@ -32,6 +32,7 @@ Abra `.env` e preencha:
 | `AZDO_ORG` | `metanetsistema` (fase 1) |
 | `AZDO_PAT` | Personal Access Token **somente leitura** (Work Items, Code, Analytics). Só no `.env`: nunca em chat, commit ou URL |
 | `AZDO_CAMPO_PARALISADO` / `AZDO_CAMPO_TIPO_BUG` | Nome técnico dos campos Paralisado e Tipo Bug (padrão `Custom.Status` e `Custom.TipoBug`) |
+| `AZDO_COLUNAS_IGNORADAS` | Colunas fora de toda métrica (padrão `Ideias,UX`) |
 | `AZDO_TIMES` | Times sincronizados: `fiscal`, `desktop`, `retaguarda` (padrão: só `fiscal`) |
 
 ## Passo 2 — Instalar dependências e testar

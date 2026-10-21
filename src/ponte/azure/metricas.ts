@@ -4,7 +4,7 @@
  * WIP in aggregate and never appear in the output (no individual ranking).
  */
 import type { Database } from 'sql.js';
-import { colunaEfetiva, ehIdeia, emCiclo } from './colunas.js';
+import { colunaEfetiva, ehIgnorada, emCiclo } from './colunas.js';
 import { persist } from '../db/database.js';
 
 // Delivered = column "Concluído" (state Closed). "Pronto pra release" and "Release candidate" (Resolved) are still in the cycle.
@@ -40,7 +40,10 @@ export interface ItemBoard {
   mudancaEstadoEm?: string;
   ativadoEm?: string;
   /** First time in "Fazendo Análise" or later (start of the cycle time). */
+  /** From the revisions: Backlog (lead start), Fazendo Análise (cycle start), Pronto pra release (cycle end). */
+  backlogEm?: string;
   analiseEm?: string;
+  prontoEm?: string;
   coluna?: string;
   fechadoEm?: string;
   pontos?: number;
@@ -133,7 +136,7 @@ export const dataFechamento = (i: ItemBoard): number => (ehPronto(i) ? ms(i.fech
 export function carregarItens(db: Database, timeId: string): ItemBoard[] {
   const r = db.exec(
     `SELECT id, tipo, estado, titulo, iteration_path, criado_em, alterado_em, mudanca_estado_em, ativado_em, fechado_em,
-            pontos, tags, tem_dono, dono, paralisado, tipo_bug, coluna, analise_em FROM work_items WHERE time_id = ?`, [timeId]);
+            pontos, tags, tem_dono, dono, paralisado, tipo_bug, coluna, analise_em, backlog_em, pronto_em FROM work_items WHERE time_id = ?`, [timeId]);
   return (r[0]?.values ?? []).map((v): ItemBoard => ({
     id: v[0] as number, tipo: v[1] as string, estado: v[2] as string, titulo: (v[3] as string) ?? '',
     iterationPath: (v[4] as string) ?? '', criadoEm: (v[5] as string) ?? undefined, alteradoEm: (v[6] as string) ?? undefined,
@@ -142,12 +145,21 @@ export function carregarItens(db: Database, timeId: string): ItemBoard[] {
     temDono: v[12] === 1, dono: (v[13] as string) ?? undefined,
     paralisado: v[14] === 1, tipoBug: (v[15] as string) ?? undefined,
     coluna: (v[16] as string) ?? undefined, analiseEm: (v[17] as string) ?? undefined,
-  })).filter((i) => !ehIdeia(i)); // column "Ideias" counts in no metric
+    backlogEm: (v[18] as string) ?? undefined, prontoEm: (v[19] as string) ?? undefined,
+  })).filter((i) => !ehIgnorada(i)); // columns Ideias and UX count in no metric
 }
 
-const leadDias = (i: ItemBoard) => (dataFechamento(i) - ms(i.criadoEm)) / DIA;
+/** Lead time: Backlog to Concluído. */
+export const leadDias = (i: ItemBoard) => (dataFechamento(i) - ms(i.backlogEm ?? i.criadoEm)) / DIA;
+
+/** The cycle is over once the item reached Pronto pra release (state Resolved) or Concluído. */
+export const terminouOCiclo = (i: ItemBoard) => ehPronto(i) || i.estado === 'Resolved';
+/** End of the cycle: first arrival at Pronto pra release; else the state change to Resolved/Closed. */
+export const fimCiclo = (i: ItemBoard): number =>
+  !terminouOCiclo(i) ? NaN : ms(i.prontoEm ?? (i.estado === 'Resolved' ? i.mudancaEstadoEm : i.fechadoEm ?? i.mudancaEstadoEm) ?? i.alteradoEm);
+/** Cycle time: Fazendo Análise to Pronto pra release (or Release candidate). */
 export const inicioCiclo = (i: ItemBoard) => ms(i.analiseEm ?? i.ativadoEm ?? i.criadoEm);
-export const cycleDias = (i: ItemBoard) => (dataFechamento(i) - inicioCiclo(i)) / DIA;
+export const cycleDias = (i: ItemBoard) => (fimCiclo(i) - inicioCiclo(i)) / DIA;
 const validos = (v: number[]) => v.filter((n) => Number.isFinite(n) && n >= 0);
 
 export function metricasDeSprint(itens: ItemBoard[], it: { caminho: string; nome: string; inicio?: string; fim?: string }, agora: Date): MetricasSprint {
@@ -164,7 +176,7 @@ export function metricasDeSprint(itens: ItemBoard[], it: { caminho: string; nome
     itens: da.length, entregues: prontos.length,
     compromisso: noInicio.length ? Math.round((noInicio.filter(ehPronto).length / noInicio.length) * 100) : undefined,
     escopoAdicionado: adicionados,
-    cycleTimeDias: mediana(validos(prontos.map(cycleDias))),
+    cycleTimeDias: mediana(validos(da.filter(terminouOCiclo).map(cycleDias))),
     leadTimeDias: mediana(validos(prontos.map(leadDias))),
     bugRate: da.length ? Math.round((bugs.length / da.length) * 1000) / 10 : undefined,
     mttrDias: media(validos(bugs.filter(ehPronto).map(leadDias))),
@@ -229,7 +241,7 @@ export function calcularMetricas(db: Database, timeId: string, agora = new Date(
       semDono: bugsAbertos.filter((i) => !i.temDono).length,
     },
     throughputSemanal,
-    cycleTimeDias: mediana(validos(recentes.map(cycleDias))),
+    cycleTimeDias: mediana(validos(itens.filter((i) => terminouOCiclo(i) && agora.getTime() - fimCiclo(i) <= 28 * DIA).map(cycleDias))),
     leadTimeDias: mediana(validos(recentes.map(leadDias))),
     commitsSemanais, commitsPorRepo, sprints,
   };

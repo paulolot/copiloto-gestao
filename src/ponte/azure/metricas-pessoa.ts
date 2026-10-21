@@ -7,7 +7,7 @@
 import type { Database } from 'sql.js';
 import { emCiclo } from './colunas.js';
 import {
-  cycleDias, diasSemMudanca, carregarItens, dataFechamento, ehBloqueado, ehBug, ehBugExterno, ehPronto, limitesDoAmbiente, mediana, semanaIso,
+  cycleDias, diasSemMudanca, fimCiclo, leadDias, terminouOCiclo, carregarItens, dataFechamento, ehBloqueado, ehBug, ehBugExterno, ehPronto, limitesDoAmbiente, mediana, semanaIso,
   type ItemBoard, type Limites,
 } from './metricas.js';
 
@@ -81,8 +81,8 @@ export function metricasColaboradores(
       bugsExternosAbertos: abertos.filter(ehBugExterno).length,
       entregues28Dias: recentes.length,
       pontosEntregues28Dias: recentes.reduce((a, i) => a + (i.pontos ?? 0), 0),
-      cycleTimeDias: mediana(validos(recentes.map(cycleDias))),
-      leadTimeDias: mediana(validos(recentes.map((i) => (dataFechamento(i) - ms(i.criadoEm)) / DIA))),
+      cycleTimeDias: mediana(validos(itens.filter((i) => terminouOCiclo(i) && agora.getTime() - fimCiclo(i) <= 28 * DIA).map(cycleDias))),
+      leadTimeDias: mediana(validos(recentes.map(leadDias))),
       entreguesPorSemana: semanas.map((semana) => ({
         semana,
         entregues: itens.filter((i) => ehPronto(i) && semanaIso(new Date(dataFechamento(i))) === semana).length,
