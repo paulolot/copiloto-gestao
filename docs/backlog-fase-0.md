@@ -77,5 +77,6 @@ Legenda: **[código]** pode ser feito numa sessão na nuvem · **[Paulo]** depen
   - `docs/conectar.md`: rodar a ponte na máquina do Paulo, criar o túnel (Cloudflare Tunnel ou equivalente) com autenticação, cadastrar o conector MCP personalizado em grok.com/connectors e testar.
   - Pronto quando: o Paulo consegue seguir o guia do zero.
 
-- [ ] **T0.13 Validação do gate** [Paulo + máquina] — depende de todas
+- [x] **T0.13 Validação do gate** [Paulo + máquina] ✅ 21/10/2026 — depende de todas
   - Rodar a rotina de teste no Grok Bot e conferir agenda, vault, Discord e log.
+  - Resultado: agenda lida pelo conector do Google, vault lido pela ponte (`persona/guia-de-estilo.md`, `tipo: persona`) e mensagem postada em `#briefing` (ID `1562598959011336262`). O conector do Grok Bot só aceita URL, então a ponte aceita o token em `/mcp/<token>` (provisório; OAuth fica como tarefa futura).
