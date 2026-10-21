@@ -75,6 +75,8 @@ function initSchema(db: Database): void {
       tem_dono INTEGER NOT NULL DEFAULT 0,
       paralisado INTEGER NOT NULL DEFAULT 0,
       tipo_bug TEXT,
+      coluna TEXT,
+      analise_em TEXT,    -- 1ª vez em "Fazendo Análise" ou depois (início do cycle time), vindo das revisões
       dono TEXT           -- só para WIP agregado; nenhuma ferramenta devolve este campo
     );
     CREATE INDEX IF NOT EXISTS idx_wi_time ON work_items(time_id, estado);
@@ -150,6 +152,8 @@ function initSchema(db: Database): void {
 function migrate(db: Database): void {
   const cols = (db.exec('PRAGMA table_info(work_items)')[0]?.values ?? []).map((v) => v[1] as string);
   if (!cols.includes('paralisado')) db.run('ALTER TABLE work_items ADD COLUMN paralisado INTEGER NOT NULL DEFAULT 0');
+  if (!cols.includes('coluna')) db.run('ALTER TABLE work_items ADD COLUMN coluna TEXT');
+  if (!cols.includes('analise_em')) db.run('ALTER TABLE work_items ADD COLUMN analise_em TEXT');
   if (!cols.includes('tipo_bug')) db.run('ALTER TABLE work_items ADD COLUMN tipo_bug TEXT');
 }
 

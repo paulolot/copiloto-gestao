@@ -3,6 +3,8 @@
  * Only GET requests and the WIQL query (a POST that reads). The PAT never leaves this file:
  * errors carry the status and the path, never headers or the token.
  */
+import { jaIniciouCiclo } from './colunas.js';
+
 export type FetchLike = (url: string, init?: RequestInit) => Promise<Response>;
 
 export interface WorkItem {
@@ -20,7 +22,9 @@ export interface WorkItem {
   pontos?: number;
   tags: string[];
   temDono: boolean;
-  /** Field "Paralisado": the item is blocked. */
+  /** Board column (System.BoardColumn). */
+  coluna?: string;
+  /** Field "Paralisado" (Custom.Status): any text means the item is blocked. */
   paralisado: boolean;
   /** Field "Tipo Bug" of Bug items: "Bug Interno" or "Bug Externo" (production). */
   tipoBug?: string;
@@ -53,7 +57,7 @@ export interface Campos {
   tipoBug: string;
 }
 export function camposDoAmbiente(env: NodeJS.ProcessEnv = process.env): Campos {
-  return { paralisado: env.AZDO_CAMPO_PARALISADO || 'Custom.Paralisado', tipoBug: env.AZDO_CAMPO_TIPO_BUG || 'Custom.TipoBug' };
+  return { paralisado: env.AZDO_CAMPO_PARALISADO || 'Custom.Status', tipoBug: env.AZDO_CAMPO_TIPO_BUG || 'Custom.TipoBug' };
 }
 
 export interface AzdoOptions {
@@ -68,7 +72,7 @@ export interface AzdoOptions {
 const API = 'api-version=7.1';
 const FIELDS = [
   'System.Id', 'System.WorkItemType', 'System.State', 'System.Title', 'System.AreaPath', 'System.IterationPath',
-  'System.CreatedDate', 'System.ChangedDate', 'System.AssignedTo', 'System.Tags', 'System.StateChangeDate',
+  'System.BoardColumn', 'System.CreatedDate', 'System.ChangedDate', 'System.AssignedTo', 'System.Tags', 'System.StateChangeDate',
   'Microsoft.VSTS.Common.ActivatedDate', 'Microsoft.VSTS.Common.ClosedDate',
   'Microsoft.VSTS.Scheduling.StoryPoints', 'Microsoft.VSTS.Scheduling.Effort',
 ];
@@ -106,7 +110,7 @@ export class AzdoClient {
   async consultarIds(projeto: string, areaPath: string, opts: { desde?: string; apenasAlterados?: boolean }): Promise<number[]> {
     const area = areaPath.replace(/'/g, "''");
     const alterado = opts.desde ? `[System.ChangedDate] >= '${opts.desde.slice(0, 10)}'` : '';
-    const aberto = `[System.State] NOT IN ('Done','Closed','Resolved','Removed')`;
+    const aberto = `[System.State] NOT IN ('Done','Closed','Removed')`;
     const cond = opts.apenasAlterados && alterado ? alterado : [aberto, alterado].filter(Boolean).join(' OR ');
     const query = `SELECT [System.Id] FROM WorkItems WHERE [System.AreaPath] UNDER '${area}' AND [System.State] <> 'Removed' AND (${cond}) ORDER BY [System.ChangedDate] DESC`;
     const r = await this.request<{ workItems: { id: number }[] }>(
@@ -127,6 +131,17 @@ export class AzdoClient {
       out.push(...r.value.map((w) => normalizarWorkItem(w, this.campos)));
     }
     return out;
+  }
+
+  /** When the item first reached "Fazendo Análise" or a later column (start of the cycle time), from its revisions. */
+  async inicioDoCiclo(id: number): Promise<string | undefined> {
+    const r = await this.request<{ value: { fields: Record<string, unknown> }[] }>(`/_apis/wit/workitems/${id}/revisions?${API}`);
+    for (const rev of r.value) {
+      const col = rev.fields['System.BoardColumn'];
+      const quando = rev.fields['System.ChangedDate'];
+      if (typeof col === 'string' && typeof quando === 'string' && jaIniciouCiclo(col)) return quando;
+    }
+    return undefined;
   }
 
   async iteracoes(projeto: string): Promise<Iteracao[]> {
@@ -182,6 +197,7 @@ export function normalizarWorkItem(w: { id: number; fields: Record<string, unkno
   return {
     id: w.id,
     tipo: str('System.WorkItemType') ?? '',
+    coluna: str('System.BoardColumn'),
     estado: str('System.State') ?? '',
     titulo: str('System.Title') ?? '',
     areaPath: str('System.AreaPath') ?? '',

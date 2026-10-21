@@ -31,7 +31,7 @@ Abra `.env` e preencha:
 | `DISCORD_CANAL_*` | ID de cada canal (botão direito no canal → Copiar ID) |
 | `AZDO_ORG` | `metanetsistema` (fase 1) |
 | `AZDO_PAT` | Personal Access Token **somente leitura** (Work Items, Code, Analytics). Só no `.env`: nunca em chat, commit ou URL |
-| `AZDO_CAMPO_PARALISADO` / `AZDO_CAMPO_TIPO_BUG` | Nome técnico dos campos Paralisado e Tipo Bug (padrão `Custom.Paralisado` e `Custom.TipoBug`) |
+| `AZDO_CAMPO_PARALISADO` / `AZDO_CAMPO_TIPO_BUG` | Nome técnico dos campos Paralisado e Tipo Bug (padrão `Custom.Status` e `Custom.TipoBug`) |
 | `AZDO_TIMES` | Times sincronizados: `fiscal`, `desktop`, `retaguarda` (padrão: só `fiscal`) |
 
 ## Passo 2 — Instalar dependências e testar

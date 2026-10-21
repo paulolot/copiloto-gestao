@@ -25,7 +25,7 @@ describe('AzdoClient', () => {
   it('queries ids with WIQL scoped to the area path', async () => {
     const chamadas: { url: string; body?: string }[] = [];
     const ids = await make(chamadas).consultarIds('Metanet', "Metanet\\Squad Fiscal", { desde: '2026-07-01' });
-    expect(ids).toHaveLength(7);
+    expect(ids).toHaveLength(8);
     const query: string = JSON.parse(chamadas[0].body!).query;
     expect(query).toContain("UNDER 'Metanet\\Squad Fiscal'");
     expect(query).toContain('2026-07-01');

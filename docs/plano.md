@@ -104,7 +104,13 @@ Toda ação fica num log com motivo e fonte.
 - Limites começam pela linha de base das últimas 8 semanas de cada time.
 - Frequência de commit por time e repositório, nunca por pessoa.
 - Métricas por colaborador (decisão de 21/10/2026) existem além das do time, em ferramenta específica: WIP, entregas, cycle e lead time, itens parados e paralisados, bugs. São área restrita: sem ranking, sem comparação entre pessoas, só para 1:1 e PDI.
-- Bloqueio = campo **Paralisado** do work item. Bug de produção = tipo **Bug** com o campo **Tipo Bug** = "Bug Externo" ("Bug Interno" não conta).
+- Bloqueio = campo **Paralisado** (`Custom.Status`): preenchido com algum texto, o item está paralisado.
+- Bug = work item do tipo **Bug**; o campo **Tipo Bug** os separa em "Bug Interno" e "Bug Externo" (produção). **Bug rate e MTTR contam os dois**; bugs escapados e a gravidade de "sem dono" olham o Externo.
+- Colunas do board, em ordem (iguais nos três times): Ideias · Backlog · Fazendo Análise · Disponível para Dev · Dev implementando · Disponível Revisão de Código · Realizando revisão de código · Disponível para teste · Testando · Aguardando pipeline · Pronto pra release · Release candidate · Concluído.
+  - **Ideias** não entra em nenhuma métrica.
+  - O **cycle time** começa na entrada em *Fazendo Análise* e termina em *Concluído*; o lead time vai da criação a *Concluído*.
+  - **WIP** = itens de *Fazendo Análise* até *Release candidate*. "Entregue" = *Concluído*.
+  - Item parado = dias sem nenhuma alteração (o Azure DevOps não guarda a data de mudança de coluna dentro de um estado).
 
 ## Persona de liderança
 

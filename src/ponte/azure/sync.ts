@@ -50,11 +50,17 @@ export async function sincronizarTime(db: Database, client: AzdoClient, time: Ti
     try {
       for (const w of itens) {
         db.run(
-          `INSERT OR REPLACE INTO work_items (id, time_id, tipo, estado, titulo, iteration_path, criado_em, alterado_em,
-             mudanca_estado_em, ativado_em, fechado_em, pontos, tags, tem_dono, paralisado, tipo_bug, dono)
-           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+          `INSERT INTO work_items (id, time_id, tipo, estado, titulo, iteration_path, criado_em, alterado_em,
+             mudanca_estado_em, ativado_em, fechado_em, pontos, tags, tem_dono, paralisado, tipo_bug, coluna, dono)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+           ON CONFLICT(id) DO UPDATE SET time_id=excluded.time_id, tipo=excluded.tipo, estado=excluded.estado, titulo=excluded.titulo,
+             iteration_path=excluded.iteration_path, criado_em=excluded.criado_em, alterado_em=excluded.alterado_em,
+             mudanca_estado_em=excluded.mudanca_estado_em, ativado_em=excluded.ativado_em, fechado_em=excluded.fechado_em,
+             pontos=excluded.pontos, tags=excluded.tags, tem_dono=excluded.tem_dono, paralisado=excluded.paralisado,
+             tipo_bug=excluded.tipo_bug, coluna=excluded.coluna, dono=excluded.dono`,
           [w.id, time.id, w.tipo, w.estado, w.titulo, w.iterationPath, w.criadoEm, w.alteradoEm, w.mudancaEstadoEm ?? null,
-            w.ativadoEm ?? null, w.fechadoEm ?? null, w.pontos ?? null, w.tags.join(';'), w.temDono ? 1 : 0, w.paralisado ? 1 : 0, w.tipoBug ?? null, w.dono ?? null],
+            w.ativadoEm ?? null, w.fechadoEm ?? null, w.pontos ?? null, w.tags.join(';'), w.temDono ? 1 : 0, w.paralisado ? 1 : 0,
+            w.tipoBug ?? null, w.coluna ?? null, w.dono ?? null],
         );
       }
       for (const i of iteracoes) {
@@ -80,6 +86,7 @@ export async function sincronizarTime(db: Database, client: AzdoClient, time: Ti
       db.run('ROLLBACK');
       throw e;
     }
+    await completarInicioDoCiclo(db, client, time.id);
     persist(db);
     return { time: time.id, workItems: itens.length, commits: totalCommits, pullRequests: prs.length, incremental };
   } catch (e) {
@@ -90,5 +97,26 @@ export async function sincronizarTime(db: Database, client: AzdoClient, time: Ti
     );
     persist(db);
     throw e;
+  }
+}
+
+const MAX_REVISOES_POR_SYNC = 300;
+
+/**
+ * The cycle starts when the item enters "Fazendo Análise", which only the revisions tell.
+ * Only finished items need it, and each is fetched once. A failure on one item never fails the sync;
+ * the item is tried again on the next run (the cycle time falls back to creation/activation meanwhile).
+ */
+async function completarInicioDoCiclo(db: Database, client: AzdoClient, timeId: string): Promise<void> {
+  const ids = (db.exec(
+    `SELECT id FROM work_items WHERE time_id = ? AND estado IN ('Closed','Done') AND analise_em IS NULL
+       AND (coluna IS NULL OR coluna <> 'Ideias') ORDER BY fechado_em DESC LIMIT ${MAX_REVISOES_POR_SYNC}`, [timeId])[0]?.values ?? []).map((v) => v[0] as number);
+  for (const id of ids) {
+    try {
+      const quando = await client.inicioDoCiclo(id);
+      if (quando) db.run('UPDATE work_items SET analise_em = ? WHERE id = ?', [quando, id]);
+    } catch {
+      // keep going; retried next time
+    }
   }
 }

@@ -7,7 +7,7 @@
 
 Legenda: **[código]** pode ser feito numa sessão na nuvem · **[Paulo]** depende do Paulo (ver `checklist-paulo.md`) · **[máquina]** precisa da máquina do Paulo.
 
-Premissas: o Azure DevOps é acessado só por leitura com PAT; Squad Fiscal primeiro, os outros dois times já configurados mas ligados por variável de ambiente. Respostas do Paulo (21/10/2026): os três times estão no projeto Metanet (área `Metanet\Squad Desktop` incluída); bloqueio = campo **Paralisado**; bug de produção = campo **Tipo Bug** = "Bug Externo". A confirmar: nomes técnicos desses campos e os estados de "pronto" (hoje `Done`, `Closed`, `Resolved`).
+Premissas: o Azure DevOps é acessado só por leitura com PAT; Squad Fiscal primeiro, os outros dois times já configurados mas ligados por variável de ambiente. Respostas do Paulo (21/10/2026): os três times estão no projeto Metanet (área `Metanet\Squad Desktop` incluída); bloqueio = campo Paralisado (`Custom.Status`, com texto); campo **Tipo Bug** = "Bug Interno" ou "Bug Externo" (os dois contam em bug rate e MTTR); colunas do board em `docs/plano.md` (Ideias fora de tudo, cycle time a partir de *Fazendo Análise*). A confirmar: nome técnico do campo Tipo Bug e se "entregue" = só *Concluído*.
 
 ## Tarefas
 
@@ -67,6 +67,12 @@ Premissas: o Azure DevOps é acessado só por leitura com PAT; Squad Fiscal prim
 - [x] **T1.10d Botão "feita" no Discord** [código] (RF-08)
   - `tarefas_postar` posta as tarefas abertas com um botão por tarefa; só o Paulo clica; a mensagem é refeita a cada clique (tarefa riscada, botão removido); o clique vai para o log.
   - Pronto quando: testes com interação simulada cobrem conclusão, usuário não autorizado e tarefa já concluída. Validação real: checklist do Paulo.
+
+- [x] **T1.10e Colunas do board e cycle time** [código]
+  - `src/ponte/azure/colunas.ts` guarda a ordem das colunas; `Ideias` fica fora de toda métrica; WIP = *Fazendo Análise* até *Release candidate*; entregue = *Concluído*.
+  - O início do cycle time vem das revisões do item (primeira vez em *Fazendo Análise* ou depois), buscadas uma vez por item concluído (até 300 por sincronização; falha de um item não derruba a sincronização). Sem a revisão, usa ativação/criação.
+  - Bug rate e MTTR passam a contar Bug Interno e Externo.
+  - Pronto quando: testes cobrem as colunas, Ideias fora, cycle time pelas revisões e Bug Interno.
 
 - [ ] **T1.11 Validação com dados reais** [Paulo + máquina] — depende de todas
   - Criar o PAT, ligar `AZDO_PAT`, sincronizar o Squad Fiscal, conferir métricas contra o board, colar as rotinas no Grok Bot.

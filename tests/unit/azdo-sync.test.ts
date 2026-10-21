@@ -22,8 +22,8 @@ describe('sincronizarTime', () => {
     const chamadas: { url: string; body?: string }[] = [];
     const client = new AzdoClient({ org: 'o', pat: 'p', fetch: fakeFetch(chamadas) });
     const r = await sincronizarTime(db, client, fiscal, AGORA);
-    expect(r).toMatchObject({ workItems: 7, incremental: false, commits: 5, pullRequests: 1 });
-    expect(count('work_items')).toBe(7);
+    expect(r).toMatchObject({ workItems: 8, incremental: false, commits: 5, pullRequests: 1 });
+    expect(count('work_items')).toBe(8);
     expect(count('iteracoes')).toBe(2);
     expect(count('commits_dia')).toBe(5);
     expect(count('pull_requests')).toBe(1);
@@ -38,7 +38,7 @@ describe('sincronizarTime', () => {
     expect(r.incremental).toBe(true);
     const query: string = JSON.parse(chamadas.find((c) => c.url.includes('/wiql'))!.body!).query;
     expect(query).not.toContain('NOT IN');
-    expect(count('work_items')).toBe(7);
+    expect(count('work_items')).toBe(8);
     expect(count('commits_dia')).toBe(5);
   });
 
@@ -48,6 +48,6 @@ describe('sincronizarTime', () => {
     const ruim = new AzdoClient({ org: 'o', pat: 'p', fetch: fakeFetch([], { status: 503 }) });
     await expect(sincronizarTime(db, ruim, fiscal, AGORA)).rejects.toThrow('503');
     expect(db.exec('SELECT ultimo_erro, ultimo_sync FROM sync_estado')[0].values[0][0]).toContain('503');
-    expect(count('work_items')).toBe(7);
+    expect(count('work_items')).toBe(8);
   });
 });

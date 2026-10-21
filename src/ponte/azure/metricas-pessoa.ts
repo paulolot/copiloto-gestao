@@ -5,13 +5,13 @@
  * Work is attributed to the item's current owner; reassignments are not tracked.
  */
 import type { Database } from 'sql.js';
+import { emCiclo } from './colunas.js';
 import {
-  carregarItens, dataFechamento, ehBloqueado, ehBug, ehBugExterno, ehPronto, limitesDoAmbiente, mediana, semanaIso,
+  cycleDias, diasSemMudanca, carregarItens, dataFechamento, ehBloqueado, ehBug, ehBugExterno, ehPronto, limitesDoAmbiente, mediana, semanaIso,
   type ItemBoard, type Limites,
 } from './metricas.js';
 
 const DIA = 86_400_000;
-const NAO_INICIADO = ['New', 'To Do', 'Proposed', 'Approved'];
 
 export interface MetricasColaborador {
   colaborador: string;
@@ -65,8 +65,8 @@ export function metricasColaboradores(
 
   const colaboradores = [...porPessoa].map(([nome, { itens, times }]): MetricasColaborador => {
     const abertos = itens.filter((i) => !ehPronto(i) && i.estado !== 'Removed');
-    const andamento = abertos.filter((i) => !NAO_INICIADO.includes(i.estado));
-    const dias = (i: ItemBoard) => Math.floor((agora.getTime() - ms(i.mudancaEstadoEm ?? i.alteradoEm)) / DIA);
+    const andamento = abertos.filter(emCiclo);
+    const dias = (i: ItemBoard) => diasSemMudanca(i, agora);
     const recentes = itens.filter((i) => ehPronto(i) && agora.getTime() - dataFechamento(i) <= 28 * DIA);
     const semanas = Array.from({ length: 8 }, (_, k) => semanaIso(new Date(agora.getTime() - (7 - k) * 7 * DIA)));
     return {
@@ -81,7 +81,7 @@ export function metricasColaboradores(
       bugsExternosAbertos: abertos.filter(ehBugExterno).length,
       entregues28Dias: recentes.length,
       pontosEntregues28Dias: recentes.reduce((a, i) => a + (i.pontos ?? 0), 0),
-      cycleTimeDias: mediana(validos(recentes.map((i) => (dataFechamento(i) - ms(i.ativadoEm ?? i.criadoEm)) / DIA))),
+      cycleTimeDias: mediana(validos(recentes.map(cycleDias))),
       leadTimeDias: mediana(validos(recentes.map((i) => (dataFechamento(i) - ms(i.criadoEm)) / DIA))),
       entreguesPorSemana: semanas.map((semana) => ({
         semana,

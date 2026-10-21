@@ -51,7 +51,7 @@ describe('ferramentas de boards', () => {
 
   it('syncs, then answers health, alerts, problem items and metrics, always with the source', async () => {
     const sync = await call('boards_sincronizar', { time: 'fiscal' });
-    expect(JSON.parse(sync.text)[0].workItems).toBe(7);
+    expect(JSON.parse(sync.text)[0].workItems).toBe(8);
 
     const saude = JSON.parse((await call('boards_saude')).text)[0];
     expect(saude.fonte).toMatchObject({ sistema: 'Azure DevOps', areaPath: 'Metanet\\Squad Fiscal' });

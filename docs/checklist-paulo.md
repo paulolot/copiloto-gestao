@@ -29,9 +29,9 @@ O que só você pode fazer, porque depende das suas contas ou da sua máquina. M
 - [ ] **Token do Azure DevOps:** criar um Personal Access Token na organização `metanetsistema` com escopo **somente leitura**: Work Items (Read), Code (Read), Analytics (Read). Guardar só no `.env` da sua máquina.
   - Um PAT colado em conversa deve ser **revogado e recriado**: ele já passou por um canal que guarda histórico. A sessão na nuvem não usa o PAT (não alcança o Azure DevOps).
 - [ ] **Confirmar a estrutura do Azure DevOps.** Já respondido em 21/10/2026: área `Metanet\Squad Desktop`, bloqueio = campo Paralisado, bug de produção = campo Tipo Bug "Bug Externo". Falta:
-  - [ ] **Nome técnico (reference name) dos campos** Paralisado e Tipo Bug (em Organization settings → Process → tipo de item → campo, ou em `.../_apis/wit/fields`). Supus `Custom.Paralisado` e `Custom.TipoBug`; se forem outros, ponha em `AZDO_CAMPO_PARALISADO` e `AZDO_CAMPO_TIPO_BUG` no `.env`. Com nome errado a sincronização pode falhar com erro 400.
-  - [ ] Valores do campo Paralisado: supus que "Sim", "True" ou qualquer valor que não seja vazio ou "Não" significa paralisado.
-  - [ ] Estados de "pronto": supus `Done`, `Closed` e `Resolved`. Se o board usa outros nomes (colunas), diga quais são e em que ordem.
+  - [ ] **Nome técnico (reference name) do campo Tipo Bug.** Paralisado já é `Custom.Status`. Para Tipo Bug supus `Custom.TipoBug`; se for outro, ponha em `AZDO_CAMPO_TIPO_BUG` no `.env` (Organization settings → Process → Bug → campo, ou `.../_apis/wit/fields`). Com nome errado a sincronização pode falhar com erro 400.
+  - [ ] **Entregue = só a coluna Concluído?** Pronto pra release e Release candidate (Resolved) contam como ainda no ciclo e no WIP. Se a entrega real for antes, me diga.
+  - [ ] O nome das colunas é fixo no código (`src/ponte/azure/colunas.ts`). Se renomear alguma coluna ou os times tiverem colunas diferentes, avise.
   - [ ] Campo de pontos: usei `StoryPoints` e, na falta, `Effort`.
 - [ ] **Limites de alerta:** padrões atuais: envelhecimento 7 dias, bloqueio 2 dias úteis, WIP 3 por pessoa, bug rate 10%, compromisso 80%, escopo adicionado 20%, commit parado 3 dias úteis. Anote os diferentes e eles viram variáveis no `.env`.
 - [ ] **Ligar o Azure DevOps na ponte** (passo 8 de `docs/conectar.md`) e comparar `boards_saude` com o board real.

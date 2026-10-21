@@ -38,7 +38,7 @@ describe('calcularMetricas', () => {
     expect(m.envelhecendo).toBe(1); // item 1 (12 days in state)
     expect(m.bloqueados).toBe(1);
     expect(m.bloqueadosAcimaDoLimite).toBe(1); // changed 5 days ago
-    expect(m.wipPorColuna).toEqual({ Active: 5 }); // 1,2,3,6,7
+    expect(m.wipPorColuna).toEqual({ 'Dev implementando': 5 }); // 1,2,3,6,7; item 8 is in Ideias and counts nowhere
     expect(m.wipPorPessoa).toEqual({ maximo: 3, pessoasAcimaDoLimite: 0 });
   });
 
@@ -50,7 +50,7 @@ describe('calcularMetricas', () => {
   it('computes lead and cycle time of recent deliveries', () => {
     const m = calcularMetricas(db, 'fiscal', AGORA);
     expect(m.leadTimeDias).toBe(5); // item 4: 10→2 days ago = 8; item 5: 8→6 = 2
-    expect(m.cycleTimeDias).toBe(3); // item 4: activated 6→2 = 4; item 5 (never activated): created 8→6 = 2
+    expect(m.cycleTimeDias).toBe(4.5); // from "Fazendo Análise": item 4 9→2 = 7 days; item 5 (skipped it, entered at "Disponível para Dev") 8→6 = 2
   });
 
   it('computes throughput per week and commits', () => {
@@ -67,7 +67,7 @@ describe('calcularMetricas', () => {
     expect(s.itens).toBe(7);
     expect(s.entregues).toBe(2);
     expect(s.encerrada).toBe(false);
-    expect(s.bugRate).toBe(14.3); // 1 Bug Externo in 7
+    expect(s.bugRate).toBe(28.6); // Bug Interno and Externo both count: 2 of 7
     expect(s.mttrDias).toBe(2); // item 5
     expect(s.escopoAdicionado).toBe(2); // items 4 and 5 were created after the sprint started
   });

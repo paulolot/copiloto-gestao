@@ -4,10 +4,11 @@
  * WIP in aggregate and never appear in the output (no individual ranking).
  */
 import type { Database } from 'sql.js';
+import { colunaEfetiva, ehIdeia, emCiclo } from './colunas.js';
 import { persist } from '../db/database.js';
 
-export const ESTADOS_PRONTO = ['Done', 'Closed', 'Resolved'];
-const ESTADOS_NAO_INICIADO = ['New', 'To Do', 'Proposed', 'Approved'];
+// Delivered = column "Concluído" (state Closed). "Pronto pra release" and "Release candidate" (Resolved) are still in the cycle.
+export const ESTADOS_PRONTO = ['Closed', 'Done'];
 const TAGS_BLOQUEIO = ['blocked', 'bloqueado']; // old convention, still honored next to the Paralisado field
 const BUG_EXTERNO = 'bug externo';
 const DIA = 86_400_000;
@@ -38,6 +39,9 @@ export interface ItemBoard {
   alteradoEm?: string;
   mudancaEstadoEm?: string;
   ativadoEm?: string;
+  /** First time in "Fazendo Análise" or later (start of the cycle time). */
+  analiseEm?: string;
+  coluna?: string;
   fechadoEm?: string;
   pontos?: number;
   tags: string[];
@@ -105,6 +109,10 @@ export function diasUteisEntre(de: Date, ate: Date): number {
   return n;
 }
 
+/** Days since the last change of any kind (the board gives no date for a column move inside a state). */
+export const diasSemMudanca = (i: ItemBoard, agora: Date): number =>
+  Math.floor((agora.getTime() - ms(i.alteradoEm ?? i.mudancaEstadoEm)) / DIA);
+
 /** ISO week label, e.g. 2026-W43. */
 export function semanaIso(d: Date): string {
   const t = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
@@ -125,19 +133,21 @@ export const dataFechamento = (i: ItemBoard): number => (ehPronto(i) ? ms(i.fech
 export function carregarItens(db: Database, timeId: string): ItemBoard[] {
   const r = db.exec(
     `SELECT id, tipo, estado, titulo, iteration_path, criado_em, alterado_em, mudanca_estado_em, ativado_em, fechado_em,
-            pontos, tags, tem_dono, dono, paralisado, tipo_bug FROM work_items WHERE time_id = ?`, [timeId]);
-  return (r[0]?.values ?? []).map((v) => ({
+            pontos, tags, tem_dono, dono, paralisado, tipo_bug, coluna, analise_em FROM work_items WHERE time_id = ?`, [timeId]);
+  return (r[0]?.values ?? []).map((v): ItemBoard => ({
     id: v[0] as number, tipo: v[1] as string, estado: v[2] as string, titulo: (v[3] as string) ?? '',
     iterationPath: (v[4] as string) ?? '', criadoEm: (v[5] as string) ?? undefined, alteradoEm: (v[6] as string) ?? undefined,
     mudancaEstadoEm: (v[7] as string) ?? undefined, ativadoEm: (v[8] as string) ?? undefined, fechadoEm: (v[9] as string) ?? undefined,
     pontos: (v[10] as number) ?? undefined, tags: ((v[11] as string) ?? '').split(';').filter(Boolean),
     temDono: v[12] === 1, dono: (v[13] as string) ?? undefined,
     paralisado: v[14] === 1, tipoBug: (v[15] as string) ?? undefined,
-  }));
+    coluna: (v[16] as string) ?? undefined, analiseEm: (v[17] as string) ?? undefined,
+  })).filter((i) => !ehIdeia(i)); // column "Ideias" counts in no metric
 }
 
 const leadDias = (i: ItemBoard) => (dataFechamento(i) - ms(i.criadoEm)) / DIA;
-const cycleDias = (i: ItemBoard) => (dataFechamento(i) - ms(i.ativadoEm ?? i.criadoEm)) / DIA;
+export const inicioCiclo = (i: ItemBoard) => ms(i.analiseEm ?? i.ativadoEm ?? i.criadoEm);
+export const cycleDias = (i: ItemBoard) => (dataFechamento(i) - inicioCiclo(i)) / DIA;
 const validos = (v: number[]) => v.filter((n) => Number.isFinite(n) && n >= 0);
 
 export function metricasDeSprint(itens: ItemBoard[], it: { caminho: string; nome: string; inicio?: string; fim?: string }, agora: Date): MetricasSprint {
@@ -147,7 +157,7 @@ export function metricasDeSprint(itens: ItemBoard[], it: { caminho: string; nome
   const noInicio = da.filter((i) => !(ms(i.criadoEm) > inicio + DIA));
   const adicionados = da.length - noInicio.length;
   const prontos = da.filter(ehPronto);
-  const bugs = da.filter(ehBugExterno);
+  const bugs = da.filter((i) => ehBug(i) || ehBugExterno(i)); // Interno and Externo both count for bug rate and MTTR
   const encerrada = Number.isFinite(fim) && fim < agora.getTime();
   return {
     sprint: it.nome, inicio: it.inicio, fim: it.fim, encerrada,
@@ -165,15 +175,16 @@ export function calcularMetricas(db: Database, timeId: string, agora = new Date(
   const itens = carregarItens(db, timeId);
   const abertos = itens.filter((i) => !ehPronto(i) && i.estado !== 'Removed');
 
-  const envelhecendo = abertos.filter((i) => (agora.getTime() - ms(i.mudancaEstadoEm ?? i.alteradoEm)) / DIA > limites.envelhecimentoDias);
+  const envelhecendo = abertos.filter((i) => diasSemMudanca(i, agora) > limites.envelhecimentoDias);
   const bloqueados = abertos.filter(ehBloqueado);
   const bloqueadosAcima = bloqueados.filter((i) => diasUteisEntre(new Date(i.alteradoEm ?? agora), agora) > limites.bloqueioDiasUteis);
 
-  const emAndamento = abertos.filter((i) => !ESTADOS_NAO_INICIADO.includes(i.estado));
+  const emAndamento = abertos.filter(emCiclo);
   const wipPorColuna: Record<string, number> = {};
   const porPessoa = new Map<string, number>();
   for (const i of emAndamento) {
-    wipPorColuna[i.estado] = (wipPorColuna[i.estado] ?? 0) + 1;
+    const col = colunaEfetiva(i);
+    wipPorColuna[col] = (wipPorColuna[col] ?? 0) + 1;
     if (i.dono) porPessoa.set(i.dono, (porPessoa.get(i.dono) ?? 0) + 1);
   }
   const wips = [...porPessoa.values()];

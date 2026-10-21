@@ -6,8 +6,9 @@
  */
 import type { Database } from 'sql.js';
 import { persist } from '../db/database.js';
+import { emCiclo } from './colunas.js';
 import {
-  calcularMetricas, carregarItens, diasUteisEntre, ehBloqueado, ehPronto, limitesDoAmbiente, media,
+  calcularMetricas, carregarItens, diasSemMudanca, diasUteisEntre, ehBloqueado, ehPronto, limitesDoAmbiente, media,
   type ItemBoard, type Limites, type MetricasTime,
 } from './metricas.js';
 
@@ -186,9 +187,9 @@ export interface ItemProblema {
 
 /** Work items by problem kind (RF-05). Never includes who the item belongs to. */
 export function itensProblema(db: Database, time: string, tipo: TipoProblema, agora = new Date(), lim = limitesDoAmbiente()): ItemProblema[] {
-  const dias = (i: ItemBoard) => Math.floor((agora.getTime() - new Date(i.mudancaEstadoEm ?? i.alteradoEm ?? agora).getTime()) / DIA);
+  const dias = (i: ItemBoard) => diasSemMudanca(i, agora);
   const abertos = carregarItens(db, time).filter((i) => !ehPronto(i) && i.estado !== 'Removed');
-  const iniciado = (i: ItemBoard) => !['New', 'To Do', 'Proposed', 'Approved'].includes(i.estado);
+  const iniciado = emCiclo;
   const filtro: Record<TipoProblema, (i: ItemBoard) => boolean> = {
     parados: (i) => dias(i) > lim.envelhecimentoDias,
     bloqueados: ehBloqueado,
