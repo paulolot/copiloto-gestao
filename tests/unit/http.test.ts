@@ -45,6 +45,14 @@ describe('ponte HTTP', () => {
     expect((await fetch(`${url}/mcp`, { method: 'POST', headers: { Authorization: 'Bearer errado' } })).status).toBe(401);
   });
 
+  it('accepts the token as the last URL segment, and only the right one', async () => {
+    const init = { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' }, body: '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' };
+    expect((await fetch(`${url}/mcp/${TOKEN}`, init)).status).toBe(200);
+    expect((await fetch(`${url}/mcp/errado`, init)).status).toBe(401);
+    expect((await fetch(`${url}/mcp/${TOKEN}/extra`, init)).status).toBe(401);
+    expect((await fetch(`${url}/outra/${TOKEN}`, init)).status).toBe(401);
+  });
+
   it('lists tools and calls ping, more than once', async () => {
     for (let n = 0; n < 3; n++) {
       const client = await connect();
