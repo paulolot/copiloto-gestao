@@ -9,7 +9,7 @@ secrets/
 *.key
 
 # Dados locais (vault real, bancos, logs)
-vault/
+/vault/
 *.db
 *.db-*
 *.sqlite

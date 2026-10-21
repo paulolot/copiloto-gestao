@@ -1,7 +1,7 @@
 /**
  * T0.7 — Discord tool (ponte side)
  * Posting is done via REST (no persistent connection needed from MCP server).
- * The Discord bot (bot.ts) handles the interactive approval buttons.
+ * The Discord bot (../discord/bot.ts) handles the interactive approval buttons.
  *
  * Autonomy level: sozinho (posting to Paulo's private server only)
  */
@@ -47,12 +47,13 @@ export async function discordPostar(canal: DiscordCanal, texto: string): Promise
       Authorization: `Bot ${token}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ content: texto }),
+    // allowed_mentions: text written by the model must never ping @everyone or roles
+    body: JSON.stringify({ content: texto, allowed_mentions: { parse: [] } }),
+    signal: AbortSignal.timeout(10_000),
   });
 
   if (!resp.ok) {
-    const err = await resp.text();
-    throw new Error(`Discord API error ${resp.status}: ${err}`);
+    throw new Error(`Discord API error ${resp.status}`);
   }
 
   const data = await resp.json() as { id: string };

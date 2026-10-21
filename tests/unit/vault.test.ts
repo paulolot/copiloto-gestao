@@ -2,7 +2,8 @@
  * T0.6 — Vault tools tests
  */
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
-import { mkdirSync, rmSync, writeFileSync } from 'fs';
+import { rmSync, readdirSync, symlinkSync, mkdtempSync } from 'fs';
+import { tmpdir } from 'os';
 import { join } from 'path';
 import { vaultListar, vaultLer, vaultBuscar, vaultCriarNota } from '../../src/ponte/tools/vault.js';
 
@@ -14,14 +15,10 @@ beforeAll(() => {
 
 afterAll(() => {
   // Clean up created test notes in inbox
-  try {
-    const inboxFiles = require('fs').readdirSync(join(FIXTURE_ROOT, 'inbox'));
-    for (const f of inboxFiles) {
-      if (f.includes('nota-de-teste')) {
-        rmSync(join(FIXTURE_ROOT, 'inbox', f));
-      }
-    }
-  } catch { /* ignore */ }
+  for (const f of readdirSync(join(FIXTURE_ROOT, 'inbox'))) {
+    if (f.includes('nota-de-teste') || f.includes('titulo-com-aspas')) rmSync(join(FIXTURE_ROOT, 'inbox', f));
+  }
+  rmSync(join(FIXTURE_ROOT, 'link-fora'), { force: true });
 });
 
 describe('vault_listar', () => {
@@ -95,5 +92,51 @@ describe('vault_criar_nota', () => {
 describe('path traversal protection', () => {
   it('blocks traversal with ../', () => {
     expect(() => vaultLer('../../../etc/passwd')).toThrow('fora do vault');
+  });
+});
+
+describe('hardening', () => {
+  it('blocks restricted area regardless of case or ./ prefix', () => {
+    expect(() => vaultLer('Pessoas/joao-silva.md')).toThrow('Área restrita');
+    expect(() => vaultLer('./pessoas/joao-silva.md')).toThrow('Área restrita');
+    expect(() => vaultLer('reunioes/../pessoas/joao-silva.md')).toThrow('Área restrita');
+    expect(() => vaultListar('pessoas')).toThrow('Área restrita');
+  });
+
+  it('blocks a symlink that points outside the vault', () => {
+    const outside = mkdtempSync(join(tmpdir(), 'fora-'));
+    symlinkSync(outside, join(FIXTURE_ROOT, 'link-fora'));
+    expect(() => vaultListar('link-fora')).toThrow('fora do vault');
+    expect(() => vaultBuscar('x', { pasta: 'link-fora' })).toThrow('fora do vault');
+    rmSync(join(FIXTURE_ROOT, 'link-fora'));
+    rmSync(outside, { recursive: true });
+  });
+
+  it('throws for a missing folder instead of pretending it is empty', () => {
+    expect(() => vaultListar('nao-existe')).toThrow('Pasta não encontrada');
+  });
+
+  it('rejects an empty search', () => {
+    expect(() => vaultBuscar('  ')).toThrow('vazio');
+  });
+
+  it('filters search by frontmatter date', () => {
+    expect(vaultBuscar('Squad Fiscal', { dataInicio: '2026-10-01', dataFim: '2026-10-31' })).toHaveLength(1);
+    expect(vaultBuscar('Squad Fiscal', { dataInicio: '2026-11-01' })).toHaveLength(0);
+  });
+
+  it('keeps the frontmatter valid when the title has quotes and newlines', () => {
+    const path = vaultCriarNota({ tipo: 'decisao', titulo: 'Titulo com "aspas"\ntipo: hack', conteudo: 'x' });
+    const content = vaultLer(path);
+    const fm = content.split('---')[1];
+    expect(fm.match(/^tipo:/gm)).toHaveLength(1);
+    expect(fm).toContain('titulo: "Titulo com \\"aspas\\"\\ntipo: hack"');
+  });
+
+  it('never overwrites an existing note', () => {
+    const a = vaultCriarNota({ tipo: 'decisao', titulo: 'Nota de Teste', conteudo: 'um' });
+    const b = vaultCriarNota({ tipo: 'decisao', titulo: 'Nota de Teste', conteudo: 'dois' });
+    expect(a).not.toBe(b);
+    expect(vaultLer(a)).toContain('um');
   });
 });

@@ -4,6 +4,7 @@
  * Restricted vault content is never logged — only the note path.
  */
 import type { Database } from 'sql.js';
+import { persist } from './database.js';
 
 export interface AuditEntry {
   tool: string;
@@ -34,13 +35,13 @@ export function logAudit(db: Database, entry: AuditEntry): number {
   ]);
   stmt.free();
 
-  // Return the inserted rowid
   const res = db.exec('SELECT last_insert_rowid()');
-  return res[0]?.values[0]?.[0] as number ?? 0;
+  persist(db);
+  return (res[0]?.values[0]?.[0] as number | undefined) ?? 0;
 }
 
 export function queryAudit(db: Database, limit = 50): AuditEntry[] {
-  const res = db.exec(`SELECT * FROM audit_log ORDER BY id DESC LIMIT ${limit}`);
+  const res = db.exec('SELECT * FROM audit_log ORDER BY id DESC LIMIT ?', [Math.max(1, Math.floor(limit))]);
   if (!res[0]) return [];
   const cols = res[0].columns;
   return res[0].values.map((row) => {
@@ -50,13 +51,18 @@ export function queryAudit(db: Database, limit = 50): AuditEntry[] {
   });
 }
 
-/** Remove known secret fields from logged parameters */
+const SECRET_KEYS = ['token', 'password', 'secret', 'key', 'authorization', 'pat'];
+
+/** Remove known secret fields from logged parameters (recursively) */
 function sanitizeParams(params: Record<string, unknown>): Record<string, unknown> {
-  const SECRET_KEYS = ['token', 'password', 'secret', 'key', 'authorization', 'pat'];
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(params)) {
     if (SECRET_KEYS.some((s) => k.toLowerCase().includes(s))) {
       out[k] = '[REDACTED]';
+    } else if (Array.isArray(v)) {
+      out[k] = v.map((x) => (x && typeof x === 'object' ? sanitizeParams(x as Record<string, unknown>) : x));
+    } else if (v && typeof v === 'object') {
+      out[k] = sanitizeParams(v as Record<string, unknown>);
     } else {
       out[k] = v;
     }

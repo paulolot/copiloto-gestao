@@ -53,9 +53,9 @@ npm run importar -- --origem /caminho/pasta-colaboradores --destino $VAULT_PATH
 ## Passo 4 — Rodar a ponte
 
 ```bash
-npm start
+npm run build && npm start     # o .env é lido automaticamente
 # Deve exibir:
-# Ponte MCP no ar: http://localhost:3333
+# Ponte MCP no ar: http://localhost:3333/mcp
 # Saúde: http://localhost:3333/health
 ```
 
@@ -64,9 +64,12 @@ Teste rapidamente:
 curl http://localhost:3333/health
 # {"status":"ok","ts":"..."}
 
-curl -H "Authorization: Bearer SEU_PONTE_TOKEN" \
-     http://localhost:3333/mcp
-# deve responder com lista de ferramentas MCP
+curl -s -X POST http://localhost:3333/mcp \
+     -H "Authorization: Bearer SEU_PONTE_TOKEN" \
+     -H "Content-Type: application/json" \
+     -H "Accept: application/json, text/event-stream" \
+     -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+# deve responder com a lista de ferramentas MCP; sem o cabeçalho Authorization, 401
 ```
 
 ## Passo 5 — Criar o túnel com Cloudflare
@@ -108,7 +111,7 @@ cloudflared tunnel run copiloto-gestao
 2. Clique em **Adicionar conector** → **MCP personalizado**
 3. Preencha:
    - **Nome:** Copiloto Gestão
-   - **URL:** `https://copiloto.SEUDOMINIO.com` (ou a URL temporária)
+   - **URL:** `https://copiloto.SEUDOMINIO.com/mcp` (ou a URL temporária, sempre terminando em `/mcp`)
    - **Cabeçalho de autenticação:** `Authorization`
    - **Valor:** `Bearer SEU_PONTE_TOKEN` (o mesmo do `.env`)
 4. Clique em **Testar conexão** — deve listar as ferramentas: `ping`, `vault_listar`, `vault_ler`, `vault_buscar`, `vault_criar_nota`, `discord_postar`
@@ -133,14 +136,10 @@ cat > ~/Library/LaunchAgents/com.paulo.copiloto-ponte.plist << 'EOF'
   <key>ProgramArguments</key>
   <array>
     <string>/usr/local/bin/node</string>
-    <string>/caminho/para/copiloto-gestao/dist/ponte/server.js</string>
+    <string>--env-file=/caminho/para/copiloto-gestao/.env</string>
+    <string>/caminho/para/copiloto-gestao/dist/src/ponte/server.js</string>
   </array>
-  <key>EnvironmentVariables</key>
-  <dict>
-    <key>PONTE_TOKEN</key><string>SEU_TOKEN</string>
-    <key>VAULT_PATH</key><string>/caminho/do/vault</string>
-    <!-- adicione as outras variáveis aqui -->
-  </dict>
+  <key>WorkingDirectory</key><string>/caminho/para/copiloto-gestao</string>
   <key>RunAtLoad</key><true/>
   <key>KeepAlive</key><true/>
   <key>StandardOutPath</key><string>/tmp/copiloto-ponte.log</string>
@@ -156,8 +155,10 @@ launchctl load ~/Library/LaunchAgents/com.paulo.copiloto-ponte.plist
 
 | Problema | Solução |
 | --- | --- |
+| `PONTE_TOKEN não configurado` | Preencha `PONTE_TOKEN` no `.env` com um token próprio (não o valor de exemplo) |
 | `401 Unauthorized` | Confirme que o token no `.env` e no Grok Bot são iguais |
 | `VAULT_PATH não configurado` | Variável ausente no `.env` |
 | `Área restrita` | Use a ferramenta correta para `pessoas/` |
 | Cloudflare 502 | A ponte não está rodando — execute `npm start` |
+| Botões de aprovação não aparecem | Confirme `DISCORD_BOT_TOKEN`, `DISCORD_OWNER_ID` e `DISCORD_CANAL_APROVACOES` no `.env` |
 | Discord `DISCORD_BOT_TOKEN` | Verifique se o bot foi convidado para o servidor |
