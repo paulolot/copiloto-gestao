@@ -121,6 +121,15 @@ cloudflared tunnel run copiloto-gestao
 
 Abra `grok/rotinas/teste-fundacao.md`, copie o prompt e cole no Grok Bot. Todos os três passos devem retornar OK.
 
+## Iniciar, parar e reiniciar (Windows)
+
+Na raiz do projeto há dois scripts:
+
+- `iniciar.bat` — para o que já estiver rodando (ponte e túnel), recompila e sobe a ponte e o túnel em duas janelas. Serve também para **reiniciar** (por exemplo, depois de um `git pull`).
+- `parar.bat` — só encerra a ponte (o processo na porta 3333) e o `cloudflared`.
+
+Antes, confira que o `.env` está preenchido e que o túnel `copiloto-gestao` existe (passo 5). Para iniciar com o Windows, crie um atalho do `iniciar.bat` na pasta aberta por `Win + R` → `shell:startup`. Se o `cloudflared` não estiver no `PATH`, troque `cloudflared` pelo caminho completo do `.exe` no script. O `parar.bat` encerra **todos** os `cloudflared.exe`.
+
 ## Manter a ponte no ar
 
 Para rodar a ponte automaticamente na inicialização do Mac:
