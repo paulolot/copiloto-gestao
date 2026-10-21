@@ -52,7 +52,7 @@ Premissas (confirmar com o Paulo, ver checklist): o Azure DevOps é acessado só
   - `grok/rotinas/briefing-diario.md` (7h30), `resumo-semanal.md` (sexta), `observador-boards.md` (hora em hora).
   - Pronto quando: textos prontos para colar, citando fontes e sem ranking individual.
 
-- [ ] **T1.10 Documentação** [código]
+- [x] **T1.10 Documentação** [código]
   - `docs/conectar.md` com as variáveis do Azure DevOps; `.env.example` atualizado; checklist do Paulo.
 
 - [ ] **T1.11 Validação com dados reais** [Paulo + máquina] — depende de todas

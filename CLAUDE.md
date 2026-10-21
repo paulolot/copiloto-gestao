@@ -8,7 +8,7 @@ Este repositório constrói o **Copiloto Gestão**: agentes de IA que executam o
 | --- | --- |
 | `docs/plano.md` | Visão, arquitetura, decisões, escopo, métricas, autonomia, persona, reunião com o CTO e fases |
 | `docs/requisitos.md` | Requisitos funcionais (RF-01 a RF-37) e não funcionais (RNF-01 a RNF-12), com fase |
-| `docs/backlog-fase-0.md` | Tarefas da fase atual, em ordem, com critério de pronto |
+| `docs/backlog-fase-1.md` | Tarefas da fase atual (fase 1: boards e rotina), em ordem, com critério de pronto. A fase 0 está em `docs/backlog-fase-0.md` (concluída) |
 | `docs/checklist-paulo.md` | O que só o Paulo pode fazer (contas, tokens, configuração do Grok Bot) |
 
 O plano completo e editável também existe como documento no claude.ai: https://claude.ai/artifact/CqqDCb6gjt4RmrCQFFxUDQ (privado do Paulo). Em caso de conflito, o documento no claude.ai vale mais que `docs/plano.md`.
@@ -40,7 +40,7 @@ O **Grok Bot** (nuvem, incluído no plano do Cursor do Paulo) é o cérebro: os 
 
 ## Como trabalhar
 
-1. Pegue a próxima tarefa aberta em `docs/backlog-fase-0.md`, respeitando a ordem e as dependências.
+1. Pegue a próxima tarefa aberta em `docs/backlog-fase-1.md`, respeitando a ordem e as dependências.
 2. Implemente com testes. Rode os testes antes de dar a tarefa como pronta.
 3. Marque a tarefa como feita no backlog (`- [x]`) no mesmo commit.
 4. Se algo depende do Paulo, registre em `docs/checklist-paulo.md` em vez de inventar valores.

@@ -24,10 +24,21 @@ O que só você pode fazer, porque depende das suas contas ou da sua máquina. M
   - Pendente do Paulo: o guia atual é só rascunho, com exemplos vazios (T0.10 aguarda esta revisão).
 - [ ] **Máquina:** instalar o SDK da linguagem escolhida e a ferramenta de túnel (por exemplo `cloudflared`).
 
-## Fase 1 (adiantar se quiser)
+## Fase 1
 
-- [ ] **Token do Azure DevOps:** criar um Personal Access Token na organização `metanetsistema` com escopo **somente leitura**: Work Items (Read), Code (Read), Analytics (Read). Guardar fora do Git.
-- [ ] **Limites de alerta:** revisar a lista de métricas em `docs/plano.md` e anotar limites diferentes dos padrões, se houver.
+- [ ] **Token do Azure DevOps:** criar um Personal Access Token na organização `metanetsistema` com escopo **somente leitura**: Work Items (Read), Code (Read), Analytics (Read). Guardar só no `.env` da sua máquina.
+  - Um PAT colado em conversa deve ser **revogado e recriado**: ele já passou por um canal que guarda histórico. A sessão na nuvem não usa o PAT (não alcança o Azure DevOps).
+- [ ] **Confirmar a estrutura do Azure DevOps** (em `src/ponte/azure/escopo.ts`, premissas minhas a validar):
+  - [ ] Projeto e area path de cada time. Supus `Metanet\Squad Fiscal`, `AutoXPert\Squad Desktop` e `Metanet\Squad Retaguarda WEB`.
+  - [ ] Estados de "pronto": supus `Done`, `Closed` e `Resolved`.
+  - [ ] Como um item aparece como bloqueado: supus a tag `Blocked` ou `Bloqueado`. Se for um campo, avise.
+  - [ ] O tipo `Bug Externo` existe nos três times com esse nome exato.
+  - [ ] Campo de pontos: usei `StoryPoints` e, na falta, `Effort`.
+- [ ] **Limites de alerta:** padrões atuais: envelhecimento 7 dias, bloqueio 2 dias úteis, WIP 3 por pessoa, bug rate 10%, compromisso 80%, escopo adicionado 20%, commit parado 3 dias úteis. Anote os diferentes e eles viram variáveis no `.env`.
+- [ ] **Ligar o Azure DevOps na ponte** (passo 8 de `docs/conectar.md`) e comparar `boards_saude` com o board real.
+- [ ] **Cadastrar as rotinas** de `grok/rotinas/` no Grok Bot: briefing diário (7h30), resumo semanal (sexta, 16h), observador (opcional).
+- [ ] **Gate:** durante 2 semanas, anotar todo dia se o briefing foi útil (meta: 4 de 5 dias).
+- [ ] **Marcar tarefa como feita pelo Discord** (RF-08): hoje a conclusão é pela ferramenta `tarefa_concluir`, pedindo ao Grok Bot. Se o botão no Discord fizer falta, abrir como tarefa nova.
 
 ## Respostas já registradas
 

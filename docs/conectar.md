@@ -29,6 +29,9 @@ Abra `.env` e preencha:
 | `DISCORD_GUILD_ID` | ID do seu servidor Discord (botão direito → Copiar ID do servidor) |
 | `DISCORD_OWNER_ID` | Seu ID de usuário no Discord (Configurações → Avançado → Modo desenvolvedor → botão direito no seu nome) |
 | `DISCORD_CANAL_*` | ID de cada canal (botão direito no canal → Copiar ID) |
+| `AZDO_ORG` | `metanetsistema` (fase 1) |
+| `AZDO_PAT` | Personal Access Token **somente leitura** (Work Items, Code, Analytics). Só no `.env`: nunca em chat, commit ou URL |
+| `AZDO_TIMES` | Times sincronizados: `fiscal`, `desktop`, `retaguarda` (padrão: só `fiscal`) |
 
 ## Passo 2 — Instalar dependências e testar
 
@@ -114,12 +117,22 @@ cloudflared tunnel run copiloto-gestao
    - **URL:** `https://copiloto.SEUDOMINIO.com/mcp/SEU_PONTE_TOKEN` (o mesmo token do `.env`, no fim da URL)
    - Se o Grok pedir "credenciais OAuth", a URL está sem o token ou com o token errado.
    - O token na URL pode aparecer em logs: use um token longo e aleatório, nunca o compartilhe e troque-o se vazar. Clientes que aceitam cabeçalho podem usar `Authorization: Bearer` na URL `/mcp`.
-4. Clique em **Testar conexão** — deve listar as ferramentas: `ping`, `vault_listar`, `vault_ler`, `vault_buscar`, `vault_criar_nota`, `discord_postar`
+4. Clique em **Testar conexão** — deve listar as ferramentas: `ping`, `vault_listar`, `vault_ler`, `vault_buscar`, `vault_criar_nota`, `discord_postar`, `boards_sincronizar`, `boards_saude`, `boards_alertas`, `boards_itens_problema`, `metricas_time`, `tarefa_criar`, `tarefa_listar`, `tarefa_concluir`, `conquista_registrar`
 5. Salve
 
 ## Passo 7 — Rodar o teste de fundação
 
 Abra `grok/rotinas/teste-fundacao.md`, copie o prompt e cole no Grok Bot. Todos os três passos devem retornar OK.
+
+## Passo 8 — Ligar o Azure DevOps (fase 1)
+
+1. Crie o PAT em `dev.azure.com/metanetsistema` → User settings → Personal access tokens, só com **Read** em Work Items, Code e Analytics, e validade curta (renove quando vencer).
+2. Coloque `AZDO_ORG` e `AZDO_PAT` no `.env` e reinicie a ponte. Ao subir, ela mostra "Sincronização do Azure DevOps agendada".
+3. Peça ao Grok Bot: "chame `boards_sincronizar` do time fiscal". A primeira carga leva 12 semanas de histórico e tudo que está aberto.
+4. Confira `boards_saude` contra o board real (itens abertos, bloqueados, bugs). Se os números não batem, veja "Premissas" em `docs/backlog-fase-1.md`: tag de bloqueio, estados de "pronto" e nomes das áreas.
+5. Cadastre as rotinas de `grok/rotinas/`: `briefing-diario.md` (7h30), `resumo-semanal.md` (sexta, 16h) e, se quiser, `observador-boards.md`.
+
+A ponte só **lê** do Azure DevOps. Nenhuma ferramenta escreve em work item, comentário ou repositório.
 
 ## Iniciar, parar e reiniciar (Windows)
 
@@ -170,4 +183,8 @@ launchctl load ~/Library/LaunchAgents/com.paulo.copiloto-ponte.plist
 | `Área restrita` | Use a ferramenta correta para `pessoas/` |
 | Cloudflare 502 | A ponte não está rodando — execute `npm start` |
 | Botões de aprovação não aparecem | Confirme `DISCORD_BOT_TOKEN`, `DISCORD_OWNER_ID` e `DISCORD_CANAL_APROVACOES` no `.env` |
+| `Azure DevOps não configurado` | Faltam `AZDO_ORG` ou `AZDO_PAT` no `.env` |
+| `Azure DevOps respondeu 401` | PAT vencido, errado ou sem escopo de leitura |
+| `Azure DevOps respondeu 403/404` | PAT sem acesso ao projeto, ou projeto/área com outro nome (ver `src/ponte/azure/escopo.ts`) |
+| Boards com números estranhos | Confira tag de bloqueio (`Blocked`/`Bloqueado`) e estados de pronto (`Done`, `Closed`, `Resolved`) |
 | Discord `DISCORD_BOT_TOKEN` | Verifique se o bot foi convidado para o servidor |
