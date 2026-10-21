@@ -32,7 +32,7 @@ Premissas (confirmar com o Paulo, ver checklist): o Azure DevOps é acessado só
   - Tabela `sinais` guarda a data em que cada sinal surgiu (alimenta os pontos de atenção do CTO).
   - Pronto quando: testes cobrem cada alerta, a linha de base e a data do primeiro sinal.
 
-- [ ] **T1.5 Ferramentas MCP de boards** [código] — depende de T1.4
+- [x] **T1.5 Ferramentas MCP de boards** [código] — depende de T1.4
   - `boards_sincronizar`, `boards_saude(time?)`, `boards_alertas(time?)`, `boards_itens_problema(time, tipo)`, `metricas_time(time, periodo)`; nível `sozinho` (leitura), todas pelo log de auditoria.
   - Pronto quando: cliente MCP de teste chama cada uma e o log registra.
 

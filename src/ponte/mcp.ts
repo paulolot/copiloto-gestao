@@ -1,6 +1,6 @@
 /**
  * T0.3 — MCP tool definitions
- * Exposes: ping, vault_listar, vault_ler, vault_buscar, vault_criar_nota, discord_postar
+ * Exposes: ping, vault_*, discord_postar, boards_* and metricas_time (phase 1)
  *
  * Every call goes through `audited`, so no tool can forget to write the audit log.
  */
@@ -11,6 +11,8 @@ import { logAudit } from './db/audit.js';
 import { enforcePolicy } from './middleware/autonomy.js';
 import { vaultListar, vaultLer, vaultBuscar, vaultCriarNota } from './tools/vault.js';
 import { discordPostar } from './tools/discord.js';
+import { boardsAlertas, boardsItensProblema, boardsSaude, boardsSincronizar, metricasTime, type BoardsDeps } from './tools/boards.js';
+import { TIPOS_PROBLEMA } from './azure/alertas.js';
 
 type ToolResult = { content: { type: 'text'; text: string }[]; isError?: boolean };
 
@@ -35,7 +37,7 @@ async function audited(
   }
 }
 
-export function createMcpServer(db: Database): McpServer {
+export function createMcpServer(db: Database, deps: Omit<BoardsDeps, 'db'> = {}): McpServer {
   const mcp = new McpServer({ name: 'copiloto-gestao', version: '0.1.0' });
 
   mcp.tool('ping', 'Verifica se a ponte está no ar', {}, () => audited(db, 'ping', {}, () => 'pong'));
@@ -102,6 +104,44 @@ export function createMcpServer(db: Database): McpServer {
         const result = await discordPostar(canal, texto);
         return `Mensagem enviada (ID: ${result.messageId})`;
       }),
+  );
+
+  // Fase 1 — boards (leitura do Azure DevOps; nível `sozinho`, nada é escrito no Azure DevOps)
+  const time = z.string().optional().describe('Time: fiscal, desktop ou retaguarda (padrão: todos os ativos)');
+
+  mcp.tool(
+    'boards_sincronizar',
+    'Atualiza os dados do Azure DevOps (work items, sprints, commits, PRs) dos times ativos',
+    { time },
+    ({ time }) => audited(db, 'boards_sincronizar', { time }, () => boardsSincronizar({ db, ...deps }, time)),
+  );
+
+  mcp.tool(
+    'boards_saude',
+    'Saúde dos boards por time: métricas e sinais ativos com a data em que surgiram (nunca por pessoa)',
+    { time },
+    ({ time }) => audited(db, 'boards_saude', { time }, () => boardsSaude(db, time)),
+  );
+
+  mcp.tool(
+    'boards_alertas',
+    'Sinais de alerta ativos por time, com a data do primeiro sinal',
+    { time },
+    ({ time }) => audited(db, 'boards_alertas', { time }, () => boardsAlertas(db, time)),
+  );
+
+  mcp.tool(
+    'boards_itens_problema',
+    'Work items parados, bloqueados, sem dono ou sem estimativa de um time',
+    { time: z.string().describe('Time: fiscal, desktop ou retaguarda'), tipo: z.enum(TIPOS_PROBLEMA as [string, ...string[]]) },
+    ({ time, tipo }) => audited(db, 'boards_itens_problema', { time, tipo }, () => boardsItensProblema(db, time, tipo as (typeof TIPOS_PROBLEMA)[number])),
+  );
+
+  mcp.tool(
+    'metricas_time',
+    'Métricas de um time: atuais, ou o histórico guardado por semana e por sprint',
+    { time: z.string().describe('Time: fiscal, desktop ou retaguarda'), periodo: z.enum(['atual', 'historico']).default('atual') },
+    ({ time, periodo }) => audited(db, 'metricas_time', { time, periodo }, () => metricasTime(db, time, periodo)),
   );
 
   return mcp;

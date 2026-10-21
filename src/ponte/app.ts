@@ -45,7 +45,7 @@ function sendJson(res: ServerResponse, status: number, body: unknown): void {
   res.end(JSON.stringify(body));
 }
 
-export function createApp(db: Database, token: string): Server {
+export function createApp(db: Database, token: string, deps: Parameters<typeof createMcpServer>[1] = {}): Server {
   return createServer(async (req, res) => {
     try {
       const path = (req.url ?? '').split('?')[0];
@@ -67,7 +67,7 @@ export function createApp(db: Database, token: string): Server {
         return;
       }
 
-      const mcp = createMcpServer(db);
+      const mcp = createMcpServer(db, deps);
       const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true });
       res.on('close', () => {
         void transport.close();
