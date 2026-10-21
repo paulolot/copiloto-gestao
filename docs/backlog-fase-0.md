@@ -64,7 +64,7 @@ Legenda: **[código]** pode ser feito numa sessão na nuvem · **[Paulo]** depen
   - Relatório ao fim: arquivos copiados, ignorados e conflitos; modo `--simular` que não grava nada.
   - Pronto quando: testes com uma pasta de fixture passam; execução real pelo Paulo fica no checklist.
 
-- [x] **T0.10 Skill de persona v1** [código] ✅ 21/10/2026 — aguarda revisão do Paulo com exemplos reais
+- [x] **T0.10 Skill de persona v1** [código] ✅ 21/10/2026 — aguarda o compilado do Paulo para montar a v1 (ver `checklist-paulo.md`)
   - `grok/skills/persona.md`: princípios, tom por contexto, exemplos bons e ruins (os reais são preenchidos com o Paulo).
   - Instruções para o Grok Bot aplicar a persona a qualquer texto em nome do Paulo e citar a regra quando reescrever algo.
   - Pronto quando: o Paulo revisa e aprova a v1.
