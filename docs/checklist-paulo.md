@@ -28,22 +28,22 @@ O que só você pode fazer, porque depende das suas contas ou da sua máquina. M
 
 - [ ] **Token do Azure DevOps:** criar um Personal Access Token na organização `metanetsistema` com escopo **somente leitura**: Work Items (Read), Code (Read), Analytics (Read). Guardar só no `.env` da sua máquina.
   - Um PAT colado em conversa deve ser **revogado e recriado**: ele já passou por um canal que guarda histórico. A sessão na nuvem não usa o PAT (não alcança o Azure DevOps).
-- [ ] **Confirmar a estrutura do Azure DevOps** (em `src/ponte/azure/escopo.ts`, premissas minhas a validar):
-  - [ ] Projeto e area path de cada time. Supus `Metanet\Squad Fiscal`, `AutoXPert\Squad Desktop` e `Metanet\Squad Retaguarda WEB`.
-  - [ ] Estados de "pronto": supus `Done`, `Closed` e `Resolved`.
-  - [ ] Como um item aparece como bloqueado: supus a tag `Blocked` ou `Bloqueado`. Se for um campo, avise.
-  - [ ] O tipo `Bug Externo` existe nos três times com esse nome exato.
+- [ ] **Confirmar a estrutura do Azure DevOps.** Já respondido em 21/10/2026: área `Metanet\Squad Desktop`, bloqueio = campo Paralisado, bug de produção = campo Tipo Bug "Bug Externo". Falta:
+  - [ ] **Nome técnico (reference name) dos campos** Paralisado e Tipo Bug (em Organization settings → Process → tipo de item → campo, ou em `.../_apis/wit/fields`). Supus `Custom.Paralisado` e `Custom.TipoBug`; se forem outros, ponha em `AZDO_CAMPO_PARALISADO` e `AZDO_CAMPO_TIPO_BUG` no `.env`. Com nome errado a sincronização pode falhar com erro 400.
+  - [ ] Valores do campo Paralisado: supus que "Sim", "True" ou qualquer valor que não seja vazio ou "Não" significa paralisado.
+  - [ ] Estados de "pronto": supus `Done`, `Closed` e `Resolved`. Se o board usa outros nomes (colunas), diga quais são e em que ordem.
   - [ ] Campo de pontos: usei `StoryPoints` e, na falta, `Effort`.
 - [ ] **Limites de alerta:** padrões atuais: envelhecimento 7 dias, bloqueio 2 dias úteis, WIP 3 por pessoa, bug rate 10%, compromisso 80%, escopo adicionado 20%, commit parado 3 dias úteis. Anote os diferentes e eles viram variáveis no `.env`.
 - [ ] **Ligar o Azure DevOps na ponte** (passo 8 de `docs/conectar.md`) e comparar `boards_saude` com o board real.
 - [ ] **Cadastrar as rotinas** de `grok/rotinas/` no Grok Bot: briefing diário (7h30), resumo semanal (sexta, 16h), observador (opcional).
 - [ ] **Gate:** durante 2 semanas, anotar todo dia se o briefing foi útil (meta: 4 de 5 dias).
-- [ ] **Marcar tarefa como feita pelo Discord** (RF-08): hoje a conclusão é pela ferramenta `tarefa_concluir`, pedindo ao Grok Bot. Se o botão no Discord fizer falta, abrir como tarefa nova.
+- [ ] **Testar o botão de tarefas no Discord:** peça ao Grok Bot para chamar `tarefas_postar`, clique em "✔ #id" e confirme que a tarefa fica riscada. Precisa do bot do Discord ligado (mesma configuração da fila de aprovações).
+- [ ] **Métricas por colaborador:** testar `metricas_colaboradores` do time fiscal e conferir os números com o board. Dado restrito: use no app do Grok Bot, não em canal compartilhado do Discord.
 
 ## Respostas já registradas
 
 - Repositórios do Squad Fiscal e do Retaguarda WEB: projeto Metanet.
-- Bug de produção: tipo **Bug Externo**. Bug rate essencial abaixo de 10%; MTTR por tendência.
+- Bug de produção: campo **Tipo Bug** = "Bug Externo" (o outro valor é "Bug Interno"). Bug rate essencial abaixo de 10%; MTTR por tendência.
 - Pasta de colaboradores: local, markdown separado em pastas.
 - Planos por papel: Tech Lead e Scrum Master primeiro.
 - CTO: reunião quinzenal; evoluções primeiro, decisões e pontos de atenção levados cedo.

@@ -35,7 +35,8 @@ export interface PostResult {
   canal: DiscordCanal;
 }
 
-export async function discordPostar(canal: DiscordCanal, texto: string): Promise<PostResult> {
+/** `components` are Discord message components already in JSON (buttons handled by the bot). */
+export async function discordPostar(canal: DiscordCanal, texto: string, components?: unknown[]): Promise<PostResult> {
   const token = process.env.DISCORD_BOT_TOKEN;
   if (!token) throw new Error('DISCORD_BOT_TOKEN não configurado');
 
@@ -48,7 +49,7 @@ export async function discordPostar(canal: DiscordCanal, texto: string): Promise
       'Content-Type': 'application/json',
     },
     // allowed_mentions: text written by the model must never ping @everyone or roles
-    body: JSON.stringify({ content: texto, allowed_mentions: { parse: [] } }),
+    body: JSON.stringify({ content: texto, allowed_mentions: { parse: [] }, ...(components?.length ? { components } : {}) }),
     signal: AbortSignal.timeout(10_000),
   });
 

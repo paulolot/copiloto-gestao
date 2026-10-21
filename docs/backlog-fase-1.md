@@ -7,7 +7,7 @@
 
 Legenda: **[código]** pode ser feito numa sessão na nuvem · **[Paulo]** depende do Paulo (ver `checklist-paulo.md`) · **[máquina]** precisa da máquina do Paulo.
 
-Premissas (confirmar com o Paulo, ver checklist): o Azure DevOps é acessado só por leitura com PAT; Squad Fiscal primeiro, os outros dois times já configurados mas ligados por variável de ambiente; "bloqueado" = tag `Blocked`/`Bloqueado`; "pronto" = estado `Done`, `Closed` ou `Resolved`.
+Premissas: o Azure DevOps é acessado só por leitura com PAT; Squad Fiscal primeiro, os outros dois times já configurados mas ligados por variável de ambiente. Respostas do Paulo (21/10/2026): os três times estão no projeto Metanet (área `Metanet\Squad Desktop` incluída); bloqueio = campo **Paralisado**; bug de produção = campo **Tipo Bug** = "Bug Externo". A confirmar: nomes técnicos desses campos e os estados de "pronto" (hoje `Done`, `Closed`, `Resolved`).
 
 ## Tarefas
 
@@ -22,7 +22,7 @@ Premissas (confirmar com o Paulo, ver checklist): o Azure DevOps é acessado só
   - Pronto quando: teste prova carga inicial, carga incremental e idempotência.
 
 - [x] **T1.3 Métricas por time** [código] — depende de T1.2 (RF-03, RF-06)
-  - Itens envelhecendo, bloqueados, WIP por coluna e por pessoa (só agregado), cycle e lead time, throughput, compromisso e escopo adicionado da sprint, bugs abertos/escapados, bug rate, MTTR (Bug Externo), frequência de commit por repositório.
+  - Itens envelhecendo, bloqueados, WIP por coluna e por pessoa (só agregado), cycle e lead time, throughput, compromisso e escopo adicionado da sprint, bugs abertos/escapados, bug rate, MTTR (Tipo Bug = Bug Externo), frequência de commit por repositório.
   - Histórico em `metric_snapshots` (por semana e por sprint).
   - Pronto quando: testes com fixture conferem cada métrica e provam que nenhuma saída traz nome de pessoa.
 
@@ -54,6 +54,19 @@ Premissas (confirmar com o Paulo, ver checklist): o Azure DevOps é acessado só
 
 - [x] **T1.10 Documentação** [código]
   - `docs/conectar.md` com as variáveis do Azure DevOps; `.env.example` atualizado; checklist do Paulo.
+
+- [x] **T1.10b Campos Paralisado e Tipo Bug** [código]
+  - Leitura dos campos personalizados (nomes técnicos em `AZDO_CAMPO_PARALISADO` e `AZDO_CAMPO_TIPO_BUG`, padrão `Custom.Paralisado` e `Custom.TipoBug`); a tag `Blocked`/`Bloqueado` continua valendo junto.
+  - Pronto quando: testes cobrem os dois campos e a migração do banco.
+
+- [x] **T1.10c Métricas por colaborador** [código] (pedido do Paulo em 21/10/2026, altera RF-06)
+  - `metricas_colaborador(pessoa, time?)` e `metricas_colaboradores(time?)`: WIP, itens abertos, parados, paralisados, bugs, entregas das últimas 8 semanas, cycle e lead time. Ordem alfabética, sem ranking; nome buscado fora do log de auditoria.
+  - Limite conhecido: a entrega conta para o dono atual do item (histórico de reatribuição não é lido). Commits por pessoa ficam de fora (o plano os mede por repositório).
+  - Pronto quando: testes provam os números, a ausência de campo de ranking e o aviso de uso.
+
+- [x] **T1.10d Botão "feita" no Discord** [código] (RF-08)
+  - `tarefas_postar` posta as tarefas abertas com um botão por tarefa; só o Paulo clica; a mensagem é refeita a cada clique (tarefa riscada, botão removido); o clique vai para o log.
+  - Pronto quando: testes com interação simulada cobrem conclusão, usuário não autorizado e tarefa já concluída. Validação real: checklist do Paulo.
 
 - [ ] **T1.11 Validação com dados reais** [Paulo + máquina] — depende de todas
   - Criar o PAT, ligar `AZDO_PAT`, sincronizar o Squad Fiscal, conferir métricas contra o board, colar as rotinas no Grok Bot.

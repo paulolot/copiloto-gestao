@@ -13,6 +13,7 @@ import { vaultListar, vaultLer, vaultBuscar, vaultCriarNota } from './tools/vaul
 import { discordPostar } from './tools/discord.js';
 import { metricasColaborador, boardsAlertas, boardsItensProblema, boardsSaude, boardsSincronizar, metricasTime, type BoardsDeps } from './tools/boards.js';
 import { tarefaConcluir, tarefaCriar, tarefaListar } from './tools/tarefas.js';
+import { mensagemTarefasAbertas } from './discord/tarefas.js';
 import { conquistaRegistrar } from './tools/conquistas.js';
 import { TIPOS_PROBLEMA } from './azure/alertas.js';
 
@@ -187,6 +188,20 @@ export function createMcpServer(db: Database, deps: Omit<BoardsDeps, 'db'> = {})
     'Marca uma tarefa como feita',
     { id: z.number().int().positive() },
     ({ id }) => audited(db, 'tarefa_concluir', { id }, () => `Tarefa #${tarefaConcluir(db, id).id} concluída`),
+  );
+
+  mcp.tool(
+    'tarefas_postar',
+    'Posta no Discord a lista de tarefas abertas com um botão "feita" por tarefa (só o Paulo consegue clicar)',
+    { canal: z.enum(['briefing', 'alertas']).default('briefing') },
+    ({ canal }) =>
+      audited(db, 'tarefas_postar', { canal }, async () => {
+        const policy = enforcePolicy(db, { tool: 'tarefas_postar', level: 'sozinho', action: `Postar tarefas em #${canal}` });
+        if (!policy.allowed) throw new Error('reason' in policy ? policy.reason : 'Aguardando aprovação');
+        const m = mensagemTarefasAbertas(db);
+        const r = await discordPostar(canal, m.content, m.components.map((c) => c.toJSON()));
+        return `Tarefas postadas (ID: ${r.messageId})`;
+      }),
   );
 
   // Fase 1 — conquistas (RF-27): nota em inbox/, nível `sozinho`

@@ -101,9 +101,10 @@ Toda ação fica num log com motivo e fonte.
 | MTTR | Média em alta contra a linha de base; sem tempo-alvo |
 | Frequência de commit | Repositório ativo parado por dias, ou queda forte |
 
-- Bug de produção = tipo de work item **Bug Externo**, nos três times.
 - Limites começam pela linha de base das últimas 8 semanas de cada time.
 - Frequência de commit por time e repositório, nunca por pessoa.
+- Métricas por colaborador (decisão de 21/10/2026) existem além das do time, em ferramenta específica: WIP, entregas, cycle e lead time, itens parados e paralisados, bugs. São área restrita: sem ranking, sem comparação entre pessoas, só para 1:1 e PDI.
+- Bloqueio = campo **Paralisado** do work item. Bug de produção = tipo **Bug** com o campo **Tipo Bug** = "Bug Externo" ("Bug Interno" não conta).
 
 ## Persona de liderança
 

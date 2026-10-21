@@ -18,6 +18,7 @@ import type { Database } from 'sql.js';
 import { logAudit } from '../db/audit.js';
 import { getQueueItem, getUnannouncedItems, setQueueDiscordMessage, updateQueueState } from '../db/queue.js';
 import { buildApprovalMessage } from '../tools/discord.js';
+import { handleTarefaButton, parseTarefaId, type TarefaButtonLike } from './tarefas.js';
 
 export type ApprovalAction = 'aprovar' | 'editar' | 'recusar';
 
@@ -164,7 +165,8 @@ export async function startBot(deps: ApprovalDeps & { token: string; canalAprova
 
   client.on('interactionCreate', (i: Interaction) => {
     const run = async () => {
-      if (i.isButton()) await handleApprovalButton(deps, i);
+      if (i.isButton() && parseTarefaId(i.customId) !== null) await handleTarefaButton(deps, i as unknown as TarefaButtonLike);
+      else if (i.isButton()) await handleApprovalButton(deps, i);
       else if (i.isModalSubmit()) await handleEditSubmit(deps, i as unknown as ModalLike);
     };
     run().catch((e) => console.error('Erro ao tratar interação do Discord:', (e as Error).message));
