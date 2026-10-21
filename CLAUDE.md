@@ -35,8 +35,8 @@ O **Grok Bot** (nuvem, incluído no plano do Cursor do Paulo) é o cérebro: os 
 ## Ambiente da sessão na nuvem
 
 - A sessão na nuvem **não alcança** `dev.azure.com`, as APIs do Google, o Discord nem a máquina do Paulo. Testes usam **dados simulados** (fixtures em `tests/fixtures/`), e as integrações reais são validadas pelo Paulo na máquina dele.
-- O .NET 10 SDK instala por `apt-get install -y dotnet-sdk-10.0`.
-- O acesso ao NuGet (`api.nuget.org`) estava **bloqueado** em 21/10/2026. O npm funciona. Antes de começar a ponte, confira em `docs/backlog-fase-0.md` a decisão sobre a linguagem (tarefa T0.1).
+- **Linguagem da ponte:** TypeScript/Node 22 (decisão registrada em 21/10/2026 — NuGet bloqueado na nuvem; npm funciona normalmente).
+- SDK oficial de MCP: `@modelcontextprotocol/sdk`; Discord: `discord.js`.
 
 ## Como trabalhar
 

@@ -1,0 +1,163 @@
+# Guia de Conexão — Ponte MCP + Grok Bot
+
+Siga este guia do zero para ligar a ponte na sua máquina e conectá-la ao Grok Bot. Tempo estimado: 30 minutos.
+
+## Pré-requisitos
+
+- Node.js 22+ instalado (`node --version`)
+- Conta no [Cloudflare](https://cloudflare.com) (gratuita)
+- `cloudflared` instalado ([download](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/))
+- Bot do Discord criado e token em mãos (ver `checklist-paulo.md`)
+- Repositório clonado: `git clone https://github.com/paulolot/copiloto-gestao.git`
+
+## Passo 1 — Configurar variáveis de ambiente
+
+```bash
+cd copiloto-gestao
+cp .env.example .env
+```
+
+Abra `.env` e preencha:
+
+| Variável | O que colocar |
+| --- | --- |
+| `PONTE_TOKEN` | Gere com: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
+| `PONTE_PORT` | Deixe `3333` (ou outra porta livre) |
+| `DB_PATH` | Caminho para o arquivo do banco, ex: `./copiloto.db` |
+| `VAULT_PATH` | Caminho absoluto da pasta do vault, ex: `/Users/paulo/vault` |
+| `DISCORD_BOT_TOKEN` | Token do bot (Discord Developer Portal) |
+| `DISCORD_GUILD_ID` | ID do seu servidor Discord (botão direito → Copiar ID do servidor) |
+| `DISCORD_OWNER_ID` | Seu ID de usuário no Discord (Configurações → Avançado → Modo desenvolvedor → botão direito no seu nome) |
+| `DISCORD_CANAL_*` | ID de cada canal (botão direito no canal → Copiar ID) |
+
+## Passo 2 — Instalar dependências e testar
+
+```bash
+npm install
+npm test          # deve passar todos os testes
+npm run build     # compila TypeScript
+```
+
+## Passo 3 — Inicializar o vault
+
+```bash
+# Copiar o template para a pasta do vault
+cp -r vault-template/* $VAULT_PATH/
+
+# Se quiser importar sua pasta atual de colaboradores:
+npm run importar -- --origem /caminho/pasta-colaboradores --destino $VAULT_PATH --simular
+# Se o relatório estiver correto, rode sem --simular para importar de verdade
+npm run importar -- --origem /caminho/pasta-colaboradores --destino $VAULT_PATH
+```
+
+## Passo 4 — Rodar a ponte
+
+```bash
+npm start
+# Deve exibir:
+# Ponte MCP no ar: http://localhost:3333
+# Saúde: http://localhost:3333/health
+```
+
+Teste rapidamente:
+```bash
+curl http://localhost:3333/health
+# {"status":"ok","ts":"..."}
+
+curl -H "Authorization: Bearer SEU_PONTE_TOKEN" \
+     http://localhost:3333/mcp
+# deve responder com lista de ferramentas MCP
+```
+
+## Passo 5 — Criar o túnel com Cloudflare
+
+```bash
+# Autenticar (só na primeira vez)
+cloudflared tunnel login
+
+# Criar o túnel
+cloudflared tunnel create copiloto-gestao
+
+# Criar o arquivo de roteamento
+cloudflared tunnel route dns copiloto-gestao copiloto.SEUDOMINIO.com
+```
+
+Crie o arquivo `~/.cloudflared/config.yml`:
+```yaml
+tunnel: <ID-do-tunel>
+credentials-file: /Users/paulo/.cloudflared/<ID-do-tunel>.json
+
+ingress:
+  - hostname: copiloto.SEUDOMINIO.com
+    service: http://localhost:3333
+  - service: http_status:404
+```
+
+Inicie o túnel:
+```bash
+cloudflared tunnel run copiloto-gestao
+```
+
+> Se não quiser usar um domínio próprio, use o modo de teste:
+> `cloudflared tunnel --url http://localhost:3333`
+> Isso gera uma URL temporária `https://xxxxx.trycloudflare.com`.
+
+## Passo 6 — Cadastrar no Grok Bot
+
+1. Acesse [grok.com/connectors](https://grok.com/connectors)
+2. Clique em **Adicionar conector** → **MCP personalizado**
+3. Preencha:
+   - **Nome:** Copiloto Gestão
+   - **URL:** `https://copiloto.SEUDOMINIO.com` (ou a URL temporária)
+   - **Cabeçalho de autenticação:** `Authorization`
+   - **Valor:** `Bearer SEU_PONTE_TOKEN` (o mesmo do `.env`)
+4. Clique em **Testar conexão** — deve listar as ferramentas: `ping`, `vault_listar`, `vault_ler`, `vault_buscar`, `vault_criar_nota`, `discord_postar`
+5. Salve
+
+## Passo 7 — Rodar o teste de fundação
+
+Abra `grok/rotinas/teste-fundacao.md`, copie o prompt e cole no Grok Bot. Todos os três passos devem retornar OK.
+
+## Manter a ponte no ar
+
+Para rodar a ponte automaticamente na inicialização do Mac:
+
+```bash
+# Criar plist de serviço (substitua os caminhos)
+cat > ~/Library/LaunchAgents/com.paulo.copiloto-ponte.plist << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.paulo.copiloto-ponte</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/local/bin/node</string>
+    <string>/caminho/para/copiloto-gestao/dist/ponte/server.js</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PONTE_TOKEN</key><string>SEU_TOKEN</string>
+    <key>VAULT_PATH</key><string>/caminho/do/vault</string>
+    <!-- adicione as outras variáveis aqui -->
+  </dict>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>StandardOutPath</key><string>/tmp/copiloto-ponte.log</string>
+  <key>StandardErrorPath</key><string>/tmp/copiloto-ponte.err</string>
+</dict>
+</plist>
+EOF
+
+launchctl load ~/Library/LaunchAgents/com.paulo.copiloto-ponte.plist
+```
+
+## Solução de problemas
+
+| Problema | Solução |
+| --- | --- |
+| `401 Unauthorized` | Confirme que o token no `.env` e no Grok Bot são iguais |
+| `VAULT_PATH não configurado` | Variável ausente no `.env` |
+| `Área restrita` | Use a ferramenta correta para `pessoas/` |
+| Cloudflare 502 | A ponte não está rodando — execute `npm start` |
+| Discord `DISCORD_BOT_TOKEN` | Verifique se o bot foi convidado para o servidor |
