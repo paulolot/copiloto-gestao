@@ -21,7 +21,7 @@ Premissas (confirmar com o Paulo, ver checklist): o Azure DevOps é acessado só
   - Sincronização incremental (primeira carga: 12 semanas + tudo que está aberto).
   - Pronto quando: teste prova carga inicial, carga incremental e idempotência.
 
-- [ ] **T1.3 Métricas por time** [código] — depende de T1.2 (RF-03, RF-06)
+- [x] **T1.3 Métricas por time** [código] — depende de T1.2 (RF-03, RF-06)
   - Itens envelhecendo, bloqueados, WIP por coluna e por pessoa (só agregado), cycle e lead time, throughput, compromisso e escopo adicionado da sprint, bugs abertos/escapados, bug rate, MTTR (Bug Externo), frequência de commit por repositório.
   - Histórico em `metric_snapshots` (por semana e por sprint).
   - Pronto quando: testes com fixture conferem cada métrica e provam que nenhuma saída traz nome de pessoa.
