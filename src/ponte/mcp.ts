@@ -11,7 +11,7 @@ import { logAudit } from './db/audit.js';
 import { enforcePolicy } from './middleware/autonomy.js';
 import { vaultListar, vaultLer, vaultBuscar, vaultCriarNota } from './tools/vault.js';
 import { discordPostar } from './tools/discord.js';
-import { boardsAlertas, boardsItensProblema, boardsSaude, boardsSincronizar, metricasTime, type BoardsDeps } from './tools/boards.js';
+import { metricasColaborador, boardsAlertas, boardsItensProblema, boardsSaude, boardsSincronizar, metricasTime, type BoardsDeps } from './tools/boards.js';
 import { tarefaConcluir, tarefaCriar, tarefaListar } from './tools/tarefas.js';
 import { conquistaRegistrar } from './tools/conquistas.js';
 import { TIPOS_PROBLEMA } from './azure/alertas.js';
@@ -144,6 +144,21 @@ export function createMcpServer(db: Database, deps: Omit<BoardsDeps, 'db'> = {})
     'Métricas de um time: atuais, ou o histórico guardado por semana e por sprint',
     { time: z.string().describe('Time: fiscal, desktop ou retaguarda'), periodo: z.enum(['atual', 'historico']).default('atual') },
     ({ time, periodo }) => audited(db, 'metricas_time', { time, periodo }, () => metricasTime(db, time, periodo)),
+  );
+
+  // Métricas por colaborador: área restrita. Ferramenta específica; o nome buscado não vai para o log.
+  mcp.tool(
+    'metricas_colaborador',
+    'Métricas individuais de um colaborador (WIP, entregas, cycle time, itens parados e paralisados). Dado restrito: uso do Paulo em 1:1 e PDI, sem ranking e fora de canais compartilhados',
+    { pessoa: z.string().min(2).describe('Parte do nome ou e-mail do colaborador'), time: z.string().optional().describe('Limitar a um time') },
+    ({ pessoa, time }) => audited(db, 'metricas_colaborador', { pessoa: '[restrito]', time }, () => metricasColaborador(db, { pessoa, time })),
+  );
+
+  mcp.tool(
+    'metricas_colaboradores',
+    'Métricas individuais de todos os colaboradores de um time, em ordem alfabética (nunca ordenadas por desempenho). Dado restrito',
+    { time },
+    ({ time }) => audited(db, 'metricas_colaboradores', { time }, () => metricasColaborador(db, { time })),
   );
 
   // Fase 1 — tarefas do Paulo (lista interna, nível `sozinho`)
