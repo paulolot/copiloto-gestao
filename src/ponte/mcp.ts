@@ -12,6 +12,8 @@ import { enforcePolicy } from './middleware/autonomy.js';
 import { vaultListar, vaultLer, vaultBuscar, vaultCriarNota } from './tools/vault.js';
 import { discordPostar } from './tools/discord.js';
 import { boardsAlertas, boardsItensProblema, boardsSaude, boardsSincronizar, metricasTime, type BoardsDeps } from './tools/boards.js';
+import { tarefaConcluir, tarefaCriar, tarefaListar } from './tools/tarefas.js';
+import { conquistaRegistrar } from './tools/conquistas.js';
 import { TIPOS_PROBLEMA } from './azure/alertas.js';
 
 type ToolResult = { content: { type: 'text'; text: string }[]; isError?: boolean };
@@ -142,6 +144,48 @@ export function createMcpServer(db: Database, deps: Omit<BoardsDeps, 'db'> = {})
     'Métricas de um time: atuais, ou o histórico guardado por semana e por sprint',
     { time: z.string().describe('Time: fiscal, desktop ou retaguarda'), periodo: z.enum(['atual', 'historico']).default('atual') },
     ({ time, periodo }) => audited(db, 'metricas_time', { time, periodo }, () => metricasTime(db, time, periodo)),
+  );
+
+  // Fase 1 — tarefas do Paulo (lista interna, nível `sozinho`)
+  mcp.tool(
+    'tarefa_criar',
+    'Cria uma tarefa na lista do Paulo, com prioridade, origem (para citar a fonte) e prazo',
+    {
+      titulo: z.string().min(1).max(300),
+      prioridade: z.enum(['alta', 'media', 'baixa']).default('media'),
+      origem: z.string().max(300).optional().describe('De onde veio: work item, e-mail, reunião...'),
+      prazo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().describe('AAAA-MM-DD'),
+    },
+    ({ titulo, prioridade, origem, prazo }) =>
+      audited(db, 'tarefa_criar', { titulo, prioridade, origem, prazo }, () => `Tarefa #${tarefaCriar(db, { titulo, prioridade, origem, prazo })} criada`),
+  );
+
+  mcp.tool(
+    'tarefa_listar',
+    'Lista as tarefas abertas do Paulo por prioridade e prazo',
+    { incluirFeitas: z.boolean().default(false) },
+    ({ incluirFeitas }) => audited(db, 'tarefa_listar', { incluirFeitas }, () => JSON.stringify(tarefaListar(db, { incluirFeitas }), null, 2)),
+  );
+
+  mcp.tool(
+    'tarefa_concluir',
+    'Marca uma tarefa como feita',
+    { id: z.number().int().positive() },
+    ({ id }) => audited(db, 'tarefa_concluir', { id }, () => `Tarefa #${tarefaConcluir(db, id).id} concluída`),
+  );
+
+  // Fase 1 — conquistas (RF-27): nota em inbox/, nível `sozinho`
+  mcp.tool(
+    'conquista_registrar',
+    'Registra uma conquista do Paulo ou do time no vault (inbox/, revisado: false), com crédito ao time e fonte',
+    {
+      titulo: z.string().min(1).max(200),
+      descricao: z.string().min(1).describe('O que aconteceu, com números quando houver'),
+      times: z.array(z.string()).default([]).describe('Times a creditar'),
+      fontes: z.array(z.string()).min(1).describe('Fontes: work items, commits, notas'),
+    },
+    ({ titulo, descricao, times, fontes }) =>
+      audited(db, 'conquista_registrar', { titulo, times, fontes }, () => `Conquista registrada: ${conquistaRegistrar({ titulo, descricao, times, fontes })}`),
   );
 
   return mcp;

@@ -40,11 +40,11 @@ Premissas (confirmar com o Paulo, ver checklist): o Azure DevOps é acessado só
   - A cada hora, dias úteis, 7h às 19h; sinal novo vai para `#alertas`; falha de sincronização também avisa.
   - Pronto quando: teste do agendador (relógio simulado) e da postagem só de sinais novos.
 
-- [ ] **T1.7 Tarefas do Paulo** [código] (RF-08)
+- [x] **T1.7 Tarefas do Paulo** [código] (RF-08)
   - `tarefa_criar`, `tarefa_listar`, `tarefa_concluir` (prioridade, origem, prazo); nível `sozinho` (lista interna).
   - Pronto quando: testes cobrem ciclo completo. Marcar como feita por botão no Discord fica para o Paulo validar junto com T1.11.
 
-- [ ] **T1.8 Registro de conquistas** [código] (RF-27)
+- [x] **T1.8 Registro de conquistas** [código] (RF-27)
   - `conquista_registrar(titulo, descricao, times, fontes)` cria nota `tipo: conquista` em `inbox/`, com crédito ao time.
   - Pronto quando: teste confirma a nota e o frontmatter.
 

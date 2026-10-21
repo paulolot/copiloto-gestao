@@ -139,6 +139,7 @@ export interface NovaNota {
   titulo: string;
   conteudo: string;
   fontes?: string[];
+  times?: string[];
 }
 
 function slugify(titulo: string): string {
@@ -165,13 +166,14 @@ export function vaultCriarNota(nota: NovaNota): string {
   const fontesYaml = nota.fontes?.length
     ? '\n' + nota.fontes.map((f) => `  - ${JSON.stringify(f)}`).join('\n')
     : ' []';
+  const timesYaml = nota.times?.length ? ` [${nota.times.map((t) => JSON.stringify(t)).join(', ')}]` : ' []';
   const content = `---
 tipo: ${JSON.stringify(nota.tipo)}
 titulo: ${JSON.stringify(nota.titulo)}
 data: ${data}
 fonte:${fontesYaml}
 pessoas: []
-times: []
+times:${timesYaml}
 origem: copiloto
 revisado: false
 ---
