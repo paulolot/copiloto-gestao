@@ -28,12 +28,12 @@ O que só você pode fazer, porque depende das suas contas ou da sua máquina. M
 
 - [ ] **Token do Azure DevOps:** criar um Personal Access Token na organização `metanetsistema` com escopo **somente leitura**: Work Items (Read), Code (Read), Analytics (Read). Guardar só no `.env` da sua máquina.
   - Um PAT colado em conversa deve ser **revogado e recriado**: ele já passou por um canal que guarda histórico. A sessão na nuvem não usa o PAT (não alcança o Azure DevOps).
-- [ ] **Confirmar a estrutura do Azure DevOps.** Já respondido em 21/10/2026: área `Metanet\Squad Desktop`, bloqueio = campo Paralisado, bug de produção = campo Tipo Bug "Bug Externo". Falta:
+- [ ] **Confirmar a estrutura do Azure DevOps.** Só User Story e Bug entram nas métricas (Feature, Épico e Atendimento ficam de fora); o nome exato do tipo é `User Story`, ou ajuste `AZDO_TIPOS`. Já respondido em 21/10/2026: área `Metanet\Squad Desktop`, bloqueio = campo Paralisado, bug de produção = campo Tipo Bug "Bug Externo". Falta:
   - [x] Nome técnico do campo Tipo Bug: `Custom.TipoBug` (confirmado em 21/10/2026).
   - [x] Respondido: lead de Backlog a Concluído; cycle de Fazendo Análise a Pronto pra release (Resolved); Ideias e UX fora; Fiscal sem Release candidate; throughput só em Concluído.
   - [ ] Depois da primeira sincronização, conferir `fonte.colunasDesconhecidas` em `boards_saude`: se aparecer algum nome, é coluna que o código não reconheceu (a comparação ignora maiúsculas, acentos e espaços, então seria outra grafia ou outra coluna). Me diga o nome exato.
   - [ ] Campo de pontos: usei `StoryPoints` e, na falta, `Effort`.
-- [ ] **Qual é a tag dos roadmaps?** Os times não usam sprints; os roadmaps são combinados em conversa e, às vezes, marcados com uma tag. Diga o nome (ou o começo do nome) da tag e ponha em `AZDO_TAG_ROADMAP` (padrão `roadmap`). Se cada roadmap tem uma tag com o mesmo começo (por exemplo `Roadmap-NFSe`, `Roadmap-Fiscal-Q4`), `boards_roadmap` já lista cada um. Se o combinado é só verbal, diga como você quer acompanhar (lista de itens, período, meta).
+- [ ] **Registrar os marcos de entrega em andamento:** peça ao Grok Bot `boards_tags` (mostra as tags dos itens abertos) e depois `marco_registrar` com o nome, a tag e a data de cada marco. Quando a data mudar, `marco_atualizar` (assim o adiamento fica registrado). O risco é uma estimativa; diga se a regra (itens abertos x ritmo das últimas 8 semanas) faz sentido ou se prefere outra.
 - [ ] **Limites de alerta:** padrões atuais: envelhecimento 7 dias, bloqueio 2 dias úteis, WIP 3 por pessoa, bug rate 10%, commit parado 3 dias úteis. Anote os diferentes e eles viram variáveis no `.env`.
 - [ ] **Ligar o Azure DevOps na ponte** (passo 8 de `docs/conectar.md`) e comparar `boards_saude` com o board real.
 - [ ] **Cadastrar as rotinas** de `grok/rotinas/` no Grok Bot: briefing diário (7h30), resumo semanal (sexta, 16h), observador (opcional).

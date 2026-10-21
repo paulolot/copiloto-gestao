@@ -95,13 +95,14 @@ Toda ação fica num log com motivo e fonte.
 | Cycle time e lead time | Alta por 2 meses seguidos contra os anteriores |
 | Throughput | Queda forte contra a média |
 | Bugs abertos e escapados | Acima do usual ou sem dono |
-| Andamento dos roadmaps (por tag) | Roadmap com itens paralisados ou parados; informativo, sem limite fixo |
+| Marco de entrega | Data próxima com itens abertos acima do ritmo habitual; data vencida com itens abertos; adiamentos |
 | Bug rate | Acima de 10% (nível essencial) ou em alta por 2 meses seguidos (bugs criados ÷ itens criados no mês, Interno e Externo) |
 | MTTR | Média em alta contra a linha de base; sem tempo-alvo |
 | Frequência de commit | Repositório ativo parado por dias, ou queda forte |
 
 - Limites começam pela linha de base das últimas 8 semanas de cada time.
-- **Os times não usam sprints.** As tendências são lidas por semana (throughput, commits) e por mês (cycle e lead time, bug rate, MTTR). Roadmaps não ficam explícitos no board: quando existem, são marcados por uma tag nos work items (prefixo em `AZDO_TAG_ROADMAP`) e acompanhados por `boards_roadmap`.
+- **Os times não usam sprints.** As tendências são lidas por semana (throughput, commits) e por mês (cycle e lead time, bug rate, MTTR). Não há roadmap explícito no board: o que existe é o **marco de entrega**, uma data em que um conjunto de work items deve ser entregue, marcado por uma tag escolhida na hora (arbitrária). O Paulo registra o marco na ponte (`marco_registrar`: nome, tag, data) e a ponte acompanha: entregues, em andamento, aguardando release, paralisados, parados, adiamentos e risco estimado (itens abertos contra o ritmo das últimas 8 semanas nas semanas que faltam).
+- **Só User Story e Bug** aparecem no board e entram nas métricas. Feature, Épico, Atendimento (e Task) ficam fora de tudo (`AZDO_TIPOS`).
 - Frequência de commit por time e repositório, nunca por pessoa.
 - Métricas por colaborador (decisão de 21/10/2026) existem além das do time, em ferramenta específica: WIP, entregas, cycle e lead time, itens parados e paralisados, bugs. São área restrita: sem ranking, sem comparação entre pessoas, só para 1:1 e PDI.
 - Bloqueio = campo **Paralisado** (`Custom.Status`): preenchido com algum texto, o item está paralisado.

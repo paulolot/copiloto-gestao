@@ -16,7 +16,7 @@ Chame `boards_sincronizar` e `metricas_time` (periodo `atual`) para cada time at
 - itens entregues na semana e comparação com a média das semanas anteriores (throughput);
 - cycle time e lead time (mediana);
 - tendência do mês (cycle e lead time, bug rate) comparada com os meses anteriores, quando houver dado;
-- roadmaps: chame `boards_roadmap` e, para cada roadmap com tag, diga o andamento (entregues de total), o que está aguardando release e o que está parado ou paralisado. Se não houver tag de roadmap, omita esta linha. Os times não usam sprints.
+- marcos de entrega: chame `boards_marcos`. Para cada marco ativo diga a data, quantos itens foram entregues do total, o que aguarda release, o que está parado ou paralisado, se foi adiado e o risco estimado (diga que é estimativa). Se não houver marco registrado, omita esta linha. Os times não usam sprints.
 Destaque o que melhorou. Comece sempre pelo que foi bem: o CTO e o time precisam ver as evoluções primeiro.
 
 ## 2. O que travou

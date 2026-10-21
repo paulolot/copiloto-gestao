@@ -11,7 +11,7 @@ import { logAudit } from './db/audit.js';
 import { enforcePolicy } from './middleware/autonomy.js';
 import { vaultListar, vaultLer, vaultBuscar, vaultCriarNota } from './tools/vault.js';
 import { discordPostar } from './tools/discord.js';
-import { boardsRoadmap, metricasColaborador, boardsAlertas, boardsItensProblema, boardsSaude, boardsSincronizar, metricasTime, type BoardsDeps } from './tools/boards.js';
+import { boardsMarcoAtualizar, boardsMarcoRegistrar, boardsMarcos, boardsTags, metricasColaborador, boardsAlertas, boardsItensProblema, boardsSaude, boardsSincronizar, metricasTime, type BoardsDeps } from './tools/boards.js';
 import { tarefaConcluir, tarefaCriar, tarefaListar } from './tools/tarefas.js';
 import { mensagemTarefasAbertas } from './discord/tarefas.js';
 import { conquistaRegistrar } from './tools/conquistas.js';
@@ -140,11 +140,43 @@ export function createMcpServer(db: Database, deps: Omit<BoardsDeps, 'db'> = {})
     ({ time, tipo }) => audited(db, 'boards_itens_problema', { time, tipo }, () => boardsItensProblema(db, time, tipo as (typeof TIPOS_PROBLEMA)[number])),
   );
 
+  // Marcos de entrega (os times não usam sprints): uma data + os work items marcados por uma tag
   mcp.tool(
-    'boards_roadmap',
-    'Andamento dos roadmaps marcados por tag nos work items: total, entregues, em andamento, aguardando release, paralisados e parados (os times não usam sprints)',
-    { time, tag: z.string().optional().describe('Um roadmap específico (a tag inteira); sem ele, todos') },
-    ({ time, tag }) => audited(db, 'boards_roadmap', { time, tag }, () => boardsRoadmap(db, { time, tag })),
+    'marco_registrar',
+    'Registra um marco de entrega: nome, a tag (arbitrária) que marca os work items e a data combinada. Lista interna do Paulo, nível sozinho',
+    {
+      nome: z.string().min(1).max(200),
+      tag: z.string().min(1).max(100).describe('Tag dos work items do marco (maiúsculas e acentos não importam)'),
+      data: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).describe('Data de entrega, AAAA-MM-DD'),
+      time: z.string().optional().describe('Limitar a um time; sem ele, vale para todos os times ativos'),
+    },
+    ({ nome, tag, data, time }) => audited(db, 'marco_registrar', { nome, tag, data, time }, () => boardsMarcoRegistrar(db, { nome, tag, data, time })),
+  );
+
+  mcp.tool(
+    'marco_atualizar',
+    'Muda a data (data posterior conta como adiamento), a tag ou o estado (ativo, entregue, cancelado) de um marco',
+    {
+      id: z.number().int().positive(),
+      data: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+      tag: z.string().min(1).max(100).optional(),
+      estado: z.enum(['ativo', 'entregue', 'cancelado']).optional(),
+    },
+    ({ id, data, tag, estado }) => audited(db, 'marco_atualizar', { id, data, tag, estado }, () => boardsMarcoAtualizar(db, id, { data, tag, estado })),
+  );
+
+  mcp.tool(
+    'boards_marcos',
+    'Andamento dos marcos de entrega: itens entregues, em andamento, aguardando release, paralisados e parados, dias até a data, adiamentos e risco estimado',
+    { id: z.number().int().positive().optional().describe('Um marco específico'), incluirEncerrados: z.boolean().default(false) },
+    ({ id, incluirEncerrados }) => audited(db, 'boards_marcos', { id, incluirEncerrados }, () => boardsMarcos(db, { id, incluirEncerrados })),
+  );
+
+  mcp.tool(
+    'boards_tags',
+    'Tags em uso nos work items abertos e quantos itens cada uma tem; ajuda a achar a tag de um marco',
+    { time },
+    ({ time }) => audited(db, 'boards_tags', { time }, () => boardsTags(db, time)),
   );
 
   mcp.tool(

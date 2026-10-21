@@ -46,6 +46,15 @@ export const TIMES: TimeEscopo[] = [
   },
 ];
 
+/**
+ * Work item types the boards show and the metrics count: User Story and Bug.
+ * Features, Epics, Atendimentos (and Tasks) are not on the board and count nowhere.
+ * Override with AZDO_TIPOS (comma separated).
+ */
+export function tiposContados(env: NodeJS.ProcessEnv = process.env): string[] {
+  return (env.AZDO_TIPOS ?? 'User Story,Bug').split(',').map((s) => s.trim()).filter(Boolean);
+}
+
 export function timesAtivos(env: NodeJS.ProcessEnv = process.env): TimeEscopo[] {
   const ids = (env.AZDO_TIMES ?? 'fiscal').split(',').map((s) => s.trim()).filter(Boolean);
   return TIMES.filter((t) => ids.includes(t.id));

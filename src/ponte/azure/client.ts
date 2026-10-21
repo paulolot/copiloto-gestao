@@ -3,6 +3,7 @@
  * Only GET requests and the WIQL query (a POST that reads). The PAT never leaves this file:
  * errors carry the status and the path, never headers or the token.
  */
+import { tiposContados } from './escopo.js';
 import { iniciouCiclo, iniciouLead, terminouCiclo } from './colunas.js';
 
 export type FetchLike = (url: string, init?: RequestInit) => Promise<Response>;
@@ -111,7 +112,8 @@ export class AzdoClient {
     const alterado = opts.desde ? `[System.ChangedDate] >= '${opts.desde.slice(0, 10)}'` : '';
     const aberto = `[System.State] NOT IN ('Done','Closed','Removed')`;
     const cond = opts.apenasAlterados && alterado ? alterado : [aberto, alterado].filter(Boolean).join(' OR ');
-    const query = `SELECT [System.Id] FROM WorkItems WHERE [System.AreaPath] UNDER '${area}' AND [System.State] <> 'Removed' AND (${cond}) ORDER BY [System.ChangedDate] DESC`;
+    const tipos = tiposContados().map((t) => `'${t.replace(/'/g, "''")}'`).join(',');
+    const query = `SELECT [System.Id] FROM WorkItems WHERE [System.AreaPath] UNDER '${area}' AND [System.WorkItemType] IN (${tipos}) AND [System.State] <> 'Removed' AND (${cond}) ORDER BY [System.ChangedDate] DESC`;
     const r = await this.request<{ workItems: { id: number }[] }>(
       `/${encodeURIComponent(projeto)}/_apis/wit/wiql?${API}&$top=19000`,
       { method: 'POST', body: JSON.stringify({ query }) },

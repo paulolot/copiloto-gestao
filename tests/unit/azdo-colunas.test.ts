@@ -127,3 +127,25 @@ describe('colunas no sync e nas métricas', () => {
     expect(m.cycleTimeDias).toBeDefined(); // falls back to activation/creation
   });
 });
+
+describe('tipos de work item', () => {
+  it('counts only User Story and Bug: Features, Epics, Atendimentos and Tasks are out of every metric', async () => {
+    const db = await makeTestDb();
+    await sincronizarTime(db, new AzdoClient({ org: 'o', pat: 'p', fetch: fakeFetch() }), TIMES[0], AGORA);
+    const antes = calcularMetricas(db, 'fiscal', AGORA);
+    db.run(`UPDATE work_items SET tipo = 'Feature' WHERE id = 1`);
+    db.run(`UPDATE work_items SET tipo = 'Epic' WHERE id = 2`);
+    db.run(`UPDATE work_items SET tipo = 'Atendimento' WHERE id = 7`);
+    const depois = calcularMetricas(db, 'fiscal', AGORA);
+    expect(antes.abertos - depois.abertos).toBe(3);
+    expect(depois.envelhecendo).toBe(0); // item 1 was the stalled one
+    expect(depois.bloqueados).toBe(0); // item 2 was the paralisado one
+    expect(carregarItens(db, 'fiscal').map((i) => i.tipo).sort()).toEqual(['Bug', 'Bug', 'User Story', 'User Story']);
+  });
+
+  it('asks Azure DevOps only for the counted types', async () => {
+    const chamadas: { url: string; body?: string }[] = [];
+    await new AzdoClient({ org: 'o', pat: 'p', fetch: fakeFetch(chamadas) }).consultarIds('Metanet', 'Metanet\\Squad Fiscal', {});
+    expect(JSON.parse(chamadas[0].body!).query).toContain("[System.WorkItemType] IN ('User Story','Bug')");
+  });
+});

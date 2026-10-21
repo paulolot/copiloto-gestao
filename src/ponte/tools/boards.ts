@@ -9,7 +9,7 @@ import { colunaDesconhecida } from '../azure/colunas.js';
 import { acharTime, timesAtivos, type TimeEscopo } from '../azure/escopo.js';
 import { sincronizarTime } from '../azure/sync.js';
 import { metricasColaboradores } from '../azure/metricas-pessoa.js';
-import { prefixoRoadmap, roadmaps } from '../azure/roadmap.js';
+import { marcoAtualizar, marcoListar, marcoObter, marcoRegistrar, sinaisDeMarcos, statusDoMarco, tagsEmUso, type EstadoMarco } from '../azure/marcos.js';
 import { avaliarTime, itensProblema, sinaisAtivos, type TipoProblema } from '../azure/alertas.js';
 
 export interface BoardsDeps {
@@ -90,14 +90,38 @@ export function metricasColaborador(db: Database, opts: { time?: string; pessoa?
   return JSON.stringify({ fonte: times.map((t) => fonte(db, t)), ...r }, null, 2);
 }
 
-/** Progress of the roadmaps marked by tag (the teams have no sprints). */
-export function boardsRoadmap(db: Database, opts: { time?: string; tag?: string }, agora = new Date()): string {
-  return JSON.stringify(resolverTimes(opts.time).map((t) => {
-    exigirDados(db, t);
-    const r = roadmaps(db, t.id, { tag: opts.tag, agora });
-    return {
-      time: t.nome, fonte: fonte(db, t), roadmaps: r,
-      ...(r.length ? {} : { aviso: `Nenhum item com tag que comece por "${prefixoRoadmap()}". A tag usada nos roadmaps é configurada em AZDO_TAG_ROADMAP.` }),
-    };
-  }), null, 2);
+/** Registers a delivery milestone: a date and the tag that marks its work items. */
+export function boardsMarcoRegistrar(db: Database, m: { nome: string; tag: string; data: string; time?: string }, agora = new Date()): string {
+  const timeId = m.time ? resolverTimes(m.time)[0].id : undefined;
+  const id = marcoRegistrar(db, { nome: m.nome, tag: m.tag, data: m.data, timeId });
+  const s = statusDoMarco(db, marcoObter(db, id)!, agora);
+  return JSON.stringify({
+    id, ...(s.totalItens === 0 ? { aviso: `Nenhum item sincronizado tem a tag "${m.tag}". Confira a grafia (maiúsculas e acentos não importam) ou rode boards_sincronizar.` } : { itensComATag: s.totalItens }),
+  });
 }
+
+export function boardsMarcoAtualizar(db: Database, id: number, mudanca: { data?: string; tag?: string; estado?: EstadoMarco }): string {
+  return JSON.stringify(marcoAtualizar(db, id, mudanca));
+}
+
+/** Status of the active milestones (or one), with the risk estimate and the dated signals. */
+export function boardsMarcos(db: Database, opts: { id?: number; incluirEncerrados?: boolean } = {}, agora = new Date()): string {
+  const marcos = opts.id !== undefined ? [marcoObter(db, opts.id)].filter((m) => !!m) : marcoListar(db, { incluirEncerrados: opts.incluirEncerrados });
+  if (opts.id !== undefined && !marcos.length) throw new Error(`Marco #${opts.id} não existe`);
+  const times = timesAtivos();
+  const sinceTimes = times.filter((t) => fonte(db, t).sincronizadoEm).length;
+  return JSON.stringify({
+    fonte: times.map((t) => fonte(db, t)),
+    ...(sinceTimes < times.length ? { aviso: 'Algum time ainda não foi sincronizado: os números do marco podem estar incompletos (boards_sincronizar).' } : {}),
+    marcos: marcos.map((m) => statusDoMarco(db, m!, agora)),
+    observacao: 'Risco é estimativa: itens abertos contra o ritmo médio de conclusão das últimas 8 semanas (todos os itens do time) nas semanas que faltam.',
+  }, null, 2);
+}
+
+export function boardsTags(db: Database, time?: string): string {
+  const times = resolverTimes(time);
+  times.forEach((t) => exigirDados(db, t));
+  return JSON.stringify({ fonte: times.map((t) => fonte(db, t)), tags: tagsEmUso(db, times.map((t) => t.id)) }, null, 2);
+}
+
+export { sinaisDeMarcos };

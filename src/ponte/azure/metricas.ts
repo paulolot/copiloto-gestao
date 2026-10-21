@@ -4,6 +4,7 @@
  * WIP in aggregate and never appear in the output (no individual ranking).
  */
 import type { Database } from 'sql.js';
+import { tiposContados } from './escopo.js';
 import { colunaEfetiva, ehIgnorada, emCiclo } from './colunas.js';
 import { persist } from '../db/database.js';
 
@@ -126,6 +127,8 @@ export function semanaIso(d: Date): string {
 }
 
 export const ehPronto = (i: ItemBoard) => ESTADOS_PRONTO.includes(i.estado);
+/** Only the types on the board count (User Story and Bug); Features, Epics and Atendimentos never do. */
+export const contaNasMetricas = (i: { tipo: string }) => tiposContados().some((t) => t.toLowerCase() === i.tipo.trim().toLowerCase());
 export const ehBug = (i: ItemBoard) => i.tipo.toLowerCase() === 'bug';
 /** Production bug: type Bug with "Tipo Bug" = Bug Externo (a work item type with that name also counts). */
 export const ehBugExterno = (i: ItemBoard) => i.tipoBug?.trim().toLowerCase() === BUG_EXTERNO || i.tipo.toLowerCase() === BUG_EXTERNO;
@@ -145,7 +148,7 @@ export function carregarItens(db: Database, timeId: string): ItemBoard[] {
     paralisado: v[14] === 1, tipoBug: (v[15] as string) ?? undefined,
     coluna: (v[16] as string) ?? undefined, analiseEm: (v[17] as string) ?? undefined,
     backlogEm: (v[18] as string) ?? undefined, prontoEm: (v[19] as string) ?? undefined,
-  })).filter((i) => !ehIgnorada(i)); // columns Ideias and UX count in no metric
+  })).filter((i) => !ehIgnorada(i) && contaNasMetricas(i)); // columns Ideias and UX, and types other than User Story/Bug, count in no metric
 }
 
 /** Lead time: Backlog to Concluído. */

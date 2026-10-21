@@ -7,7 +7,8 @@ import type { Database } from 'sql.js';
 import type { AzdoClient } from './azure/client.js';
 import { timesAtivos, type TimeEscopo } from './azure/escopo.js';
 import { sincronizarTime } from './azure/sync.js';
-import { avaliarTime, marcarAvisado, sinaisNaoAvisados, type SinalRegistrado } from './azure/alertas.js';
+import { sinaisDeMarcos } from './azure/marcos.js';
+import { atualizarSinais, avaliarTime, marcarAvisado, sinaisNaoAvisados, type SinalRegistrado } from './azure/alertas.js';
 import { logAudit } from './db/audit.js';
 import type { DiscordCanal } from './tools/discord.js';
 
@@ -68,7 +69,14 @@ export async function executarCiclo(deps: CicloDeps): Promise<CicloResultado> {
     }
   }
 
-  const nomes = new Map(times.map((t) => [t.id, t.nome]));
+  // Milestones at risk use the same dated signals, under the pseudo team "marcos"
+  try {
+    atualizarSinais(db, 'marcos', sinaisDeMarcos(db, agora), agora);
+  } catch (e) {
+    logAudit(db, { tool: 'marcos_sinais', origin: 'agendador', result: 'error', error_msg: (e as Error).message });
+  }
+
+  const nomes = new Map<string, string>([...times.map((t): [string, string] => [t.id, t.nome]), ['marcos', 'Marcos de entrega']]);
   for (const s of sinaisNaoAvisados(db)) {
     if (!nomes.has(s.time)) continue;
     try {

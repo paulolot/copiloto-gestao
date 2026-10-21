@@ -10,7 +10,7 @@ export function wi(id: number, f: Record<string, unknown>) {
   return {
     id,
     fields: {
-      'System.WorkItemType': 'Task', 'System.State': 'Active', 'System.BoardColumn': 'Dev implementando', 'System.Title': `Item ${id}`,
+      'System.WorkItemType': 'User Story', 'System.State': 'Active', 'System.BoardColumn': 'Dev implementando', 'System.Title': `Item ${id}`,
       'System.AreaPath': 'Metanet\\Squad Fiscal', 'System.IterationPath': 'Metanet\\Sprint 42',
       'System.CreatedDate': dias(20), 'System.ChangedDate': dias(1), 'System.StateChangeDate': dias(1),
       'System.AssignedTo': { uniqueName: 'ana@empresa.com' }, 'Microsoft.VSTS.Scheduling.StoryPoints': 3,

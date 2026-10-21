@@ -130,6 +130,21 @@ function initSchema(db: Database): void {
       PRIMARY KEY (time_id, chave)
     );
 
+    -- Marcos de entrega: uma data combinada + os work items marcados com uma tag (a tag é arbitrária,
+    -- por isso o marco é registrado aqui: nome, tag, data)
+    CREATE TABLE IF NOT EXISTS marcos (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      nome TEXT NOT NULL,
+      tag TEXT NOT NULL,
+      time_id TEXT,                  -- NULL = todos os times ativos
+      data TEXT NOT NULL,            -- AAAA-MM-DD, data atual combinada
+      data_original TEXT NOT NULL,
+      adiamentos INTEGER NOT NULL DEFAULT 0,
+      estado TEXT NOT NULL DEFAULT 'ativo' CHECK(estado IN ('ativo','entregue','cancelado')),
+      criado_em TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+      atualizado_em TEXT
+    );
+
     CREATE TABLE IF NOT EXISTS tarefas (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       titulo TEXT NOT NULL,

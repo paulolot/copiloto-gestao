@@ -75,10 +75,11 @@ Premissas: o Azure DevOps é acessado só por leitura com PAT; Squad Fiscal prim
   - Bug rate e MTTR passam a contar Bug Interno e Externo.
   - Pronto quando: testes cobrem as colunas, Ideias fora, cycle time pelas revisões e Bug Interno.
 
-- [x] **T1.10f Sem sprints: janelas mensais e roadmap por tag** [código] (resposta do Paulo, 21/10/2026)
+- [x] **T1.10f Sem sprints: janelas mensais e marcos de entrega** [código] (resposta do Paulo, 21/10/2026)
   - Saem as métricas e alertas de sprint (compromisso, escopo adicionado) e a leitura de iterações do Azure DevOps. Tendências passam a ser por semana (throughput, commits) e por mês (cycle e lead time, bug rate = bugs criados ÷ itens criados, MTTR = Backlog→Concluído dos bugs entregues); alertas de "2 sprints" viram "2 meses seguidos".
-  - `boards_roadmap(time?, tag?)`: roadmaps são marcados por tag nos work items (prefixo em `AZDO_TAG_ROADMAP`, padrão `roadmap`, sem diferenciar maiúsculas); mostra total, entregues (Concluído), em andamento, aguardando release, paralisados e parados.
-  - Pronto quando: testes cobrem os meses, os alertas mensais e o agrupamento por tag.
+  - Marco de entrega = uma data + os work items marcados por uma tag arbitrária (decidida na hora). `marco_registrar(nome, tag, data, time?)`, `marco_atualizar(id, data?, tag?, estado?)` (data posterior conta como adiamento; guarda a data original), `boards_marcos(id?)` e `boards_tags(time?)` (tags em uso, para achar a do marco). Risco estimado = itens abertos contra o ritmo médio das últimas 8 semanas nas semanas que faltam; marco em risco gera sinal datado em `#alertas`.
+  - Só User Story e Bug entram nas métricas (Feature, Épico, Atendimento e Task ficam fora; `AZDO_TIPOS`).
+  - Pronto quando: testes cobrem os meses, os alertas mensais, os marcos (risco, adiamentos, sinal) e o filtro de tipos.
 
 - [ ] **T1.11 Validação com dados reais** [Paulo + máquina] — depende de todas
   - Criar o PAT, ligar `AZDO_PAT`, sincronizar o Squad Fiscal, conferir métricas contra o board, colar as rotinas no Grok Bot.
