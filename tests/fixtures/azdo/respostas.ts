@@ -22,7 +22,7 @@ export function wi(id: number, f: Record<string, unknown>) {
 export const ITENS = [
   wi(1, { 'System.State': 'Active', 'System.StateChangeDate': dias(12) }), // envelhecendo
   wi(2, { 'System.State': 'Active', 'System.Tags': 'Blocked; fiscal', 'System.ChangedDate': dias(5) }), // bloqueado
-  wi(3, { 'System.State': 'New', 'System.AssignedTo': undefined, 'Microsoft.VSTS.Scheduling.StoryPoints': undefined }), // sem dono e sem estimativa
+  wi(3, { 'System.WorkItemType': 'User Story', 'System.State': 'Active', 'System.AssignedTo': undefined, 'Microsoft.VSTS.Scheduling.StoryPoints': undefined }), // em andamento, sem dono e sem estimativa
   wi(4, { 'System.State': 'Done', 'System.CreatedDate': dias(10), 'Microsoft.VSTS.Common.ActivatedDate': dias(6), 'Microsoft.VSTS.Common.ClosedDate': dias(2), 'System.StateChangeDate': dias(2) }),
   wi(5, { 'System.State': 'Done', 'System.WorkItemType': 'Bug Externo', 'System.CreatedDate': dias(8), 'Microsoft.VSTS.Common.ClosedDate': dias(6), 'System.StateChangeDate': dias(6) }),
   wi(6, { 'System.State': 'Active', 'System.WorkItemType': 'Bug', 'System.AssignedTo': undefined }), // bug sem dono

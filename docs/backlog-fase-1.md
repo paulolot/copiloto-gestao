@@ -26,7 +26,7 @@ Premissas (confirmar com o Paulo, ver checklist): o Azure DevOps é acessado só
   - Histórico em `metric_snapshots` (por semana e por sprint).
   - Pronto quando: testes com fixture conferem cada métrica e provam que nenhuma saída traz nome de pessoa.
 
-- [ ] **T1.4 Alertas e itens-problema** [código] — depende de T1.3 (RF-04, RF-05)
+- [x] **T1.4 Alertas e itens-problema** [código] — depende de T1.3 (RF-04, RF-05)
   - Limites padrão do `plano.md`; sem limite, desvio contra a linha de base das últimas 8 semanas.
   - Itens parados, bloqueados, sem dono e sem estimativa.
   - Tabela `sinais` guarda a data em que cada sinal surgiu (alimenta os pontos de atenção do CTO).

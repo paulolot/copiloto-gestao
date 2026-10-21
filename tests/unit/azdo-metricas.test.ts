@@ -38,7 +38,7 @@ describe('calcularMetricas', () => {
     expect(m.envelhecendo).toBe(1); // item 1 (12 days in state)
     expect(m.bloqueados).toBe(1);
     expect(m.bloqueadosAcimaDoLimite).toBe(1); // changed 5 days ago
-    expect(m.wipPorColuna).toEqual({ Active: 4 }); // 1,2,6,7; item 3 is New
+    expect(m.wipPorColuna).toEqual({ Active: 5 }); // 1,2,3,6,7
     expect(m.wipPorPessoa).toEqual({ maximo: 3, pessoasAcimaDoLimite: 0 });
   });
 
