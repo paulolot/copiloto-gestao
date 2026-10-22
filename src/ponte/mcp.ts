@@ -10,6 +10,7 @@ import type { Database } from 'sql.js';
 import { logAudit } from './db/audit.js';
 import { enforcePolicy } from './middleware/autonomy.js';
 import type { IndiceVault, ResultadoSemantico } from './vault/indice.js';
+import { papelLer } from './tools/papeis.js';
 import { pessoaPerfil } from './tools/pessoa-perfil.js';
 import { vaultListar, vaultLer, vaultBuscar, vaultCriarNota, pessoaRegistrar, pessoaListar, pessoaLer, TIPOS_REGISTRO_PESSOA } from './tools/vault.js';
 import { CANAIS_CONVERSA, discordLerNovas, discordMarcarLido, discordPostar } from './tools/discord.js';
@@ -99,6 +100,13 @@ export function createMcpServer(db: Database, deps: McpDeps = {}): McpServer {
       limite: z.number().int().min(1).max(20).optional(),
     },
     (a) => audited(db, 'vault_buscar_semantico', { ...a }, async () => formatarSemantico(await indice().buscar('principal', a.texto, a))),
+  );
+
+  mcp.tool(
+    'papel_ler',
+    'Lê o plano de um papel (Tech Lead, Scrum Master…): competências, expectativas por nível, trilha de crescimento e sinais de que a pessoa está pronta. Avisa se o plano não foi revisado ou está incompleto',
+    { papel: z.string().min(2).max(80) },
+    ({ papel }) => audited(db, 'papel_ler', { papel }, () => JSON.stringify(papelLer(papel), null, 2)),
   );
 
   mcp.tool(

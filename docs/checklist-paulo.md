@@ -54,7 +54,7 @@ Detalhes em `docs/backlog-fase-2.md` (T2.0, T2.3, T2.12). Pode adiantar enquanto
 - [~] **Cadência de 1:1 por pessoa:** 1:1 **mensal** (22/10/2026); falta só a revisão do PDI. (pergunta original: (semanal, quinzenal…) e a cada quanto tempo revisar o PDI.)
 - [ ] **Planos por papel:** material de **Tech Lead** e **Scrum Master** (competências, expectativas por nível, trilha). O Claude monta a v1 para você revisar.
 - [ ] **Persona v1:** copiar o texto integral para `persona/guia-de-estilo.md` no vault privado, revisar, marcar `revisado: true` e completar o que está como `[a completar]` (feedback do CTO e do time, emoji por canal, cadência dos hábitos, aula 11, Pentad de Burke e Triple Threat). O Coach e a pauta do CTO dependem dele.
-- [ ] **Busca por significado (T2.1):** na máquina da ponte, `npm install @huggingface/transformers`, pôr `EMBEDDER=local` no `.env` e reiniciar; rodar `npm run indexar` (a primeira indexação baixa o modelo, ~120 MB, e pode demorar; dá para deixar para a noite). Depois testar `vault_buscar_semantico` com uma pergunta cuja resposta use outras palavras que a nota e dizer se os resultados fazem sentido.
+- [x] **Busca por significado (T2.1):** validado pelo Paulo em 22/10/2026 (`npm run indexar -- --buscar` devolveu a nota certa). Passos feitos: na máquina da ponte, `npm install @huggingface/transformers`, pôr `EMBEDDER=local` no `.env` e reiniciar; rodar `npm run indexar` (a primeira indexação baixa o modelo, ~120 MB, e pode demorar; dá para deixar para a noite). Depois testar `vault_buscar_semantico` com uma pergunta cuja resposta use outras palavras que a nota e dizer se os resultados fazem sentido.
 - [ ] **Importador:** rodar na pasta de colaboradores, `--simular` primeiro (T2.12).
 
 ## Respostas já registradas

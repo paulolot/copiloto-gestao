@@ -48,8 +48,8 @@ Legenda: **[código]** pode ser feito numa sessão na nuvem · **[Paulo]** depen
   - Ferramenta restrita `pessoa_perfil(pessoa)`: junta perfil, PDI, últimos 1:1, registros recentes (impressões, combinados, feedbacks), entregas e sinais do board da pessoa (usa `metricas_colaborador`) e conquistas. Devolve dados e caminhos, nunca opinião.
   - Pronto quando: testes com pessoas de fixture; nada do conteúdo vai para o log, só os caminhos.
 
-- [ ] **T2.3 Planos por papel** [código + Paulo] (RF-20) — depende de T2.0
-  - **[código]** Modelo `papeis/_modelo.md` (competências, expectativas por nível, trilha de crescimento, sinais de que a pessoa está pronta) e validador. Ferramenta `papel_ler(papel)`.
+- [~] **T2.3 Planos por papel** [código + Paulo] (RF-20) — depende de T2.0
+  - **[código] ✅ 22/10/2026** Modelo `papeis/_modelo.md` (competências, expectativas por nível, trilha de crescimento, sinais de que a pessoa está pronta) e validador (`validarPlanoPapel`). Ferramenta `papel_ler(papel)`: acha o plano pelo nome do arquivo ou pelo campo `papel`, e avisa se está incompleto ou `revisado: false`.
   - **[Paulo]** Fornecer o material de **Tech Lead** e **Scrum Master**; o Claude monta a v1 de cada plano (`revisado: false`) para o Paulo revisar. Depois, os demais papéis, um por vez.
   - Pronto quando: os dois planos estão no vault real, revisados, e `papel_ler` os devolve.
 
