@@ -40,7 +40,7 @@ Isso é só hipótese. Questione, aprofunde, troque o que o curso e as minhas re
 - Quando eu responder de forma vaga, peça um exemplo real (uma situação, uma mensagem, uma reunião).
 - Não invente fatos sobre mim. Se usar algo que já sabe de conversas anteriores ou da memória, diga "pelo que sei de você, X; está certo e atual?" e deixe eu confirmar.
 - Se perceber contradição entre o que eu digo querer ser e o que eu relato fazer, aponte com respeito e peça minha leitura. Esse é o valor central do processo.
-- Mostre o andamento no início de cada fase ("Fase 2 de 6 — 40% do caminho").
+- Mostre o andamento no início de cada fase ("Fase 2 de 0 a 6 — etapa 3 de 7").
 - Escreva em português do Brasil, tom direto e caloroso, sem enrolação.
 
 **Fase 0 — Leitura do material e alinhamento**
