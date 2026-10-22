@@ -92,18 +92,32 @@ Toda ação fica num log com motivo e fonte.
 | Itens envelhecendo | Sem mudança de estado acima do limite do time |
 | Itens bloqueados | Bloqueio acima de 2 dias úteis |
 | WIP por pessoa e por coluna | Acima do limite combinado |
-| Cycle time e lead time | Alta por 2 sprints |
+| Cycle time e lead time | Alta por 2 meses seguidos contra os anteriores |
 | Throughput | Queda forte contra a média |
-| Compromisso da sprint | Abaixo do combinado em 2 sprints seguidas |
 | Bugs abertos e escapados | Acima do usual ou sem dono |
-| Escopo adicionado na sprint | Acima do limite do time |
-| Bug rate | Acima de 10% (nível essencial) ou em alta por 2 sprints |
+| Marco de entrega | Data próxima com itens abertos acima do ritmo habitual; data vencida com itens abertos; adiamentos |
+| Bug rate | Acima de 10% (nível essencial) ou em alta por 2 meses seguidos (bugs criados ÷ itens criados no mês, Interno e Externo) |
 | MTTR | Média em alta contra a linha de base; sem tempo-alvo |
 | Frequência de commit | Repositório ativo parado por dias, ou queda forte |
 
-- Bug de produção = tipo de work item **Bug Externo**, nos três times.
 - Limites começam pela linha de base das últimas 8 semanas de cada time.
+- **Os times não usam sprints.** As tendências são lidas por semana (throughput, commits) e por mês (cycle e lead time, bug rate, MTTR).
+- **Percentis, não médias** (Kanban e DORA): cycle e lead time saem em P50, P85 e P95 ("85% dos itens saem em até X dias"). A previsão de entrega é uma simulação de Monte Carlo sobre a vazão semanal real do time: ela responde "qual a chance de entregar até a data" e "em que data temos 85% (ou o percentil da regra) de confiança".
+- **DORA:** das quatro métricas, a ponte cobre hoje o **MTTR** (Backlog → Concluído dos bugs) e uma aproximação da **taxa de falha de mudança** (Bug Externo criados ÷ itens entregues no mês). **Frequência de deploy** e **lead time de mudanças** (commit → produção) exigem os dados de pipeline do Azure DevOps (permissão Build/Release: leitura) e a definição de qual pipeline é "produção"; ficam como T1.12.
+- **Marco de entrega:** não há roadmap explícito no board; o que existe é uma data em que um conjunto de work items deve ser entregue, marcado por uma tag escolhida na hora (arbitrária). O Paulo define o marco **por conversa no `#planejamento`** (ou no app do Grok Bot) e pode fixar as **regras do próximo marco de cada time a qualquer momento**, mesmo antes de existirem tag e data: confiança exigida (percentil, padrão 85), janela de histórico (padrão 12 semanas), tipos contados, escopo fechado (avisa item novo) e observações em texto livre. A ponte acompanha: entregues, em andamento, aguardando release, paralisados, parados, adiamentos e a previsão. Marco com chance abaixo da confiança exigida vira sinal datado em `#alertas`.
+- **Só User Story e Bug** aparecem no board e entram nas métricas. Feature, Épico, Atendimento (e Task) ficam fora de tudo (`AZDO_TIPOS`).
 - Frequência de commit por time e repositório, nunca por pessoa.
+- Métricas por colaborador (decisão de 21/10/2026) existem além das do time, em ferramenta específica: WIP, entregas, cycle e lead time, itens parados e paralisados, bugs. São área restrita: sem ranking, sem comparação entre pessoas, só para 1:1 e PDI.
+- Bloqueio = campo **Paralisado** (`Custom.Status`): preenchido com algum texto, o item está paralisado.
+- Bug = work item do tipo **Bug**; o campo **Tipo Bug** os separa em "Bug Interno" e "Bug Externo" (produção). **Bug rate e MTTR contam os dois**; bugs escapados e a gravidade de "sem dono" olham o Externo.
+- Colunas do board, em ordem (iguais nos três times): Ideias · Backlog · Fazendo Análise · Disponível para Dev · Dev implementando · Disponível Revisão de Código · Realizando revisão de código · Disponível para teste · Testando · Aguardando pipeline · Pronto pra release · Release candidate · Concluído.
+  - O Squad Fiscal não tem *Release candidate*; o Retaguarda WEB tem uma coluna extra, **UX**. A ordem é o que vale, então coluna que falta não atrapalha.
+  - **Ideias** e **UX** não entram em nenhuma métrica.
+  - **Lead time:** da entrada em *Backlog* até *Concluído*.
+  - **Cycle time:** da entrada em *Fazendo Análise* até a primeira chegada a *Pronto pra release* (ou *Release candidate*, ou estado Resolved).
+  - **WIP** = de *Fazendo Análise* até *Aguardando pipeline*. "Entregue" (throughput) = *Concluído*.
+  - Nomes de coluna são comparados sem diferenciar maiúsculas, acentos e espaços extras. Coluna com nome desconhecido aparece em `colunasDesconhecidas` na fonte das respostas de boards.
+  - Item parado = dias sem nenhuma alteração (o Azure DevOps não guarda a data de mudança de coluna dentro de um estado).
 
 ## Persona de liderança
 

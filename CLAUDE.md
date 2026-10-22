@@ -8,7 +8,10 @@ Este repositório constrói o **Copiloto Gestão**: agentes de IA que executam o
 | --- | --- |
 | `docs/plano.md` | Visão, arquitetura, decisões, escopo, métricas, autonomia, persona, reunião com o CTO e fases |
 | `docs/requisitos.md` | Requisitos funcionais (RF-01 a RF-37) e não funcionais (RNF-01 a RNF-12), com fase |
-| `docs/backlog-fase-0.md` | Tarefas da fase atual, em ordem, com critério de pronto |
+| `docs/backlog-fase-1.md` | Tarefas da fase atual (fase 1: boards e rotina), em ordem, com critério de pronto. A fase 0 está em `docs/backlog-fase-0.md` (concluída) |
+| `grok/rotinas/README.md` | Roteiro de todas as rotinas e skills a cadastrar no Grok Bot (horários, conectores, ferramentas); os prompts ficam na mesma pasta |
+| `docs/discord-configuracao.md` | Permissões, intents e convite do bot (inglês e português) |
+| `docs/discord-canais.md` | Tópico de cada canal e comandos `/` (gerado por `npm run docs:discord`) |
 | `docs/checklist-paulo.md` | O que só o Paulo pode fazer (contas, tokens, configuração do Grok Bot) |
 
 O plano completo e editável também existe como documento no claude.ai: https://claude.ai/artifact/CqqDCb6gjt4RmrCQFFxUDQ (privado do Paulo). Em caso de conflito, o documento no claude.ai vale mais que `docs/plano.md`.
@@ -28,7 +31,7 @@ O **Grok Bot** (nuvem, incluído no plano do Cursor do Paulo) é o cérebro: os 
 - **Ferramentas de escrita da ponte não agem direto.** Tudo que chega a outra pessoa ou altera um board (mensagem, e-mail, work item, comentário) vira um item na fila de aprovações e só é executado depois do OK do Paulo no Discord. A política está em `docs/plano.md`, seção Política de autonomia.
 - **Toda chamada de ferramenta é registrada** no log de auditoria: ferramenta, parâmetros (sem segredos), quem chamou, resultado, horário.
 - **Toda resposta cita a fonte** (work item, commit, nota do vault, e-mail).
-- **Métricas são por time, nunca ranking individual de pessoas.**
+- **Métricas são por time. Por colaborador só pelas ferramentas específicas (`metricas_colaborador`, `metricas_colaboradores`)**, para o Paulo usar em 1:1 e PDI (decisão de 21/10/2026): sem ranking, sem comparar pessoas, ordem alfabética, nome fora do log de auditoria e nunca em canal compartilhado do Discord.
 - **Área restrita do vault** (`pessoas/`, PDI, 1:1): só sai da ponte quando a ferramenta é específica para isso; nunca em canais compartilhados do Discord.
 - Código, nomes de classes e commits em **inglês**; documentação, textos de skills e mensagens ao usuário em **português do Brasil**.
 
@@ -40,7 +43,7 @@ O **Grok Bot** (nuvem, incluído no plano do Cursor do Paulo) é o cérebro: os 
 
 ## Como trabalhar
 
-1. Pegue a próxima tarefa aberta em `docs/backlog-fase-0.md`, respeitando a ordem e as dependências.
+1. Pegue a próxima tarefa aberta em `docs/backlog-fase-1.md`, respeitando a ordem e as dependências.
 2. Implemente com testes. Rode os testes antes de dar a tarefa como pronta.
 3. Marque a tarefa como feita no backlog (`- [x]`) no mesmo commit.
 4. Se algo depende do Paulo, registre em `docs/checklist-paulo.md` em vez de inventar valores.

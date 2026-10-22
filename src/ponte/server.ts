@@ -6,6 +6,10 @@ import { getDb } from './db/database.js';
 import { createApp } from './app.js';
 import { executeApproved, type ExecutionHandler } from './middleware/executor.js';
 import { startBot } from './discord/bot.js';
+import { mapaCanais } from './discord/comandos.js';
+import { AzdoClient } from './azure/client.js';
+import { iniciarAgendador } from './agendador.js';
+import { discordPostar } from './tools/discord.js';
 
 const PORT = parseInt(process.env.PONTE_PORT ?? '3333', 10);
 const TOKEN = process.env.PONTE_TOKEN ?? '';
@@ -31,6 +35,8 @@ async function main() {
         ownerId: DISCORD_OWNER_ID,
         token: DISCORD_BOT_TOKEN,
         canalAprovacoesId: DISCORD_CANAL_APROVACOES,
+        guildId: process.env.DISCORD_GUILD_ID,
+        canais: mapaCanais(),
         onDecision: runExecutor,
       });
       console.log('Bot do Discord conectado (fila de aprovações em #aprovacoes)');
@@ -41,8 +47,20 @@ async function main() {
     console.warn('Bot do Discord desativado: defina DISCORD_BOT_TOKEN, DISCORD_OWNER_ID e DISCORD_CANAL_APROVACOES');
   }
 
+  // Azure DevOps (read only). Without a PAT the bridge still runs; the board tools just say it is not configured.
+  let azdo: AzdoClient | undefined;
+  if (process.env.AZDO_PAT && process.env.AZDO_ORG) {
+    azdo = new AzdoClient({ org: process.env.AZDO_ORG, pat: process.env.AZDO_PAT });
+    if (process.env.AZDO_SYNC_AGENDADO !== 'nao') {
+      iniciarAgendador({ db, azdo, postar: (canal, texto) => discordPostar(canal, texto) });
+      console.log('Sincronização do Azure DevOps agendada (dias úteis, 7h às 19h, de hora em hora)');
+    }
+  } else {
+    console.warn('Azure DevOps desativado: defina AZDO_ORG e AZDO_PAT (veja docs/conectar.md)');
+  }
+
   // Tunnel (cloudflared) connects to localhost, so there is no need to listen on other interfaces.
-  createApp(db, TOKEN).listen(PORT, '127.0.0.1', () => {
+  createApp(db, TOKEN, { azdo }).listen(PORT, '127.0.0.1', () => {
     console.log(`Ponte MCP no ar: http://localhost:${PORT}/mcp`);
     console.log(`Saúde: http://localhost:${PORT}/health`);
   });

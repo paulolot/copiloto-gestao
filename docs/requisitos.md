@@ -8,12 +8,15 @@ Um requisito só é dado como pronto quando o Paulo o usa no dia a dia por uma s
 
 | ID | Requisito | Fase | Onde |
 | --- | --- | --- | --- |
-| RF-01 | Ler work items, sprints e iterações dos três area paths a cada hora | 1 | Ponte |
+| RF-01 | Ler User Stories e Bugs dos três area paths a cada hora (sem sprints: o acompanhamento é por marco de entrega, registrado com uma tag) | 1 | Ponte |
 | RF-02 | Ler commits e pull requests dos repositórios do escopo | 1 | Ponte |
-| RF-03 | Calcular as métricas por time e por sprint, guardando o histórico | 1 | Ponte |
+| RF-03 | Calcular as métricas por time, por semana e por mês, guardando o histórico | 1 | Ponte |
 | RF-04 | Alertar quando uma métrica sai do limite; sem limite, usar desvio contra a linha de base de 8 semanas | 1 | Ponte + Grok |
 | RF-05 | Apontar itens parados, bloqueados, sem dono ou sem estimativa | 1 | Ponte |
-| RF-06 | Métricas por time, nunca ranking individual | 1 | Ponte |
+| RF-06 | Métricas por time; por colaborador só em ferramenta específica e restrita (uso do Paulo em 1:1 e PDI), nunca como ranking nem em canal compartilhado | 1 | Ponte |
+| RF-38 | Definir por conversa no Discord (`#planejamento`) os marcos de entrega e as regras do próximo marco de cada time, a qualquer momento | 1 | Ponte + Grok |
+| RF-39 | Previsão de entrega por percentis (simulação de Monte Carlo), sem média; cycle e lead time em P50/P85/P95 | 1 | Ponte |
+| RF-40 | Captura por Discord: insights do dia, impressões e conversas privadas sobre pessoas (área restrita, sem repetir o conteúdo) e cobranças com lembrete; por comandos `/` (na hora) e por texto livre (rotina a cada 2h) | 1 | Ponte + Grok |
 
 ### Rotina diária
 
