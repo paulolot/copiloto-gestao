@@ -38,7 +38,7 @@ export interface RespostaColaboradores {
 }
 
 export const AVISO_USO =
-  'Dado individual e restrito, para o Paulo usar em 1:1, PDI e acompanhamento. Não ranquear, não comparar pessoas, não postar em canal compartilhado do Discord. Entregas contam para o dono atual do item.';
+  'Dado individual e restrito, para o Paulo usar em 1:1, PDI e acompanhamento. Não ranquear nem comparar pessoas. Entregas contam para o dono atual do item.';
 
 const ms = (s?: string) => (s ? new Date(s).getTime() : NaN);
 const validos = (v: number[]) => v.filter((n) => Number.isFinite(n) && n >= 0);

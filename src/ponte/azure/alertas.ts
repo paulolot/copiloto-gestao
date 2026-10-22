@@ -100,7 +100,7 @@ export function avaliarSinais(m: MetricasTime, agora: Date, lim: Limites, la: Li
     if (atual.userStoriesResolvidas < la.bugRateAmostraMinima || anterior.userStoriesResolvidas < la.bugRateAmostraMinima) return [];
     return atual.taxa > anterior.taxa && atual.taxa > la.bugRatePercent ? [`${dias} dias em ${atual.taxa}% (era ${anterior.taxa}%)`] : [];
   });
-  if (subindo.length) add('bug_rate', 'amarelo', `Bug rate subindo: ${subindo.join(' e ')} (limite ${la.bugRatePercent}%)`);
+  if (subindo.length) add('bug_rate_janela', 'amarelo', `Bug rate subindo: ${subindo.join(' e ')} (limite ${la.bugRatePercent}%)`);
   if (ultima?.mttrDias !== undefined) {
     const base = media(fechadas.slice(0, -1).map((x) => x.mttrDias).filter((v): v is number => v !== undefined));
     if (base !== undefined && ultima.mttrDias > base * 1.5) add('mttr', 'amarelo', `MTTR de ${ultima.mttrDias} dias em ${ultima.mes}, acima da linha de base (${base} dias)`);
@@ -180,6 +180,8 @@ export interface ItemProblema {
   estado: string;
   titulo: string;
   diasNoEstado: number;
+  /** Display name of the owner, when the card has one. */
+  responsavel?: string;
 }
 
 export interface ItemAviso {
@@ -202,7 +204,7 @@ export function itensDoSinal(db: Database, time: string, chave: string, agora: D
   if (chave === 'bloqueio') {
     return { itens: ordenar(abertos.filter((i) => ehBloqueado(i) && diasUteisEntre(new Date(i.alteradoEm ?? agora), agora) > lim.bloqueioDiasUteis)) };
   }
-  if (chave === 'bug_rate') {
+  if (chave === 'bug_rate_janela') {
     const idade = (i: ItemBoard) => Math.floor((agora.getTime() - new Date(i.criadoEm ?? agora).getTime()) / 86_400_000);
     const bugs = (dias: number) => todos.filter((i) => i.estado !== 'Removed' && (ehBug(i) || ehBugExterno(i)) && idade(i) <= dias)
       .sort((x, y) => idade(x) - idade(y));
@@ -222,7 +224,7 @@ export function itensDoSinal(db: Database, time: string, chave: string, agora: D
   return { itens: [] };
 }
 
-/** Work items by problem kind (RF-05). Never includes who the item belongs to. */
+/** Work items by problem kind (RF-05), with the owner's name when there is one. */
 export function itensProblema(db: Database, time: string, tipo: TipoProblema, agora = new Date(), lim = limitesDoAmbiente()): ItemProblema[] {
   const dias = (i: ItemBoard) => diasSemMudanca(i, agora);
   const abertos = carregarItens(db, time).filter((i) => !ehPronto(i) && i.estado !== 'Removed');
@@ -234,5 +236,5 @@ export function itensProblema(db: Database, time: string, tipo: TipoProblema, ag
     sem_estimativa: (i) => iniciado(i) && i.pontos === undefined && !['Task', 'Bug', 'Bug Externo'].includes(i.tipo),
   };
   return abertos.filter(filtro[tipo]).sort((a, b) => dias(b) - dias(a))
-    .map((i) => ({ id: i.id, tipo: i.tipo, estado: i.estado, titulo: i.titulo, diasNoEstado: dias(i) }));
+    .map((i) => ({ id: i.id, tipo: i.tipo, estado: i.estado, titulo: i.titulo, diasNoEstado: dias(i), ...(i.donoNome ? { responsavel: i.donoNome } : {}) }));
 }

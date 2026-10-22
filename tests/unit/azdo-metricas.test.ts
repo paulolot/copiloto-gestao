@@ -49,7 +49,9 @@ describe('calcularMetricas', () => {
     expect(m.bloqueados).toBe(1);
     expect(m.bloqueadosAcimaDoLimite).toBe(1); // changed 5 days ago
     expect(m.wipPorColuna).toEqual({ 'Dev implementando': 5 }); // 1,2,3,6,7; item 8 is in Ideias and counts nowhere
-    expect(m.wipPorPessoa).toEqual({ maximo: 3, pessoasAcimaDoLimite: 0 });
+    expect(m.wipPorPessoa).toEqual({ maximo: 3, pessoasAcimaDoLimite: 0, acimaDoLimite: [] });
+    const apertado = calcularMetricas(db, 'fiscal', AGORA, { ...LIMITES_PADRAO, wipPorPessoa: 2 });
+    expect(apertado.wipPorPessoa.acimaDoLimite).toEqual([{ nome: 'Ana Souza', itens: [1, 2, 7] }]);
   });
 
   it('counts bugs', () => {

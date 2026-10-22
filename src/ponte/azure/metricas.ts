@@ -97,7 +97,8 @@ export interface MetricasTime {
   bloqueados: number;
   bloqueadosAcimaDoLimite: number;
   wipPorColuna: Record<string, number>;
-  wipPorPessoa: { maximo: number; pessoasAcimaDoLimite: number };
+  /** `acimaDoLimite` names who is over the limit with the cards in progress (alphabetical, no ranking). */
+  wipPorPessoa: { maximo: number; pessoasAcimaDoLimite: number; acimaDoLimite: { nome: string; itens: number[] }[] };
   bugs: { abertos: number; externosAbertos: number; semDono: number };
   throughputSemanal: { semana: string; entregues: number }[]; // últimas 8 semanas, da mais antiga à atual
   cycleTimeDias?: number;      // mediana dos entregues nos últimos 28 dias
@@ -245,10 +246,16 @@ export function calcularMetricas(db: Database, timeId: string, agora = new Date(
   const emAndamento = abertos.filter(emCiclo);
   const wipPorColuna: Record<string, number> = {};
   const porPessoa = new Map<string, number>();
+  const itensPorPessoa = new Map<string, { nome: string; itens: number[] }>();
   for (const i of emAndamento) {
     const col = colunaEfetiva(i);
     wipPorColuna[col] = (wipPorColuna[col] ?? 0) + 1;
-    if (i.dono) porPessoa.set(i.dono, (porPessoa.get(i.dono) ?? 0) + 1);
+    if (i.dono) {
+      porPessoa.set(i.dono, (porPessoa.get(i.dono) ?? 0) + 1);
+      const p = itensPorPessoa.get(i.dono) ?? { nome: i.donoNome ?? i.dono, itens: [] };
+      p.itens.push(i.id);
+      itensPorPessoa.set(i.dono, p);
+    }
   }
   const wips = [...porPessoa.values()];
 
@@ -289,7 +296,11 @@ export function calcularMetricas(db: Database, timeId: string, agora = new Date(
     time: timeId, geradoEm: agora.toISOString(),
     abertos: abertos.length, envelhecendo: envelhecendo.length, bloqueados: bloqueados.length,
     bloqueadosAcimaDoLimite: bloqueadosAcima.length, wipPorColuna,
-    wipPorPessoa: { maximo: wips.length ? Math.max(...wips) : 0, pessoasAcimaDoLimite: wips.filter((n) => n > limites.wipPorPessoa).length },
+    wipPorPessoa: {
+      maximo: wips.length ? Math.max(...wips) : 0,
+      pessoasAcimaDoLimite: wips.filter((n) => n > limites.wipPorPessoa).length,
+      acimaDoLimite: [...itensPorPessoa.values()].filter((p) => p.itens.length > limites.wipPorPessoa).sort((x, y) => x.nome.localeCompare(y.nome, 'pt-BR')),
+    },
     bugs: {
       abertos: bugsAbertos.length,
       externosAbertos: bugsAbertos.filter(ehBugExterno).length,

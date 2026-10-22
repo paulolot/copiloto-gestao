@@ -15,7 +15,7 @@ import { makeTestDb } from './helpers.js';
 
 const base = (o: Partial<MetricasTime> = {}): MetricasTime => ({
   time: 't', geradoEm: AGORA.toISOString(), abertos: 0, envelhecendo: 0, bloqueados: 0, bloqueadosAcimaDoLimite: 0,
-  wipPorColuna: {}, wipPorPessoa: { maximo: 0, pessoasAcimaDoLimite: 0 }, bugs: { abertos: 0, externosAbertos: 0, semDono: 0 },
+  wipPorColuna: {}, wipPorPessoa: { maximo: 0, pessoasAcimaDoLimite: 0, acimaDoLimite: [] }, bugs: { abertos: 0, externosAbertos: 0, semDono: 0 },
   throughputSemanal: Array.from({ length: 8 }, (_, i) => ({ semana: `s${i}`, entregues: 5 })),
   commitsSemanais: Array.from({ length: 8 }, (_, i) => ({ semana: `s${i}`, commits: 20 })),
   bugRateJanelas: [], commitsPorRepo: [], meses: [], cycleTime: { amostras: 0 }, leadTime: { amostras: 0 }, ...o,
@@ -30,7 +30,7 @@ describe('avaliarSinais', () => {
 
   it('flags aging, blocking, WIP and bugs without owner', () => {
     const k = chaves(base({
-      envelhecendo: 2, bloqueadosAcimaDoLimite: 1, wipPorPessoa: { maximo: 5, pessoasAcimaDoLimite: 1 },
+      envelhecendo: 2, bloqueadosAcimaDoLimite: 1, wipPorPessoa: { maximo: 5, pessoasAcimaDoLimite: 1, acimaDoLimite: [] },
       bugs: { abertos: 2, externosAbertos: 1, semDono: 1 },
     }));
     expect(k).toEqual(['envelhecimento', 'bloqueio', 'wip_pessoa', 'bug_sem_dono']);
@@ -63,7 +63,7 @@ describe('avaliarSinais', () => {
   describe('bug rate windows', () => {
     const am = (bugs: number, userStoriesResolvidas: number) => ({ bugs, userStoriesResolvidas, taxa: Math.round((bugs / userStoriesResolvidas) * 1000) / 10 });
     const jan = (dias: number, atual: [number, number], anterior: [number, number]): JanelaBugRate => ({ dias, atual: am(...atual), anterior: am(...anterior) });
-    const desc = (j: JanelaBugRate[]) => avaliarSinais(base({ bugRateJanelas: j }), AGORA, LIMITES_PADRAO).find((s) => s.chave === 'bug_rate')?.descricao;
+    const desc = (j: JanelaBugRate[]) => avaliarSinais(base({ bugRateJanelas: j }), AGORA, LIMITES_PADRAO).find((s) => s.chave === 'bug_rate_janela')?.descricao;
 
     it('alerts when the 7 or 30-day window rises and is above the limit', () => {
       expect(desc([jan(30, [31, 91], [20, 91]), jan(7, [9, 22], [5, 20])])).toBe('Bug rate subindo: 30 dias em 34.1% (era 22%) e 7 dias em 40.9% (era 25%) (limite 10%)');
@@ -113,7 +113,9 @@ describe('itensProblema e avaliarTime (fixture)', () => {
     expect(ids('bloqueados')).toEqual([2]);
     expect(ids('sem_dono')).toEqual([3, 6]);
     expect(ids('sem_estimativa')).toEqual([3]);
-    expect(JSON.stringify(itensProblema(db, 'fiscal', 'sem_dono', AGORA))).not.toContain('ana@');
+    expect(JSON.stringify(itensProblema(db, 'fiscal', 'sem_dono', AGORA))).not.toContain('ana@'); // the display name goes out, the e-mail does not
+    expect(itensProblema(db, 'fiscal', 'bloqueados', AGORA)[0].responsavel).toBe('Ana Souza');
+    expect(itensProblema(db, 'fiscal', 'sem_dono', AGORA).every((i) => i.responsavel === undefined)).toBe(true);
   });
 
   it('evaluates the team end to end and registers signals', () => {

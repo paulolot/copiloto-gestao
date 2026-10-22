@@ -103,7 +103,7 @@ export const TOPICOS: Record<CanalId, string> = {
 Só o Copiloto escreve aqui.
 Como usar: leia e marque tarefas como feitas nos botões ✔.
 Comandos: /tarefas (lista com botões) · /ajuda
-Números são sempre por time, nunca por pessoa.`,
+Números são por time; cards e WIP trazem o nome de quem é o dono. Sem ranking.`,
 
   alertas: `🚨 SAÍDA do Copiloto. Avisos que não esperam o briefing: sinal novo nos boards (item parado ou paralisado, bug sem dono, queda de ritmo, repositório sem commit), marco de entrega em risco e falha de sincronização.
 🔴 vermelho = agir hoje · 🟡 amarelo = ficar de olho. Cada aviso diz desde quando o sinal existe.

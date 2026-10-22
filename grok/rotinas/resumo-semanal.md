@@ -43,4 +43,4 @@ Ordem: o que andou, conquistas, o que travou, decisões, riscos. Máximo de 1 p�
 | --- | --- |
 | RF-09 | Resumo toda sexta: o que andou, travou, decisões e riscos |
 | RF-27 | Conquistas registradas no vault com crédito ao time |
-| RF-06 | Sem ranking nem nome de pessoa nas métricas |
+| RF-06 | Sem ranking nem comparação entre pessoas (o nome do dono do card pode aparecer) |

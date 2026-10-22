@@ -59,7 +59,7 @@ export interface CicloDeps {
   agora?: Date;
   /** Organization of the work item links in #alertas; without it the items show without a link. */
   org?: string;
-  /** Show who each card belongs to in #alertas. Off by default: the vault rule keeps names out of shared channels. */
+  /** Show who each card belongs to in #alertas (on unless ALERTAS_COM_RESPONSAVEL=nao). */
   comResponsavel?: boolean;
 }
 

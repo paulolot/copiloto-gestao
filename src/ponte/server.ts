@@ -52,9 +52,13 @@ async function main() {
   if (process.env.AZDO_PAT && process.env.AZDO_ORG) {
     azdo = new AzdoClient({ org: process.env.AZDO_ORG, pat: process.env.AZDO_PAT });
     if (process.env.AZDO_SYNC_AGENDADO !== 'nao') {
+      if (['1', 'true', 'sim'].includes((process.env.ALERTAS_REANUNCIAR ?? '').toLowerCase())) {
+        db.run('UPDATE sinais SET avisado = 0 WHERE ativo = 1');
+        console.log('Sinais ativos serão avisados de novo no próximo ciclo (ALERTAS_REANUNCIAR): remova a variável depois');
+      }
       iniciarAgendador({
         db, azdo, postar: (canal, texto) => discordPostar(canal, texto),
-        org: process.env.AZDO_ORG, comResponsavel: ['1', 'true', 'sim'].includes((process.env.ALERTAS_COM_RESPONSAVEL ?? '').toLowerCase()),
+        org: process.env.AZDO_ORG, comResponsavel: !['0', 'false', 'nao', 'não'].includes((process.env.ALERTAS_COM_RESPONSAVEL ?? '').toLowerCase()),
       });
       console.log('Sincronização do Azure DevOps agendada (dias úteis, 7h às 19h, de hora em hora)');
     }

@@ -14,14 +14,14 @@ O tópico aparece no topo do canal. Em celular, toque no nome do canal para ler 
 
 ### #briefing (saída: só o Copiloto escreve)
 
-Comandos: /tarefas e /ajuda · 390 de 1024 caracteres
+Comandos: /tarefas e /ajuda · 422 de 1024 caracteres
 
 ```text
 📋 SAÍDA do Copiloto. Seu briefing diário (7h30, dias úteis) e o resumo da semana (sexta, 16h): agenda, alertas dos boards por time, e-mails que pedem ação, tarefas e marcos de entrega. Tudo com a fonte citada.
 Só o Copiloto escreve aqui.
 Como usar: leia e marque tarefas como feitas nos botões ✔.
 Comandos: /tarefas (lista com botões) · /ajuda
-Números são sempre por time, nunca por pessoa.
+Números são por time; cards e WIP trazem o nome de quem é o dono. Sem ranking.
 ```
 
 ### #alertas (saída: só o Copiloto escreve)

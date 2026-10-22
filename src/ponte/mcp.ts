@@ -121,7 +121,7 @@ export function createMcpServer(db: Database, deps: Omit<BoardsDeps, 'db'> = {})
 
   mcp.tool(
     'boards_saude',
-    'Saúde dos boards por time: métricas e sinais ativos com a data em que surgiram (nunca por pessoa)',
+    'Saúde dos boards por time: métricas e sinais ativos com a data em que surgiram, e quem está com WIP acima do limite',
     { time },
     ({ time }) => audited(db, 'boards_saude', { time }, () => boardsSaude(db, time)),
   );
@@ -184,7 +184,7 @@ export function createMcpServer(db: Database, deps: Omit<BoardsDeps, 'db'> = {})
   // Métricas por colaborador: área restrita. Ferramenta específica; o nome buscado não vai para o log.
   mcp.tool(
     'metricas_colaborador',
-    'Métricas individuais de um colaborador (WIP, entregas, cycle time, itens parados e paralisados). Dado restrito: uso do Paulo em 1:1 e PDI, sem ranking e fora de canais compartilhados',
+    'Métricas individuais de um colaborador (WIP, entregas, cycle time, itens parados e paralisados). Uso do Paulo em 1:1 e PDI, sem ranking',
     { pessoa: z.string().min(2).describe('Parte do nome ou e-mail do colaborador'), time: z.string().optional().describe('Limitar a um time') },
     ({ pessoa, time }) => audited(db, 'metricas_colaborador', { pessoa: '[restrito]', time }, () => metricasColaborador(db, { pessoa, time })),
   );
