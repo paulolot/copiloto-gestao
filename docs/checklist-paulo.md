@@ -48,10 +48,10 @@ O que só você pode fazer, porque depende das suas contas ou da sua máquina. M
 
 Detalhes em `docs/backlog-fase-2.md` (T2.0, T2.3, T2.12). Pode adiantar enquanto a fase 1 roda.
 
-- [ ] **Embeddings da busca por significado:** modelo **local** na sua máquina (nada sai dela; recomendado por causa de PDI e 1:1) ou **API** (mais simples; o texto das notas vai ao provedor)?
+- [x] **Embeddings da busca por significado:** respondido em 22/10/2026: **local**. (pergunta original: modelo **local** na sua máquina (nada sai dela; recomendado por causa de PDI e 1:1) ou **API** (mais simples; o texto das notas vai ao provedor)?)
 - [ ] **Reunião dispensável ou delegável:** quais critérios valem (sem pauta, sem decisão nas últimas ocorrências, você não é o decisor, só informativa…).
-- [ ] **Como o Copiloto reconhece na agenda:** um 1:1 (título com "1:1"? só dois participantes?), a reunião com o CTO (título? e-mail do CTO?) e em que semanas ela cai.
-- [ ] **Cadência de 1:1 por pessoa** (semanal, quinzenal…) e a cada quanto tempo revisar o PDI.
+- [x] **Como o Copiloto reconhece na agenda:** respondido em 22/10/2026: 1:1 aparece como "Feedback 1:1 - [Colaborador]"; reunião com o CTO pode conter "Saulo/Paulo" no título, mas costuma ser desmarcada e sem novos eventos (o Paulo também pode agendar). (pergunta original: um 1:1 (título com "1:1"? só dois participantes?), a reunião com o CTO (título? e-mail do CTO?) e em que semanas ela cai.)
+- [~] **Cadência de 1:1 por pessoa:** 1:1 **mensal** (22/10/2026); falta só a revisão do PDI. (pergunta original: (semanal, quinzenal…) e a cada quanto tempo revisar o PDI.)
 - [ ] **Planos por papel:** material de **Tech Lead** e **Scrum Master** (competências, expectativas por nível, trilha). O Claude monta a v1 para você revisar.
 - [ ] **Persona v1:** o compilado e as 5 a 10 mensagens (item da fase 0 acima); o Coach e a pauta do CTO dependem dele.
 - [ ] **Importador:** rodar na pasta de colaboradores, `--simular` primeiro (T2.12).
@@ -63,4 +63,7 @@ Detalhes em `docs/backlog-fase-2.md` (T2.0, T2.3, T2.12). Pode adiantar enquanto
 - Pasta de colaboradores: local, markdown separado em pastas.
 - Planos por papel: Tech Lead e Scrum Master primeiro.
 - CTO: reunião quinzenal; evoluções primeiro, decisões e pontos de atenção levados cedo.
+- Embeddings: modelo local (22/10/2026).
+- 1:1: cadência mensal; título na agenda "Feedback 1:1 - [Colaborador]" (22/10/2026).
+- CTO: título pode conter "Saulo/Paulo", mas a reunião quase sempre é desmarcada e não há eventos novos; o insumo deve estar pronto **pelo menos a cada 15 dias**, com ou sem evento (22/10/2026).
 - Hospedagem: ponte na sua máquina; Grok Bot na nuvem.

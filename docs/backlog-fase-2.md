@@ -27,6 +27,7 @@ Legenda: **[código]** pode ser feito numa sessão na nuvem · **[Paulo]** depen
 ## Tarefas
 
 - [ ] **T2.0 Decisões do Paulo** [Paulo] — destrava as demais
+  - **Respondido em 22/10/2026:** embeddings **local**; 1:1 **mensal** com título "Feedback 1:1 - [Colaborador]"; CTO sem depender da agenda (ver T2.9). Faltam: critérios de reunião dispensável, revisão do PDI e planos por papel.
   - **Embeddings (T2.1):** modelo **local** na máquina do Paulo (nenhum texto sai da máquina; mais lento e precisa baixar o modelo uma vez) ou **API** (mais simples e rápido; o texto das notas vai ao provedor, o que o plano permite só com autorização expressa). Recomendação: local, por causa de PDI e 1:1.
   - **Reunião dispensável ou delegável (T2.8):** quais critérios valem (sem pauta, sem decisão nas últimas ocorrências, o Paulo não é o decisor, só informativa, pode ser resumo em texto…).
   - **Identificar reuniões na agenda (T2.6, T2.7, T2.9):** como o Copiloto reconhece um 1:1 (título com "1:1"? só dois participantes?), a reunião com o CTO (título? e-mail do CTO?) e a quinzena em que ela cai.
@@ -82,7 +83,7 @@ Legenda: **[código]** pode ser feito numa sessão na nuvem · **[Paulo]** depen
   - **Registro de pontos de atenção** (`cto/pontos-de-atencao/`): o que vi, desde quando, o que já fiz, o que pode acontecer, o que preciso do CTO. Ferramentas `ponto_atencao_registrar`, `ponto_atencao_atualizar`, `ponto_atencao_listar`. Ligado a um sinal datado quando houver (o "desde quando" vem do sinal). **Nenhum ponto vai à pauta sem "o que já fiz"**: a ferramenta avisa quando falta.
   - **Sugestão automática:** sinal amarelo com mais de N dias úteis, marco em risco e `1x1:<pessoa>` atrasado viram *candidatos* a ponto de atenção (o Paulo decide).
   - Ferramenta `cto_pauta_dados(desde)`: conquistas revisadas desde a última reunião (com crédito ao time), decisões pendentes (problema, opções, recomendação, o que acontece se nada for decidido), pontos de atenção abertos, marcos e percentis por time.
-  - Rotina `grok/rotinas/porta-voz-cto.md` (todo dia 9h; age só quando a reunião quinzenal for em 2 dias): monta a pauta no modelo `cto/_modelo-pauta.md` (**conquistas primeiro**), grava em `cto/AAAA-MM-DD-pauta.md` (`revisado: false`) e posta no `#cto` para o Paulo. Algo grave gera **sugestão** de aviso curto ao CTO na hora. Relatório ou aviso ao CTO só sai pela fila de aprovações e não sobe de nível.
+  - Rotina `grok/rotinas/porta-voz-cto.md` (todo dia 9h; **por cadência, não por evento**: a reunião costuma ser desmarcada e sem eventos novos, então a pauta é remontada a cada 15 dias, e antes disso se houver evento com "Saulo/Paulo" no título nos próximos 2 dias ou se o Paulo pedir): monta a pauta no modelo `cto/_modelo-pauta.md` (**conquistas primeiro**), grava em `cto/AAAA-MM-DD-pauta.md` (`revisado: false`) e posta no `#cto` para o Paulo. Algo grave gera **sugestão** de aviso curto ao CTO na hora. Relatório ou aviso ao CTO só sai pela fila de aprovações e não sobe de nível.
   - Pronto quando: testes cobrem o registro, a regra "sem ação já tomada", a agregação e a ausência de envio sem aprovação.
 
 - [ ] **T2.10 Skills e rotinas do Grok Bot** [código] — depende de T2.4 a T2.9 e da persona v1
