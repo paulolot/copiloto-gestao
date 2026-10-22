@@ -8,7 +8,10 @@ import type { AzdoClient } from './azure/client.js';
 import { timesAtivos, type TimeEscopo } from './azure/escopo.js';
 import { sincronizarTime } from './azure/sync.js';
 import { sinaisDeMarcos } from './azure/marcos.js';
-import { atualizarSinais, avaliarTime, itensDoSinal, marcarAvisado, sinaisNaoAvisados, type ItemAviso, type SinalRegistrado } from './azure/alertas.js';
+import {
+  atualizarSinais, avaliarTime, itensDoSinal, marcarAvisado, marcarResolucaoAvisada, sinaisNaoAvisados, sinaisResolvidosNaoAvisados,
+  type ItemAviso, type SinalRegistrado, type SinalResolvido,
+} from './azure/alertas.js';
 import { logAudit } from './db/audit.js';
 import type { DiscordCanal } from './tools/discord.js';
 
@@ -49,6 +52,10 @@ export function formatarSinal(nome: string, s: SinalRegistrado, d: DetalheAviso 
   if (itens.length > MAX_ITENS_NO_AVISO) linhas.push(`… e mais ${itens.length - MAX_ITENS_NO_AVISO} (boards_itens_problema traz a lista toda)`);
   if (d.resumo) linhas.push(...d.resumo.split('\n').map((l) => `• ${l}`));
   return linhas.join('\n');
+}
+
+export function formatarResolucao(nome: string, s: SinalResolvido): string {
+  return `✅ **${nome}** — resolvido: ${s.descricao} (ativo desde ${dataBr(s.desde)}, resolvido em ${dataBr(s.resolvidoEm)}) · fonte: Azure DevOps`;
 }
 
 export interface CicloDeps {
@@ -113,6 +120,15 @@ export async function executarCiclo(deps: CicloDeps): Promise<CicloResultado> {
       res.alertasPostados++;
     } catch {
       // Discord unavailable: leave it unannounced, the next cycle tries again.
+    }
+  }
+  for (const s of sinaisResolvidosNaoAvisados(db)) {
+    if (!nomes.has(s.time)) continue;
+    try {
+      await postar('alertas', formatarResolucao(nomes.get(s.time)!, s));
+      marcarResolucaoAvisada(db, s.time, s.chave);
+    } catch {
+      // Discord unavailable: the notice stays pending for the next cycle.
     }
   }
   return res;

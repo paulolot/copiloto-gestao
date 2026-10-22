@@ -5,8 +5,8 @@ import { describe, it, expect, beforeEach } from '@jest/globals';
 import type { Database } from 'sql.js';
 import { AzdoClient } from '../../src/ponte/azure/client.js';
 import { TIMES } from '../../src/ponte/azure/escopo.js';
-import { dentroDaJanela, executarCiclo, formatarSinal } from '../../src/ponte/agendador.js';
-import { itensDoSinal } from '../../src/ponte/azure/alertas.js';
+import { dentroDaJanela, executarCiclo, formatarResolucao, formatarSinal } from '../../src/ponte/agendador.js';
+import { atualizarSinais, itensDoSinal } from '../../src/ponte/azure/alertas.js';
 import { LIMITES_PADRAO } from '../../src/ponte/azure/metricas.js';
 import { queryAudit } from '../../src/ponte/db/audit.js';
 import { AGORA, fakeFetch } from '../fixtures/azdo/respostas.js';
@@ -94,5 +94,23 @@ describe('executarCiclo', () => {
     const t = formatarSinal('Squad Fiscal', { time: 'fiscal', chave: 'k', descricao: 'algo', severidade: 'amarelo', desde: '2026-10-19T15:00:00Z' }, { itens });
     expect(t.split('\n')).toHaveLength(1 + 8 + 1);
     expect(t).toContain('e mais 4');
+  });
+
+  it('posts a resolved notice once when an announced signal stops holding', async () => {
+    await executarCiclo({ db, azdo: client(), postar, times: [TIMES[0]], agora: AGORA });
+    posts.length = 0;
+    atualizarSinais(db, 'fiscal', [], new Date(AGORA.getTime() + 3_600_000)); // every Fiscal signal stops holding
+    await executarCiclo({ db, azdo: client(503), postar, times: [TIMES[0]], agora: new Date(AGORA.getTime() + 3_600_000) });
+    const resolvidos = posts.filter((p) => p.texto.startsWith('✅'));
+    expect(resolvidos.length).toBeGreaterThan(0);
+    expect(resolvidos[0].texto).toContain('resolvido em');
+    posts.length = 0;
+    await executarCiclo({ db, azdo: client(503), postar, times: [TIMES[0]], agora: new Date(AGORA.getTime() + 7_200_000) });
+    expect(posts.filter((p) => p.texto.startsWith('✅'))).toHaveLength(0);
+  });
+
+  it('formats a resolved notice', () => {
+    const t = formatarResolucao('Squad Fiscal', { time: 'fiscal', chave: 'k', descricao: 'algo', severidade: 'vermelho', desde: '2026-10-19T15:00:00Z', resolvidoEm: '2026-10-22T15:00:00Z' });
+    expect(t).toBe('✅ **Squad Fiscal** — resolvido: algo (ativo desde 19/10, resolvido em 22/10) · fonte: Azure DevOps');
   });
 });

@@ -128,6 +128,8 @@ function initSchema(db: Database): void {
       ultimo_visto TEXT NOT NULL,
       ativo INTEGER NOT NULL DEFAULT 1,
       avisado INTEGER NOT NULL DEFAULT 0,
+      resolvido_em TEXT,                          -- quando o sinal deixou de valer (só se ele tinha sido avisado)
+      resolucao_avisada INTEGER NOT NULL DEFAULT 0,
       PRIMARY KEY (time_id, chave)
     );
 
@@ -186,6 +188,11 @@ function migrate(db: Database): void {
   for (const c of ['backlog_em', 'pronto_em', 'marcos_em']) if (!cols.includes(c)) db.run(`ALTER TABLE work_items ADD COLUMN ${c} TEXT`);
   if (!cols.includes('analise_em')) db.run('ALTER TABLE work_items ADD COLUMN analise_em TEXT');
   if (!cols.includes('tipo_bug')) db.run('ALTER TABLE work_items ADD COLUMN tipo_bug TEXT');
+  const colsSinais = (db.exec('PRAGMA table_info(sinais)')[0]?.values ?? []).map((v) => v[1] as string);
+  if (colsSinais.length && !colsSinais.includes('resolvido_em')) {
+    db.run('ALTER TABLE sinais ADD COLUMN resolvido_em TEXT');
+    db.run('ALTER TABLE sinais ADD COLUMN resolucao_avisada INTEGER NOT NULL DEFAULT 0');
+  }
   if (!cols.includes('dono_nome')) {
     db.run('ALTER TABLE work_items ADD COLUMN dono_nome TEXT');
     // The names only arrive with a fetch: force a full load on the next sync so the items already stored get one.

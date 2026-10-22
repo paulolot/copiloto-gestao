@@ -8,7 +8,7 @@ import { TIMES } from '../../src/ponte/azure/escopo.js';
 import { sincronizarTime } from '../../src/ponte/azure/sync.js';
 import { LIMITES_PADRAO, type JanelaBugRate, type MetricasTime, type MetricasMes } from '../../src/ponte/azure/metricas.js';
 import {
-  atualizarSinais, avaliarSinais, avaliarTime, itensProblema, marcarAvisado, sinaisAtivos, sinaisNaoAvisados,
+  atualizarSinais, avaliarSinais, avaliarTime, itensProblema, marcarAvisado, marcarResolucaoAvisada, sinaisAtivos, sinaisNaoAvisados, sinaisResolvidosNaoAvisados,
 } from '../../src/ponte/azure/alertas.js';
 import { AGORA, fakeFetch } from '../fixtures/azdo/respostas.js';
 import { makeTestDb } from './helpers.js';
@@ -97,6 +97,36 @@ describe('sinais com data', () => {
     expect(sinaisAtivos(db)).toHaveLength(0);
     // coming back is a new signal with a new date
     expect(atualizarSinais(db, 't', s, new Date('2026-10-22T08:00:00Z')).novos[0].desde).toBe('2026-10-22T08:00:00.000Z');
+  });
+});
+
+describe('sinais resolvidos', () => {
+  const sinal = [{ chave: 'bloqueio', severidade: 'vermelho' as const, descricao: 'x' }];
+  const d1 = new Date('2026-10-19T08:00:00Z');
+  const d2 = new Date('2026-10-21T08:00:00Z');
+
+  it('gives one resolved notice for a signal that had been announced', async () => {
+    const db = await makeTestDb();
+    atualizarSinais(db, 't', sinal, d1);
+    marcarAvisado(db, 't', 'bloqueio');
+    atualizarSinais(db, 't', [], d2);
+    const [r] = sinaisResolvidosNaoAvisados(db);
+    expect(r).toMatchObject({ time: 't', chave: 'bloqueio', desde: d1.toISOString(), resolvidoEm: d2.toISOString() });
+    marcarResolucaoAvisada(db, 't', 'bloqueio');
+    expect(sinaisResolvidosNaoAvisados(db)).toHaveLength(0);
+  });
+
+  it('says nothing about a signal that was never announced, nor when it comes back before the notice', async () => {
+    const db = await makeTestDb();
+    atualizarSinais(db, 't', sinal, d1);
+    atualizarSinais(db, 't', [], d2); // never announced
+    expect(sinaisResolvidosNaoAvisados(db)).toHaveLength(0);
+    atualizarSinais(db, 't', sinal, d1);
+    marcarAvisado(db, 't', 'bloqueio');
+    atualizarSinais(db, 't', [], d2);
+    atualizarSinais(db, 't', sinal, d2); // back: a new signal, not a resolved one
+    expect(sinaisResolvidosNaoAvisados(db)).toHaveLength(0);
+    expect(sinaisNaoAvisados(db)).toHaveLength(1);
   });
 });
 
