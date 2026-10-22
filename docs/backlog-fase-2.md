@@ -51,6 +51,7 @@ Legenda: **[código]** pode ser feito numa sessão na nuvem · **[Paulo]** depen
 - [~] **T2.3 Planos por papel** [código + Paulo] (RF-20) — depende de T2.0
   - **[código] ✅ 22/10/2026** Modelo `papeis/_modelo.md` (competências, expectativas por nível, trilha de crescimento, sinais de que a pessoa está pronta) e validador (`validarPlanoPapel`). Ferramenta `papel_ler(papel)`: acha o plano pelo nome do arquivo ou pelo campo `papel`, e avisa se está incompleto ou `revisado: false`.
   - **[Paulo]** Fornecer o material de **Tech Lead** e **Scrum Master**; o Claude monta a v1 de cada plano (`revisado: false`) para o Paulo revisar. Depois, os demais papéis, um por vez.
+  - **v1 montada em 22/10/2026** a partir dos guias de execução e do insight enviados pelo Paulo: `vault-template/papeis/tech-lead.md` e `scrum-master.md` (copiar para `papeis/` do vault real, revisar e marcar `revisado: true`). O material não define níveis nem cargos: os três níveis (Em desenvolvimento, Consolidado, Referência) e a trilha são **proposta** do Claude, marcados no texto, e a carreira formal fica como `[a completar]`.
   - Pronto quando: os dois planos estão no vault real, revisados, e `papel_ler` os devolve.
 
 - [ ] **T2.4 PDI** [código] (RF-21) — depende de T2.2 e T2.3

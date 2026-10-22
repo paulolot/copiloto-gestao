@@ -2,7 +2,7 @@
  * T2.3 — role plan model, validator and papel_ler
  */
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
+import { mkdtempSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { papelLer, validarPlanoPapel } from '../../src/ponte/tools/papeis.js';
@@ -62,5 +62,18 @@ describe('papelLer', () => {
     grava('tech-lead.md', true);
     writeFileSync(join(raiz, 'papeis', '_modelo.md'), modelo);
     expect(() => papelLer('gerente')).toThrow('Planos disponíveis: tech-lead');
+  });
+});
+
+describe('role plans shipped in vault-template/papeis', () => {
+  const dir = join(process.cwd(), 'vault-template/papeis');
+  const planos = readdirSync(dir).filter((f) => f.endsWith('.md') && !f.startsWith('_'));
+
+  it('include Tech Lead and Scrum Master', () => expect(planos.sort()).toEqual(['scrum-master.md', 'tech-lead.md']));
+
+  it.each(planos)('%s is valid and still waits for Paulo\'s review', (f) => {
+    const conteudo = readFileSync(join(dir, f), 'utf8');
+    expect(validarPlanoPapel(conteudo)).toEqual([]);
+    expect(conteudo).toMatch(/^revisado: false$/m);
   });
 });
