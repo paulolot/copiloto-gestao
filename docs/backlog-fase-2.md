@@ -11,7 +11,7 @@ Legenda: **[código]** pode ser feito numa sessão na nuvem · **[Paulo]** depen
 ## Pré-requisitos (vêm da fase 1 e da fase 0)
 
 - Fase 1 validada: T1.11 feita e o gate do briefing (4 de 5 dias úteis por 2 semanas) cumprido. A fase 2 usa os dados dos boards, os sinais datados, as cobranças, o registro por `/pessoa` e a fila de aprovações.
-- **Persona v1** aprovada (T0.10, aguarda o compilado do Paulo). Sem ela, o Coach e a pauta do CTO escrevem num tom genérico. Dá para construir a ponte, mas não vale ligar as rotinas antes.
+- **Persona v1** aprovada pelo Paulo (T0.10: skill montada em 22/10/2026; falta ele revisar o texto integral no vault). Sem ela, o Coach e a pauta do CTO escrevem num tom genérico. Dá para construir a ponte, mas não vale ligar as rotinas antes.
 - Importação real da pasta de colaboradores feita pelo Paulo (T0.9, execução na máquina dele).
 - Transcrição do Meet verificada no Workspace (precisa só na fase 3, mas é bom saber já).
 
@@ -110,7 +110,7 @@ T2.0 → T2.2 → T2.1 (em paralelo com T2.3) → T2.4 → T2.5 → T2.6 → T2.
 
 ## Riscos conhecidos
 
-- **Persona ainda rascunho:** o tom da pauta de 1:1 e da pauta do CTO depende do compilado do Paulo.
+- **Persona com pendências:** a v1 existe, mas o Paulo ainda precisa revisá-la e completar os `[a completar]`; o tom da pauta de 1:1 e da pauta do CTO depende disso.
 - **Reconhecer reuniões pela agenda** depende de convenção (título, participantes). Se for inconsistente, o Preparador erra; por isso T2.0.
 - **Embeddings locais** podem ser lentos na primeira indexação do vault inteiro; a indexação é incremental e pode rodar à noite.
 - **Sigilo:** a pauta de 1:1 junta dados sensíveis. Por isso fica só em `pessoas/` e o Discord recebe apenas o caminho.

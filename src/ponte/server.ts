@@ -24,7 +24,8 @@ async function main() {
 
   const db = await getDb(process.env.DB_PATH);
 
-  // No pede_ok tool exists yet; handlers are registered here as they are added (fase 1+).
+  // mensagem_propor (pede_ok) has no sending handler on purpose: Paulo copies the approved text and sends it himself.
+  // Handlers are registered here as tools that act on approval are added.
   const handlers: Record<string, ExecutionHandler> = {};
   const runExecutor = () => executeApproved(db, handlers);
 

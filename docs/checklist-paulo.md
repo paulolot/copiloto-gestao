@@ -17,7 +17,7 @@ O que só você pode fazer, porque depende das suas contas ou da sua máquina. M
   - [X] Escolher a pasta do vault novo na sua máquina.
   - [ ] Criar um repositório GitHub **privado e separado** para o vault (nunca usar este repositório para dados de pessoas).
   - [ ] Informar o caminho da pasta atual de colaboradores, para o importador.
-- [ ] **Persona:** separar de 5 a 10 mensagens reais suas: algumas que representam bem o estilo que você quer e algumas que não.
+- [x] **Persona:** compilado do curso e mensagens reais entregues em 22/10/2026 (persona v1 montada com o roteiro guiado no ChatGPT). Falta completar os itens `[a completar]` do texto integral (ver "Persona v1" abaixo).
 - [X] **Máquina:** instalar o SDK da linguagem escolhida e a ferramenta de túnel (por exemplo `cloudflared`).
 
 ## Fase 1 (adiantar se quiser)
@@ -53,7 +53,7 @@ Detalhes em `docs/backlog-fase-2.md` (T2.0, T2.3, T2.12). Pode adiantar enquanto
 - [x] **Como o Copiloto reconhece na agenda:** respondido em 22/10/2026: 1:1 aparece como "Feedback 1:1 - [Colaborador]"; reunião com o CTO pode conter "Saulo/Paulo" no título, mas costuma ser desmarcada e sem novos eventos (o Paulo também pode agendar). (pergunta original: um 1:1 (título com "1:1"? só dois participantes?), a reunião com o CTO (título? e-mail do CTO?) e em que semanas ela cai.)
 - [~] **Cadência de 1:1 por pessoa:** 1:1 **mensal** (22/10/2026); falta só a revisão do PDI. (pergunta original: (semanal, quinzenal…) e a cada quanto tempo revisar o PDI.)
 - [ ] **Planos por papel:** material de **Tech Lead** e **Scrum Master** (competências, expectativas por nível, trilha). O Claude monta a v1 para você revisar.
-- [ ] **Persona v1:** o compilado e as 5 a 10 mensagens (item da fase 0 acima); o Coach e a pauta do CTO dependem dele.
+- [ ] **Persona v1:** copiar o texto integral para `persona/guia-de-estilo.md` no vault privado, revisar, marcar `revisado: true` e completar o que está como `[a completar]` (feedback do CTO e do time, emoji por canal, cadência dos hábitos, aula 11, Pentad de Burke e Triple Threat). O Coach e a pauta do CTO dependem dele.
 - [ ] **Busca por significado (T2.1):** na máquina da ponte, `npm install @huggingface/transformers`, pôr `EMBEDDER=local` no `.env` e reiniciar; rodar `npm run indexar` (a primeira indexação baixa o modelo, ~120 MB, e pode demorar; dá para deixar para a noite). Depois testar `vault_buscar_semantico` com uma pergunta cuja resposta use outras palavras que a nota e dizer se os resultados fazem sentido.
 - [ ] **Importador:** rodar na pasta de colaboradores, `--simular` primeiro (T2.12).
 
