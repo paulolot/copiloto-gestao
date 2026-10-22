@@ -6,6 +6,8 @@ import type { Database } from 'sql.js';
 import { AzdoClient } from '../../src/ponte/azure/client.js';
 import { TIMES } from '../../src/ponte/azure/escopo.js';
 import { dentroDaJanela, executarCiclo, formatarSinal } from '../../src/ponte/agendador.js';
+import { itensDoSinal } from '../../src/ponte/azure/alertas.js';
+import { LIMITES_PADRAO } from '../../src/ponte/azure/metricas.js';
 import { queryAudit } from '../../src/ponte/db/audit.js';
 import { AGORA, fakeFetch } from '../fixtures/azdo/respostas.js';
 import { makeTestDb } from './helpers.js';
@@ -65,5 +67,32 @@ describe('executarCiclo', () => {
   it('formats a signal with severity, team and first-seen date', () => {
     const t = formatarSinal('Squad Fiscal', { time: 'fiscal', chave: 'k', descricao: 'algo', severidade: 'vermelho', desde: '2026-10-19T15:00:00Z' });
     expect(t).toBe('🔴 **Squad Fiscal** — algo (desde 19/10) · fonte: Azure DevOps');
+  });
+
+  it('lists the items behind each signal with a link, and the owner only when asked', async () => {
+    await executarCiclo({ db, azdo: client(), postar, times: [TIMES[0]], agora: AGORA, org: 'minhaorg' });
+    const aviso = posts.find((p) => p.texto.includes('sem mudança de estado'))!.texto;
+    expect(aviso).toContain('[#1](<https://dev.azure.com/minhaorg/Metanet/_workitems/edit/1>) Item 1');
+    expect(aviso).not.toContain('Ana');
+    expect(posts.find((p) => p.texto.includes('sem dono'))!.texto).toContain('#6');
+
+    const db2 = await makeTestDb();
+    const posts2: string[] = [];
+    await executarCiclo({ db: db2, azdo: client(), postar: async (_c, t) => void posts2.push(t), times: [TIMES[0]], agora: AGORA, org: 'minhaorg', comResponsavel: true });
+    expect(posts2.find((t) => t.includes('sem mudança de estado'))).toContain('Item 1 — Ana Souza');
+  });
+
+  it('names who is over the WIP limit only when asked', async () => {
+    await executarCiclo({ db, azdo: client(), postar, times: [TIMES[0]], agora: AGORA });
+    const lim = { ...LIMITES_PADRAO, wipPorPessoa: 2 };
+    expect(itensDoSinal(db, 'fiscal', 'wip_pessoa', AGORA, true, lim).resumo).toBe('Ana Souza: #1, #2, #7');
+    expect(itensDoSinal(db, 'fiscal', 'wip_pessoa', AGORA, false, lim).resumo).toBeUndefined();
+  });
+
+  it('caps the item list in a signal message', () => {
+    const itens = Array.from({ length: 12 }, (_, n) => ({ id: n + 1, tipo: 'Bug', titulo: `Bug ${n + 1}`, dias: 3 }));
+    const t = formatarSinal('Squad Fiscal', { time: 'fiscal', chave: 'k', descricao: 'algo', severidade: 'amarelo', desde: '2026-10-19T15:00:00Z' }, { itens });
+    expect(t.split('\n')).toHaveLength(1 + 8 + 1);
+    expect(t).toContain('e mais 4');
   });
 });

@@ -31,6 +31,8 @@ export interface WorkItem {
   tipoBug?: string;
   /** Owner identity, kept only for aggregate WIP; never returned by tools. */
   dono?: string;
+  /** Owner display name, shown only in #alertas when ALERTAS_COM_RESPONSAVEL is on. */
+  donoNome?: string;
 }
 
 export interface Marcos {
@@ -211,5 +213,6 @@ export function normalizarWorkItem(w: { id: number; fields: Record<string, unkno
     paralisado: ehVerdadeiro(f[campos.paralisado]),
     tipoBug: str(campos.tipoBug),
     dono: donoNome,
+    donoNome: typeof dono === 'object' && dono ? (dono as { displayName?: string }).displayName : undefined,
   };
 }

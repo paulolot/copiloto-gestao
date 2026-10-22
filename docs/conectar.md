@@ -35,6 +35,7 @@ Abra `.env` e preencha:
 | `AZDO_COLUNAS_IGNORADAS` | Colunas fora de toda métrica (padrão `Ideias,UX`) |
 | `AZDO_TIPOS` | Tipos de work item que entram nas métricas (padrão `User Story,Bug`) |
 | `AZDO_TIMES` | Times sincronizados, separados por vírgula, pelo id (`fiscal`, `desktop`, `retaguarda`) ou pelo nome da área no Azure DevOps (`Squad Fiscal`, `Squad Desktop`, `Squad Retaguarda WEB`). Padrão: só `fiscal`. Nome desconhecido dá erro |
+| `ALERTAS_COM_RESPONSAVEL` | `sim` mostra, nos avisos de `#alertas`, o nome de quem é dono de cada card (padrão `nao`). A regra do vault mantém nomes fora de canais compartilhados: só ligue se `#alertas` for só seu |
 
 ## Passo 2 — Instalar dependências e testar
 

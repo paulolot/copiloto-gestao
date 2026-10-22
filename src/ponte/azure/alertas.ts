@@ -8,7 +8,7 @@ import type { Database } from 'sql.js';
 import { persist } from '../db/database.js';
 import { emCiclo } from './colunas.js';
 import {
-  calcularMetricas, carregarItens, diasSemMudanca, diasUteisEntre, ehBloqueado, ehPronto, limitesDoAmbiente, media,
+  calcularMetricas, carregarItens, diasSemMudanca, diasUteisEntre, ehBloqueado, ehBug, ehBugExterno, ehPronto, limitesDoAmbiente, media,
   type ItemBoard, type Limites, type MetricasTime,
 } from './metricas.js';
 
@@ -172,6 +172,38 @@ export interface ItemProblema {
   estado: string;
   titulo: string;
   diasNoEstado: number;
+}
+
+export interface ItemAviso {
+  id: number;
+  tipo: string;
+  titulo: string;
+  dias?: number;
+  /** Display name of the owner; filled only when `comResponsavel` is on. */
+  responsavel?: string;
+}
+
+/** Items behind a signal, for the #alertas message. Owner names come out only when `comResponsavel` is on. */
+export function itensDoSinal(db: Database, time: string, chave: string, agora: Date, comResponsavel: boolean, lim = limitesDoAmbiente()): { itens: ItemAviso[]; resumo?: string } {
+  const abertos = carregarItens(db, time).filter((i) => !ehPronto(i) && i.estado !== 'Removed');
+  const dias = (i: ItemBoard) => diasSemMudanca(i, agora);
+  const aviso = (i: ItemBoard): ItemAviso => ({ id: i.id, tipo: i.tipo, titulo: i.titulo, dias: dias(i), ...(comResponsavel && i.donoNome ? { responsavel: i.donoNome } : {}) });
+  const ordenar = (l: ItemBoard[]) => l.sort((x, y) => dias(y) - dias(x)).map(aviso);
+  if (chave === 'envelhecimento') return { itens: ordenar(abertos.filter((i) => dias(i) > lim.envelhecimentoDias)) };
+  if (chave === 'bloqueio') {
+    return { itens: ordenar(abertos.filter((i) => ehBloqueado(i) && diasUteisEntre(new Date(i.alteradoEm ?? agora), agora) > lim.bloqueioDiasUteis)) };
+  }
+  if (chave === 'bug_sem_dono') return { itens: ordenar(abertos.filter((i) => (ehBug(i) || ehBugExterno(i)) && !i.temDono)) };
+  if (chave === 'wip_pessoa' && comResponsavel) {
+    const por = new Map<string, ItemBoard[]>();
+    for (const i of abertos.filter(emCiclo)) {
+      const nome = i.donoNome ?? i.dono;
+      if (nome) por.set(nome, [...(por.get(nome) ?? []), i]);
+    }
+    const acima = [...por].filter(([, l]) => l.length > lim.wipPorPessoa).sort(([x], [y]) => x.localeCompare(y, 'pt-BR'));
+    return { itens: [], resumo: acima.map(([nome, l]) => `${nome}: ${l.map((i) => `#${i.id}`).join(', ')}`).join('\n') };
+  }
+  return { itens: [] };
 }
 
 /** Work items by problem kind (RF-05). Never includes who the item belongs to. */

@@ -54,6 +54,7 @@ export interface ItemBoard {
   paralisado: boolean;
   tipoBug?: string;
   dono?: string;
+  donoNome?: string;
 }
 
 /** The team has no sprints, so trends are read per calendar month (UTC). */
@@ -92,6 +93,8 @@ export interface MetricasTime {
   leadTimeDias?: number;
   commitsSemanais: { semana: string; commits: number }[];
   commitsPorRepo: { repo: string; ultimoCommit?: string; commits28Dias: number }[];
+  /** Commits dated more than a day ahead of now (a wrong clock or a rebase): left out of every commit figure. */
+  commitsComDataFutura: number;
   meses: MetricasMes[];
 }
 
@@ -146,7 +149,7 @@ export const dataFechamento = (i: ItemBoard): number => (ehPronto(i) ? ms(i.fech
 export function carregarItens(db: Database, timeId: string): ItemBoard[] {
   const r = db.exec(
     `SELECT id, tipo, estado, titulo, iteration_path, criado_em, alterado_em, mudanca_estado_em, ativado_em, fechado_em,
-            pontos, tags, tem_dono, dono, paralisado, tipo_bug, coluna, analise_em, backlog_em, pronto_em FROM work_items WHERE time_id = ?`, [timeId]);
+            pontos, tags, tem_dono, dono, paralisado, tipo_bug, coluna, analise_em, backlog_em, pronto_em, dono_nome FROM work_items WHERE time_id = ?`, [timeId]);
   return (r[0]?.values ?? []).map((v): ItemBoard => ({
     id: v[0] as number, tipo: v[1] as string, estado: v[2] as string, titulo: (v[3] as string) ?? '',
     iterationPath: (v[4] as string) ?? '', criadoEm: (v[5] as string) ?? undefined, alteradoEm: (v[6] as string) ?? undefined,
@@ -155,7 +158,7 @@ export function carregarItens(db: Database, timeId: string): ItemBoard[] {
     temDono: v[12] === 1, dono: (v[13] as string) ?? undefined,
     paralisado: v[14] === 1, tipoBug: (v[15] as string) ?? undefined,
     coluna: (v[16] as string) ?? undefined, analiseEm: (v[17] as string) ?? undefined,
-    backlogEm: (v[18] as string) ?? undefined, prontoEm: (v[19] as string) ?? undefined,
+    backlogEm: (v[18] as string) ?? undefined, prontoEm: (v[19] as string) ?? undefined, donoNome: (v[20] as string) ?? undefined,
   })).filter((i) => !ehIgnorada(i) && contaNasMetricas(i)); // columns Ideias and UX, and types other than User Story/Bug, count in no metric
 }
 
@@ -218,7 +221,11 @@ export function calcularMetricas(db: Database, timeId: string, agora = new Date(
 
   const throughputSemanal: MetricasTime['throughputSemanal'] = [];
   const commitsSemanais: MetricasTime['commitsSemanais'] = [];
-  const commitsDia = db.exec('SELECT repo, dia, qtd FROM commits_dia WHERE time_id = ?', [timeId])[0]?.values ?? [];
+  const todosCommitsDia = db.exec('SELECT repo, dia, qtd FROM commits_dia WHERE time_id = ?', [timeId])[0]?.values ?? [];
+  // One day of tolerance: a commit made in the evening in São Paulo is already "tomorrow" in UTC.
+  const limiteCommit = new Date(agora.getTime() + DIA).toISOString().slice(0, 10);
+  const commitsDia = todosCommitsDia.filter((c) => (c[1] as string) <= limiteCommit);
+  const commitsComDataFutura = todosCommitsDia.filter((c) => (c[1] as string) > limiteCommit).reduce((a, c) => a + (c[2] as number), 0);
   for (let n = 7; n >= 0; n--) {
     const ref = new Date(agora.getTime() - n * 7 * DIA);
     const semana = semanaIso(ref);
@@ -258,7 +265,7 @@ export function calcularMetricas(db: Database, timeId: string, agora = new Date(
     leadTimeDias: mediana(validos(recentes.map(leadDias))),
     cycleTime: percentis(validos(itens.filter((i) => terminouOCiclo(i) && agora.getTime() - fimCiclo(i) <= 84 * DIA).map(cycleDias))),
     leadTime: percentis(validos(itens.filter((i) => ehPronto(i) && agora.getTime() - dataFechamento(i) <= 84 * DIA).map(leadDias))),
-    commitsSemanais, commitsPorRepo, meses,
+    commitsSemanais, commitsPorRepo, commitsComDataFutura, meses,
   };
   guardarHistorico(db, m);
   return m;

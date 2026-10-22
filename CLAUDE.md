@@ -32,7 +32,7 @@ O **Grok Bot** (nuvem, incluído no plano do Cursor do Paulo) é o cérebro: os 
 - **Ferramentas de escrita da ponte não agem direto.** Tudo que chega a outra pessoa ou altera um board (mensagem, e-mail, work item, comentário) vira um item na fila de aprovações e só é executado depois do OK do Paulo no Discord. A política está em `docs/plano.md`, seção Política de autonomia.
 - **Toda chamada de ferramenta é registrada** no log de auditoria: ferramenta, parâmetros (sem segredos), quem chamou, resultado, horário.
 - **Toda resposta cita a fonte** (work item, commit, nota do vault, e-mail).
-- **Métricas são por time. Por colaborador só pelas ferramentas específicas (`metricas_colaborador`, `metricas_colaboradores`)**, para o Paulo usar em 1:1 e PDI (decisão de 21/10/2026): sem ranking, sem comparar pessoas, ordem alfabética, nome fora do log de auditoria e nunca em canal compartilhado do Discord.
+- **Métricas são por time. Por colaborador só pelas ferramentas específicas (`metricas_colaborador`, `metricas_colaboradores`)**, para o Paulo usar em 1:1 e PDI (decisão de 21/10/2026): sem ranking, sem comparar pessoas, ordem alfabética, nome fora do log de auditoria e nunca em canal compartilhado do Discord. Exceção decidida pelo Paulo em 22/10/2026: `ALERTAS_COM_RESPONSAVEL=sim` põe o nome do dono de cada card nos avisos de `#alertas` (desligado por padrão; só para quando o canal é só dele).
 - **Área restrita do vault** (`pessoas/`, PDI, 1:1): só sai da ponte quando a ferramenta é específica para isso; nunca em canais compartilhados do Discord.
 - Código, nomes de classes e commits em **inglês**; documentação, textos de skills e mensagens ao usuário em **português do Brasil**.
 

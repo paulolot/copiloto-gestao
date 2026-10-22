@@ -81,7 +81,8 @@ function initSchema(db: Database): void {
       analise_em TEXT,    -- Fazendo Análise ou depois: início do cycle time
       pronto_em TEXT,     -- Pronto pra release ou depois (ou estado Resolved): fim do cycle time
       marcos_em TEXT,
-      dono TEXT           -- só para WIP agregado; nenhuma ferramenta devolve este campo
+      dono TEXT,          -- só para WIP agregado; nenhuma ferramenta devolve este campo
+      dono_nome TEXT      -- nome de exibição; só aparece em #alertas se ALERTAS_COM_RESPONSAVEL estiver ligado
     );
     CREATE INDEX IF NOT EXISTS idx_wi_time ON work_items(time_id, estado);
 
@@ -185,6 +186,11 @@ function migrate(db: Database): void {
   for (const c of ['backlog_em', 'pronto_em', 'marcos_em']) if (!cols.includes(c)) db.run(`ALTER TABLE work_items ADD COLUMN ${c} TEXT`);
   if (!cols.includes('analise_em')) db.run('ALTER TABLE work_items ADD COLUMN analise_em TEXT');
   if (!cols.includes('tipo_bug')) db.run('ALTER TABLE work_items ADD COLUMN tipo_bug TEXT');
+  if (!cols.includes('dono_nome')) {
+    db.run('ALTER TABLE work_items ADD COLUMN dono_nome TEXT');
+    // The names only arrive with a fetch: force a full load on the next sync so the items already stored get one.
+    if (db.exec("SELECT name FROM sqlite_master WHERE name = 'sync_estado'")[0]) db.run('UPDATE sync_estado SET ultimo_sync = NULL');
+  }
 }
 
 /** Writes the database to its file, atomically. No-op for databases opened without a path. */

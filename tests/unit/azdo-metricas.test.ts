@@ -32,6 +32,16 @@ describe('helpers', () => {
 });
 
 describe('calcularMetricas', () => {
+  it('leaves out commits dated more than a day ahead of now', () => {
+    db.run("INSERT OR REPLACE INTO commits_dia (time_id, repo, dia, qtd) VALUES ('fiscal','repo-futuro','2026-11-14',2), ('fiscal','repo-futuro','2026-10-22',1), ('fiscal','repo-futuro','2026-10-20',3)");
+    const m = calcularMetricas(db, 'fiscal', AGORA, LIMITES_PADRAO);
+    const r = m.commitsPorRepo.find((x) => x.repo === 'repo-futuro')!;
+    expect(r.ultimoCommit).toBe('2026-10-22'); // tomorrow in UTC is inside the one-day tolerance
+    expect(r.commits28Dias).toBe(4);
+    expect(m.commitsComDataFutura).toBe(2);
+    db.run("DELETE FROM commits_dia WHERE repo = 'repo-futuro'");
+  });
+
   it('counts open, aging, blocked and WIP', () => {
     const m = calcularMetricas(db, 'fiscal', AGORA, LIMITES_PADRAO);
     expect(m.abertos).toBe(5); // 1,2,3,6,7

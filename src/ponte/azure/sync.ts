@@ -50,16 +50,16 @@ export async function sincronizarTime(db: Database, client: AzdoClient, time: Ti
       for (const w of itens) {
         db.run(
           `INSERT INTO work_items (id, time_id, tipo, estado, titulo, iteration_path, criado_em, alterado_em,
-             mudanca_estado_em, ativado_em, fechado_em, pontos, tags, tem_dono, paralisado, tipo_bug, coluna, dono)
-           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+             mudanca_estado_em, ativado_em, fechado_em, pontos, tags, tem_dono, paralisado, tipo_bug, coluna, dono, dono_nome)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
            ON CONFLICT(id) DO UPDATE SET time_id=excluded.time_id, tipo=excluded.tipo, estado=excluded.estado, titulo=excluded.titulo,
              iteration_path=excluded.iteration_path, criado_em=excluded.criado_em, alterado_em=excluded.alterado_em,
              mudanca_estado_em=excluded.mudanca_estado_em, ativado_em=excluded.ativado_em, fechado_em=excluded.fechado_em,
              pontos=excluded.pontos, tags=excluded.tags, tem_dono=excluded.tem_dono, paralisado=excluded.paralisado,
-             tipo_bug=excluded.tipo_bug, coluna=excluded.coluna, dono=excluded.dono`,
+             tipo_bug=excluded.tipo_bug, coluna=excluded.coluna, dono=excluded.dono, dono_nome=excluded.dono_nome`,
           [w.id, time.id, w.tipo, w.estado, w.titulo, w.iterationPath, w.criadoEm, w.alteradoEm, w.mudancaEstadoEm ?? null,
             w.ativadoEm ?? null, w.fechadoEm ?? null, w.pontos ?? null, w.tags.join(';'), w.temDono ? 1 : 0, w.paralisado ? 1 : 0,
-            w.tipoBug ?? null, w.coluna ?? null, w.dono ?? null],
+            w.tipoBug ?? null, w.coluna ?? null, w.dono ?? null, w.donoNome ?? null],
         );
       }
       // A day is rewritten as a whole: the fetch window always covers full days from `desde`.

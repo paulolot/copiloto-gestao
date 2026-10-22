@@ -8,7 +8,7 @@ import type { AzdoClient } from './azure/client.js';
 import { timesAtivos, type TimeEscopo } from './azure/escopo.js';
 import { sincronizarTime } from './azure/sync.js';
 import { sinaisDeMarcos } from './azure/marcos.js';
-import { atualizarSinais, avaliarTime, marcarAvisado, sinaisNaoAvisados, type SinalRegistrado } from './azure/alertas.js';
+import { atualizarSinais, avaliarTime, itensDoSinal, marcarAvisado, sinaisNaoAvisados, type ItemAviso, type SinalRegistrado } from './azure/alertas.js';
 import { logAudit } from './db/audit.js';
 import type { DiscordCanal } from './tools/discord.js';
 
@@ -26,9 +26,29 @@ export function dentroDaJanela(d: Date): boolean {
 
 const dataBr = (iso: string) => new Intl.DateTimeFormat('pt-BR', { timeZone: FUSO, day: '2-digit', month: '2-digit' }).format(new Date(iso));
 
-export function formatarSinal(nome: string, s: SinalRegistrado): string {
+const MAX_ITENS_NO_AVISO = 8;
+const encurtar = (t: string, n = 70) => (t.length > n ? `${t.slice(0, n - 1).trimEnd()}…` : t);
+
+export interface DetalheAviso {
+  itens?: ItemAviso[];
+  resumo?: string;
+  /** Builds the work item link; without it the item shows as plain text. */
+  link?: (id: number) => string;
+}
+
+export function formatarSinal(nome: string, s: SinalRegistrado, d: DetalheAviso = {}): string {
   const icone = s.severidade === 'vermelho' ? '🔴' : '🟡';
-  return `${icone} **${nome}** — ${s.descricao} (desde ${dataBr(s.desde)}) · fonte: Azure DevOps`;
+  const linhas = [`${icone} **${nome}** — ${s.descricao} (desde ${dataBr(s.desde)}) · fonte: Azure DevOps`];
+  const itens = d.itens ?? [];
+  for (const i of itens.slice(0, MAX_ITENS_NO_AVISO)) {
+    const ref = d.link ? `[#${i.id}](<${d.link(i.id)}>)` : `#${i.id}`;
+    const quem = i.responsavel ? ` — ${i.responsavel}` : '';
+    const parado = i.dias !== undefined ? ` (${i.dias} d)` : '';
+    linhas.push(`• ${ref} ${encurtar(i.titulo)}${quem}${parado}`);
+  }
+  if (itens.length > MAX_ITENS_NO_AVISO) linhas.push(`… e mais ${itens.length - MAX_ITENS_NO_AVISO} (boards_itens_problema traz a lista toda)`);
+  if (d.resumo) linhas.push(...d.resumo.split('\n').map((l) => `• ${l}`));
+  return linhas.join('\n');
 }
 
 export interface CicloDeps {
@@ -37,6 +57,10 @@ export interface CicloDeps {
   postar: Postar;
   times?: TimeEscopo[];
   agora?: Date;
+  /** Organization of the work item links in #alertas; without it the items show without a link. */
+  org?: string;
+  /** Show who each card belongs to in #alertas. Off by default: the vault rule keeps names out of shared channels. */
+  comResponsavel?: boolean;
 }
 
 export interface CicloResultado {
@@ -77,10 +101,14 @@ export async function executarCiclo(deps: CicloDeps): Promise<CicloResultado> {
   }
 
   const nomes = new Map<string, string>([...times.map((t): [string, string] => [t.id, t.nome]), ['marcos', 'Marcos de entrega']]);
+  const projetos = new Map(times.map((t) => [t.id, t.projeto]));
   for (const s of sinaisNaoAvisados(db)) {
     if (!nomes.has(s.time)) continue;
     try {
-      await postar('alertas', formatarSinal(nomes.get(s.time)!, s));
+      const projeto = projetos.get(s.time);
+      const detalhe: DetalheAviso = projeto ? { ...itensDoSinal(db, s.time, s.chave, agora, !!deps.comResponsavel) } : {};
+      if (projeto && deps.org) detalhe.link = (id) => `https://dev.azure.com/${encodeURIComponent(deps.org!)}/${encodeURIComponent(projeto)}/_workitems/edit/${id}`;
+      await postar('alertas', formatarSinal(nomes.get(s.time)!, s, detalhe));
       marcarAvisado(db, s.time, s.chave);
       res.alertasPostados++;
     } catch {
