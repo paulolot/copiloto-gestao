@@ -11,6 +11,7 @@
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
     "importar": "tsx tools/importador/cli.ts",
+    "indexar": "tsx --env-file-if-exists=.env tools/indexar.ts",
     "docs:discord": "tsx tools/gerar-docs-discord.ts"
   },
   "dependencies": {

@@ -35,11 +35,12 @@ Legenda: **[código]** pode ser feito numa sessão na nuvem · **[Paulo]** depen
   - **Conteúdo dos planos por papel (T2.3):** competências, expectativas por nível e trilha de Tech Lead e Scrum Master.
   - Pronto quando: respostas registradas em `checklist-paulo.md` (seção "Respostas já registradas").
 
-- [ ] **T2.1 Busca por significado no vault** [código] (RF-32) — depende de T2.0 (embeddings)
+- [x] **T2.1 Busca por significado no vault** [código] (RF-32) — depende de T2.0 (embeddings)
   - Índice vetorial no SQLite, **reconstruível** a partir das notas (RNF-08). Interface de embedder (`embed(texto) → vetor`) com uma implementação local ou por API, conforme a decisão; nos testes, um embedder determinístico falso.
   - Só notas com `revisado: true` entram no índice principal. Área restrita **não** entra nele: tem índice separado, consultável só por ferramenta específica.
   - Ferramenta `vault_buscar_semantico(texto, time?, pessoa?, desde?, ate?)` junto com a busca por palavra-chave, com filtros por time, pessoa e data (usando o frontmatter). Respostas citam o caminho da nota e o trecho.
   - Reindexação incremental (nota nova, editada ou removida) e comando de reconstrução total.
+  - Entregue: `vault_buscar_semantico`, `pessoa_buscar_semantico` (restrita, índice separado, consulta e nome fora do log), `vault_reindexar` e `npm run indexar`; índice em arquivo próprio (`INDICE_PATH`), reindexação automática antes da busca (no máximo 1 por minuto). Modelo local `Xenova/multilingual-e5-small` via `@huggingface/transformers` (não é dependência obrigatória: `npm install @huggingface/transformers` na máquina do Paulo). A área restrita indexa todas as notas de `pessoas/` (revisadas ou não), porque só é consultável pela ferramenta restrita.
   - Pronto quando: testes com vault de fixture cobrem indexação, busca por sentido, filtros, exclusão de não revisadas e da área restrita, e reconstrução; execução real com o modelo no checklist do Paulo.
 
 - [x] **T2.2 Perfil por pessoa** [código] (RF-19)

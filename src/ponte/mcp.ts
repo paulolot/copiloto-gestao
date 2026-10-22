@@ -9,6 +9,7 @@ import { z } from 'zod';
 import type { Database } from 'sql.js';
 import { logAudit } from './db/audit.js';
 import { enforcePolicy } from './middleware/autonomy.js';
+import type { IndiceVault, ResultadoSemantico } from './vault/indice.js';
 import { pessoaPerfil } from './tools/pessoa-perfil.js';
 import { vaultListar, vaultLer, vaultBuscar, vaultCriarNota, pessoaRegistrar, pessoaListar, pessoaLer, TIPOS_REGISTRO_PESSOA } from './tools/vault.js';
 import { CANAIS_CONVERSA, discordLerNovas, discordMarcarLido, discordPostar } from './tools/discord.js';
@@ -41,7 +42,16 @@ async function audited(
   }
 }
 
-export function createMcpServer(db: Database, deps: Omit<BoardsDeps, 'db'> = {}): McpServer {
+export type McpDeps = Omit<BoardsDeps, 'db'> & { indice?: IndiceVault };
+
+const formatarSemantico = (r: ResultadoSemantico[]) =>
+  r.map((x) => `**${x.caminho}** (${x.pontuacao}${x.data ? `, ${x.data}` : ''})\n${x.trecho}`).join('\n\n---\n\n') || 'Nenhum resultado.';
+
+export function createMcpServer(db: Database, deps: McpDeps = {}): McpServer {
+  const indice = () => {
+    if (!deps.indice) throw new Error('Busca por significado não configurada (defina EMBEDDER=local no .env e instale o modelo; veja docs/conectar.md)');
+    return deps.indice;
+  };
   const mcp = new McpServer({ name: 'copiloto-gestao', version: '0.1.0' });
 
   mcp.tool('ping', 'Verifica se a ponte está no ar', {}, () => audited(db, 'ping', {}, () => 'pong'));
@@ -74,6 +84,27 @@ export function createMcpServer(db: Database, deps: Omit<BoardsDeps, 'db'> = {})
         const results = vaultBuscar(texto, { pasta, dataInicio, dataFim });
         return results.map((r) => `**${r.caminho}**\n${r.trecho}`).join('\n\n---\n\n') || 'Nenhum resultado.';
       }),
+  );
+
+  mcp.tool(
+    'vault_buscar_semantico',
+    'Busca por significado nas notas revisadas (revisado: true); área restrita excluída. Filtros por time, pessoa e data do frontmatter. Cite o caminho e o trecho na resposta',
+    {
+      texto: z.string().min(1).describe('O que procurar, em linguagem natural'),
+      time: z.string().optional(),
+      pessoa: z.string().optional().describe('Pessoa citada no campo pessoas da nota'),
+      desde: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+      ate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+      limite: z.number().int().min(1).max(20).optional(),
+    },
+    (a) => audited(db, 'vault_buscar_semantico', { ...a }, async () => formatarSemantico(await indice().buscar('principal', a.texto, a))),
+  );
+
+  mcp.tool(
+    'vault_reindexar',
+    'Atualiza o índice da busca por significado (só o que mudou) ou, com total, reconstrói tudo a partir das notas',
+    { total: z.boolean().optional() },
+    ({ total }) => audited(db, 'vault_reindexar', { total }, async () => JSON.stringify(await indice().sincronizar(total), null, 2)),
   );
 
   // Nível `sozinho` (plano.md → "Criar e editar notas no vault"): a nota vai para inbox/ com revisado: false.
@@ -287,6 +318,29 @@ export function createMcpServer(db: Database, deps: Omit<BoardsDeps, 'db'> = {})
     'Junta, da área restrita, o perfil, o PDI, os últimos 1:1, os registros recentes, os sinais do board e as conquistas do time de uma pessoa. Devolve dados e caminhos, nunca opinião. Não repita o conteúdo em canal do Discord',
     { pessoa: z.string().min(2).max(100) },
     ({ pessoa }) => restrito('pessoa_perfil', { pessoa: '[restrito]' }, () => ({ texto: JSON.stringify(pessoaPerfil(db, pessoa), null, 2) })),
+  );
+
+  mcp.tool(
+    'pessoa_buscar_semantico',
+    'Busca por significado na área restrita (pessoas/: PDI, 1:1, registros). Use só quando a tarefa exige e nunca poste o conteúdo em canal compartilhado',
+    {
+      texto: z.string().min(1),
+      pessoa: z.string().optional(),
+      desde: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+      ate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+      limite: z.number().int().min(1).max(20).optional(),
+    },
+    async (a) => {
+      const inicio = Date.now();
+      try {
+        const r = await indice().buscar('restrito', a.texto, a);
+        logAudit(db, { tool: 'pessoa_buscar_semantico', params: { pessoa: '[restrito]', texto: '[restrito]' }, origin: 'mcp', result: 'ok', duration_ms: Date.now() - inicio, restricted_path: r[0]?.caminho });
+        return text(formatarSemantico(r));
+      } catch (e) {
+        logAudit(db, { tool: 'pessoa_buscar_semantico', params: { pessoa: '[restrito]', texto: '[restrito]' }, origin: 'mcp', result: 'error', error_msg: (e as Error).message, duration_ms: Date.now() - inicio });
+        return text(`Erro: ${(e as Error).message}`, true);
+      }
+    },
   );
 
   mcp.tool(

@@ -29,6 +29,7 @@ Abra `.env` e preencha:
 | `DISCORD_GUILD_ID` | ID do seu servidor Discord (botão direito → Copiar ID do servidor) |
 | `DISCORD_OWNER_ID` | Seu ID de usuário no Discord (Configurações → Avançado → Modo desenvolvedor → botão direito no seu nome) |
 | `DISCORD_CANAL_*` | ID de cada um dos 9 canais, incluindo `_PLANEJAMENTO`, `_INSIGHTS`, `_COBRANCAS` (botão direito no canal → Copiar ID). Permissões e convite do bot: `docs/discord-configuracao.md` |
+| `EMBEDDER` / `INDICE_PATH` | Opcionais (fase 2). `EMBEDDER=local` liga a busca por significado com modelo na sua máquina (antes: `npm install @huggingface/transformers`); `INDICE_PATH` é o arquivo do índice (padrão `<DB_PATH>.indice`) |
 | `AZDO_ORG` | `metanetsistema` (fase 1) |
 | `AZDO_PAT` | Personal Access Token **somente leitura** (Work Items, Code, Analytics). Só no `.env`: nunca em chat, commit ou URL |
 | `AZDO_CAMPO_PARALISADO` / `AZDO_CAMPO_TIPO_BUG` | Nome técnico dos campos Paralisado e Tipo Bug (padrão `Custom.Status` e `Custom.TipoBug`) |

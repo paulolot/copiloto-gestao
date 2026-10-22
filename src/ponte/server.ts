@@ -10,6 +10,8 @@ import { mapaCanais } from './discord/comandos.js';
 import { AzdoClient } from './azure/client.js';
 import { iniciarAgendador } from './agendador.js';
 import { discordPostar } from './tools/discord.js';
+import { IndiceVault } from './vault/indice.js';
+import { LocalEmbedder } from './vault/embedder.js';
 
 const PORT = parseInt(process.env.PONTE_PORT ?? '3333', 10);
 const TOKEN = process.env.PONTE_TOKEN ?? '';
@@ -66,8 +68,17 @@ async function main() {
     console.warn('Azure DevOps desativado: defina AZDO_ORG e AZDO_PAT (veja docs/conectar.md)');
   }
 
+  // Semantic search (local embeddings). Off unless EMBEDDER=local; the model is validated on Paulo's machine.
+  let indice: IndiceVault | undefined;
+  if ((process.env.EMBEDDER ?? '').toLowerCase() === 'local') {
+    indice = await IndiceVault.abrir(new LocalEmbedder(), process.env.INDICE_PATH ?? `${process.env.DB_PATH ?? './copiloto.db'}.indice`);
+    console.log('Busca por significado ligada (modelo local; a primeira indexação roda na primeira busca ou em vault_reindexar)');
+  } else {
+    console.warn('Busca por significado desativada: defina EMBEDDER=local (veja docs/conectar.md)');
+  }
+
   // Tunnel (cloudflared) connects to localhost, so there is no need to listen on other interfaces.
-  createApp(db, TOKEN, { azdo }).listen(PORT, '127.0.0.1', () => {
+  createApp(db, TOKEN, { azdo, indice }).listen(PORT, '127.0.0.1', () => {
     console.log(`Ponte MCP no ar: http://localhost:${PORT}/mcp`);
     console.log(`Saúde: http://localhost:${PORT}/health`);
   });
