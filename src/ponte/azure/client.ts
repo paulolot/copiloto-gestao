@@ -72,7 +72,7 @@ export interface AzdoOptions {
 const API = 'api-version=7.1';
 const FIELDS = [
   'System.Id', 'System.WorkItemType', 'System.State', 'System.Title', 'System.AreaPath', 'System.IterationPath',
-  'System.BoardColumn', 'System.CreatedDate', 'System.ChangedDate', 'System.AssignedTo', 'System.Tags', 'System.StateChangeDate',
+  'System.BoardColumn', 'System.CreatedDate', 'System.ChangedDate', 'System.AssignedTo', 'System.Tags', 'Microsoft.VSTS.Common.StateChangeDate',
   'Microsoft.VSTS.Common.ActivatedDate', 'Microsoft.VSTS.Common.ClosedDate',
   'Microsoft.VSTS.Scheduling.StoryPoints', 'Microsoft.VSTS.Scheduling.Effort',
 ];
@@ -202,7 +202,7 @@ export function normalizarWorkItem(w: { id: number; fields: Record<string, unkno
     iterationPath: str('System.IterationPath') ?? '',
     criadoEm: str('System.CreatedDate') ?? '',
     alteradoEm: str('System.ChangedDate') ?? '',
-    mudancaEstadoEm: str('System.StateChangeDate'),
+    mudancaEstadoEm: str('Microsoft.VSTS.Common.StateChangeDate'),
     ativadoEm: str('Microsoft.VSTS.Common.ActivatedDate'),
     fechadoEm: str('Microsoft.VSTS.Common.ClosedDate'),
     pontos: typeof pontos === 'number' ? pontos : undefined,

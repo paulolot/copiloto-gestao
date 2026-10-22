@@ -12,7 +12,7 @@ export function wi(id: number, f: Record<string, unknown>) {
     fields: {
       'System.WorkItemType': 'User Story', 'System.State': 'Active', 'System.BoardColumn': 'Dev implementando', 'System.Title': `Item ${id}`,
       'System.AreaPath': 'Metanet\\Squad Fiscal', 'System.IterationPath': 'Metanet\\Sprint 42',
-      'System.CreatedDate': dias(20), 'System.ChangedDate': dias(1), 'System.StateChangeDate': dias(1),
+      'System.CreatedDate': dias(20), 'System.ChangedDate': dias(1), 'Microsoft.VSTS.Common.StateChangeDate': dias(1),
       'System.AssignedTo': { uniqueName: 'ana@empresa.com' }, 'Microsoft.VSTS.Scheduling.StoryPoints': 3,
       ...f,
     },
@@ -20,14 +20,14 @@ export function wi(id: number, f: Record<string, unknown>) {
 }
 
 export const ITENS = [
-  wi(1, { 'System.State': 'Active', 'System.StateChangeDate': dias(12), 'System.ChangedDate': dias(12) }), // envelhecendo
+  wi(1, { 'System.State': 'Active', 'Microsoft.VSTS.Common.StateChangeDate': dias(12), 'System.ChangedDate': dias(12) }), // envelhecendo
   wi(2, { 'System.State': 'Active', 'Custom.Status': 'Aguardando resposta do cliente', 'System.ChangedDate': dias(5) }), // paralisado (campo com texto)
   wi(3, { 'System.WorkItemType': 'User Story', 'System.State': 'Active', 'System.AssignedTo': undefined, 'Microsoft.VSTS.Scheduling.StoryPoints': undefined }), // em andamento, sem dono e sem estimativa
-  wi(4, { 'System.State': 'Closed', 'System.BoardColumn': 'Concluído', 'System.CreatedDate': dias(10), 'Microsoft.VSTS.Common.ActivatedDate': dias(6), 'Microsoft.VSTS.Common.ClosedDate': dias(2), 'System.StateChangeDate': dias(2) }),
-  wi(5, { 'System.State': 'Closed', 'System.BoardColumn': 'Concluído', 'System.WorkItemType': 'Bug', 'Custom.TipoBug': 'Bug Externo', 'System.CreatedDate': dias(8), 'Microsoft.VSTS.Common.ClosedDate': dias(6), 'System.StateChangeDate': dias(6) }),
+  wi(4, { 'System.State': 'Closed', 'System.BoardColumn': 'Concluído', 'System.CreatedDate': dias(10), 'Microsoft.VSTS.Common.ActivatedDate': dias(6), 'Microsoft.VSTS.Common.ClosedDate': dias(2), 'Microsoft.VSTS.Common.StateChangeDate': dias(2) }),
+  wi(5, { 'System.State': 'Closed', 'System.BoardColumn': 'Concluído', 'System.WorkItemType': 'Bug', 'Custom.TipoBug': 'Bug Externo', 'System.CreatedDate': dias(8), 'Microsoft.VSTS.Common.ClosedDate': dias(6), 'Microsoft.VSTS.Common.StateChangeDate': dias(6) }),
   wi(6, { 'System.State': 'Active', 'System.WorkItemType': 'Bug', 'Custom.TipoBug': 'Bug Interno', 'Custom.Status': '', 'System.AssignedTo': undefined }), // bug interno sem dono
   wi(7, { 'System.State': 'Active', 'System.AssignedTo': { uniqueName: 'ana@empresa.com' } }),
-  wi(8, { 'System.State': 'New', 'System.BoardColumn': 'Ideias', 'System.WorkItemType': 'Bug', 'Custom.TipoBug': 'Bug Interno', 'System.StateChangeDate': dias(60), 'System.ChangedDate': dias(60), 'System.AssignedTo': undefined, 'Microsoft.VSTS.Scheduling.StoryPoints': undefined }), // ideia: fora de toda métrica
+  wi(8, { 'System.State': 'New', 'System.BoardColumn': 'Ideias', 'System.WorkItemType': 'Bug', 'Custom.TipoBug': 'Bug Interno', 'Microsoft.VSTS.Common.StateChangeDate': dias(60), 'System.ChangedDate': dias(60), 'System.AssignedTo': undefined, 'Microsoft.VSTS.Scheduling.StoryPoints': undefined }), // ideia: fora de toda métrica
 ];
 
 /** Column history of the finished items: when each one entered "Fazendo Análise". */
