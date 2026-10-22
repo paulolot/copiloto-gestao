@@ -1,3 +1,10 @@
+# Texto sempre com LF no repositório e no checkout, em qualquer sistema (testes e documentos gerados dependem disso)
+* text=auto eol=lf
 
 # Scripts do Windows precisam de CRLF
 *.bat text eol=crlf
+
+# Binários
+*.png binary
+*.jpg binary
+*.pdf binary

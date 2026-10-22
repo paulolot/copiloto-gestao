@@ -34,6 +34,14 @@ describe('importador', () => {
     expect(out).toContain('Perfil da Ana.');
   });
 
+  it('handles a vault written on Windows (CRLF): same result, LF only, nothing mixed', () => {
+    const lf = addFrontmatter('---\npessoas:\n  - Ana\ntags: [dev]\n---\nCorpo.\n', 'ana/perfil.md', '2026-10-22');
+    const crlf = addFrontmatter('---\r\npessoas:\r\n  - Ana\r\ntags: [dev]\r\n---\r\nCorpo.\r\n', 'ana/perfil.md', '2026-10-22');
+    expect(crlf).toBe(lf);
+    expect(crlf).not.toContain('\r');
+    expect(addFrontmatter('Sem frontmatter\r\nlinha 2\r\n', 'ana/x.md', '2026-10-22')).not.toContain('\r');
+  });
+
   it('simulate writes nothing', () => {
     const r = importar({ origem: ORIGEM, destino, simular: true });
     expect(r.copiados).toHaveLength(2);
