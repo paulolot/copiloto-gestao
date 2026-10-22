@@ -8,8 +8,8 @@
     "build": "tsc",
     "start": "node --env-file-if-exists=.env dist/src/ponte/server.js",
     "dev": "tsx --env-file-if-exists=.env src/ponte/server.ts",
-    "test": "node --experimental-vm-modules node_modules/.bin/jest",
-    "test:watch": "node --experimental-vm-modules node_modules/.bin/jest --watch",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
     "importar": "tsx tools/importador/cli.ts",
     "docs:discord": "tsx tools/gerar-docs-discord.ts"
   },
