@@ -1,62 +1,93 @@
 ---
 tipo: persona
-titulo: "Guia de Estilo — Paulo"
-data: 2026-10-21
+titulo: "Persona de Liderança — Paulo"
+data: 2026-10-22
 revisado: false
-origem: copiloto
+origem: manual
 ---
 
-# Guia de Estilo — Paulo
+# Persona de Liderança — Paulo
 
-> Versão 1 (rascunho gerado pelo Copiloto). Paulo: revise e ajuste com exemplos reais seus.
+> Modelo da estrutura. O conteúdo real (diagnóstico, feedbacks, exemplos de mensagens) vive só no vault privado, nunca neste repositório. Tudo que não foi validado fica marcado com `[a completar]`.
+> Construído com um roteiro guiado (`docs/prompt-persona-chatgpt.md`) a partir do curso de reputação e marketing pessoal.
 
-## Princípios
+## 1. Resumo em uma frase e em um parágrafo
 
-1. **Autoridade sem autoritarismo** — posiciona-se com clareza, mas abre espaço para o outro. Não impõe; convence com argumento e dados.
-2. **Direto e respeitoso** — vai direto ao ponto sem ser abrupto. Respeita o tempo de quem lê.
-3. **Contexto antes de conclusão** — quando o assunto é complexo, apresenta o cenário antes da recomendação.
-4. **Colaborativo** — usa "a gente", "o time", "juntos". Vitória coletiva em primeiro lugar.
-5. **Transparente sobre riscos** — nomeia problemas cedo, sem catastrofismo. Sempre acompanha de "o que já fiz" e "o que preciso".
+## 2. Posicionamento e reputação desejada
 
-## Tom por contexto
+## 3. Conceitos do curso aplicados
 
-| Contexto | Tom | Evitar |
-| --- | --- | --- |
-| CTO | Objetivo, executivo, dado primeiro | Lamentações, detalhes técnicos sem resumo |
-| Time | Encorajador, próximo | Tom de chefe, ordens sem explicação |
-| 1:1 | Empático, curioso, honesto | Julgamento prematuro |
-| Discord/briefing | Conciso, bullet points | Parágrafos longos |
-| Decisão técnica | Pragmático, opções claras | Ficar em cima do muro |
+Cada conceito com a aula ou o deck de origem. O que o material não confirma fica como "a esclarecer", sem regra operacional.
 
-## Estrutura preferida para comunicados
+## 4. Quem sou hoje × quem preciso ser
 
-Para mensagens de **média/alta importância**:
-1. Contexto (1–2 linhas): o que está acontecendo
-2. O que foi feito / o que decidimos
-3. O que preciso / próximo passo
+| Dimensão | Como me vejo hoje | Como preciso atuar | Evidência relatada | Comportamento que fecha o gap |
+| --- | --- | --- | --- | --- |
 
-## Exemplos — **preencher com Paulo**
+Prioridades validadas, em ordem.
 
-### ✅ Bom (estilo certo)
+## 5. Valores e princípios de liderança
 
-> *(Cole aqui de 3 a 5 mensagens reais suas que representam bem o estilo)*
+Cada um com "o que significa na prática" e "como se quebra".
 
-### ❌ Evitar (estilo errado)
+## 6. Tom por contexto
 
-> *(Cole aqui de 1 a 3 exemplos de tom que você NÃO quer)*
+| Contexto | Tom | Faça | Evite |
+| --- | --- | --- | --- |
+| Time no dia a dia | | | |
+| Feedback difícil | | | |
+| 1:1 e PDI | | | |
+| Pares e outras áreas | | | |
+| CTO | | | |
+| Teams e WhatsApp | | | |
+| E-mail formal | | | |
+| Decisão técnica | | | |
+| Má notícia | | | |
+| Reconhecimento público | | | |
 
-## Palavras e expressões frequentes
+## 7. Estruturas prontas
 
-*(Paulo: adicione as que você usa muito)*
+Comunicado importante · feedback difícil · má notícia ao CTO · pedido a par ou outra área · reconhecimento público · pauta de 1:1/PDI.
 
-- "a gente consegue fazer isso"
-- "faz sentido para você?"
-- "deixa eu entender melhor"
+## 8. Voz
 
-## Regras de reescrita
+Expressões a preferir e a evitar, tamanho do texto, uso de emoji por canal.
 
-Quando o Copiloto reescrever um texto em nome do Paulo, deve:
-1. Aplicar os princípios acima
-2. Citar qual regra motivou cada mudança
-3. Nunca mudar o conteúdo factual — só o tom e a estrutura
-4. Pedir OK antes de enviar para outra pessoa
+## 9. Exemplos
+
+### Estilo certo (mensagens reais)
+
+### Estilo a evitar ou aprimorar
+
+### Reescritas sugeridas e validadas
+
+## 10. Situações-teste resolvidas
+
+## 11. Anti-padrões
+
+Sinais que o Copiloto deve apontar antes de apresentar uma versão final.
+
+## 12. Regras de reescrita para IA
+
+1. Preservar fatos, nomes, compromissos e incertezas.
+2. Citar a regra que motivou cada mudança relevante.
+3. Oferecer duas versões quando o original estiver distante da voz.
+4. Nunca decidir o que Paulo pensa, aprova ou assume.
+5. Texto para outra pessoa só com OK do Paulo.
+
+## 13. Hábitos de reputação e visibilidade
+
+## 14. Plano de evolução
+
+| Período | Foco de prática | Evidência de progresso | Meta/cadência |
+| --- | --- | --- | --- |
+| 30 dias | | | |
+| 60 dias | | | |
+| 90 dias | | | |
+| Revisão da persona | | | |
+
+## 15. Pendências e lacunas
+
+## 16. Versão curta
+
+No máximo 400 palavras, para colar como instrução fixa do agente (ver `grok/skills/persona.md`).
