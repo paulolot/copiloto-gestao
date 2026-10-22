@@ -9,6 +9,7 @@ Este repositório constrói o **Copiloto Gestão**: agentes de IA que executam o
 | `docs/plano.md` | Visão, arquitetura, decisões, escopo, métricas, autonomia, persona, reunião com o CTO e fases |
 | `docs/requisitos.md` | Requisitos funcionais (RF-01 a RF-37) e não funcionais (RNF-01 a RNF-12), com fase |
 | `docs/backlog-fase-1.md` | Tarefas da fase atual (fase 1: boards e rotina), em ordem, com critério de pronto. A fase 0 está em `docs/backlog-fase-0.md` (concluída) |
+| `docs/backlog-fase-2.md` | Próxima fase (reuniões e pessoas): só começa quando o gate da fase 1 fechar |
 | `grok/rotinas/README.md` | Roteiro de todas as rotinas e skills a cadastrar no Grok Bot (horários, conectores, ferramentas); os prompts ficam na mesma pasta |
 | `docs/discord-configuracao.md` | Permissões, intents e convite do bot (inglês e português) |
 | `docs/discord-canais.md` | Tópico de cada canal e comandos `/` (gerado por `npm run docs:discord`) |
