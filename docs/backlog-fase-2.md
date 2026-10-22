@@ -26,7 +26,7 @@ Legenda: **[código]** pode ser feito numa sessão na nuvem · **[Paulo]** depen
 
 ## Tarefas
 
-- [ ] **T2.0 Decisões do Paulo** [Paulo] — destrava as demais
+- [~] **T2.0 Decisões do Paulo** [Paulo] — destrava as demais
   - **Respondido em 22/10/2026:** embeddings **local**; 1:1 **mensal** com título "Feedback 1:1 - [Colaborador]"; CTO sem depender da agenda (ver T2.9). Faltam: critérios de reunião dispensável, revisão do PDI e planos por papel.
   - **Embeddings (T2.1):** modelo **local** na máquina do Paulo (nenhum texto sai da máquina; mais lento e precisa baixar o modelo uma vez) ou **API** (mais simples e rápido; o texto das notas vai ao provedor, o que o plano permite só com autorização expressa). Recomendação: local, por causa de PDI e 1:1.
   - **Reunião dispensável ou delegável (T2.8):** quais critérios valem (sem pauta, sem decisão nas últimas ocorrências, o Paulo não é o decisor, só informativa, pode ser resumo em texto…).
@@ -42,7 +42,7 @@ Legenda: **[código]** pode ser feito numa sessão na nuvem · **[Paulo]** depen
   - Reindexação incremental (nota nova, editada ou removida) e comando de reconstrução total.
   - Pronto quando: testes com vault de fixture cobrem indexação, busca por sentido, filtros, exclusão de não revisadas e da área restrita, e reconstrução; execução real com o modelo no checklist do Paulo.
 
-- [ ] **T2.2 Perfil por pessoa** [código] (RF-19)
+- [x] **T2.2 Perfil por pessoa** [código] (RF-19)
   - Modelos em `vault-template/pessoas/`: `perfil.md` (papel, time, objetivos, cadência de 1:1, datas), `pdi.md`, pasta `1x1/` e os registros do `/pessoa`. Validador de frontmatter dos modelos (como o de T0.8).
   - Ferramenta restrita `pessoa_perfil(pessoa)`: junta perfil, PDI, últimos 1:1, registros recentes (impressões, combinados, feedbacks), entregas e sinais do board da pessoa (usa `metricas_colaborador`) e conquistas. Devolve dados e caminhos, nunca opinião.
   - Pronto quando: testes com pessoas de fixture; nada do conteúdo vai para o log, só os caminhos.

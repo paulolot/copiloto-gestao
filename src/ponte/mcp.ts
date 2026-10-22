@@ -9,6 +9,7 @@ import { z } from 'zod';
 import type { Database } from 'sql.js';
 import { logAudit } from './db/audit.js';
 import { enforcePolicy } from './middleware/autonomy.js';
+import { pessoaPerfil } from './tools/pessoa-perfil.js';
 import { vaultListar, vaultLer, vaultBuscar, vaultCriarNota, pessoaRegistrar, pessoaListar, pessoaLer, TIPOS_REGISTRO_PESSOA } from './tools/vault.js';
 import { CANAIS_CONVERSA, discordLerNovas, discordMarcarLido, discordPostar } from './tools/discord.js';
 import { boardsMarcoDefinir, boardsMarcos, boardsTags, metricasColaborador, boardsAlertas, boardsItensProblema, boardsSaude, boardsSincronizar, metricasTime, type BoardsDeps } from './tools/boards.js';
@@ -279,6 +280,13 @@ export function createMcpServer(db: Database, deps: Omit<BoardsDeps, 'db'> = {})
     'Lista os caminhos das notas da área restrita sobre uma pessoa, da mais recente para a mais antiga (só caminhos)',
     { pessoa: z.string().min(2).max(100) },
     ({ pessoa }) => restrito('pessoa_listar', { pessoa: '[restrito]' }, () => ({ texto: pessoaListar(pessoa).join('\n') || 'Nenhuma nota.' })),
+  );
+
+  mcp.tool(
+    'pessoa_perfil',
+    'Junta, da área restrita, o perfil, o PDI, os últimos 1:1, os registros recentes, os sinais do board e as conquistas do time de uma pessoa. Devolve dados e caminhos, nunca opinião. Não repita o conteúdo em canal do Discord',
+    { pessoa: z.string().min(2).max(100) },
+    ({ pessoa }) => restrito('pessoa_perfil', { pessoa: '[restrito]' }, () => ({ texto: JSON.stringify(pessoaPerfil(db, pessoa), null, 2) })),
   );
 
   mcp.tool(

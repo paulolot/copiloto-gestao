@@ -142,7 +142,7 @@ export interface NovaNota {
   times?: string[];
 }
 
-function slugify(titulo: string): string {
+export function slugify(titulo: string): string {
   const slug = titulo
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
