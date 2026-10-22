@@ -58,7 +58,7 @@ describe('calcularMetricas', () => {
     expect(m.throughputSemanal).toHaveLength(8);
     expect(m.throughputSemanal.reduce((a, s) => a + s.entregues, 0)).toBe(2);
     expect(m.commitsSemanais.reduce((a, s) => a + s.commits, 0)).toBe(5);
-    expect(m.commitsPorRepo[0]).toMatchObject({ repo: 'projeto-metaposto-net', commits28Dias: 5 });
+    expect(m.commitsPorRepo[0]).toMatchObject({ repo: 'projeto-metaposto-net.git', commits28Dias: 5 });
   });
 
   it('computes monthly metrics (no sprints), MTTR and bug rate', () => {

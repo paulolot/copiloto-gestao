@@ -50,7 +50,7 @@ Organização `metanetsistema` no Azure DevOps. Começa pelo Squad Fiscal; os ou
 
 | Ordem | Time | Produto | Area path | Repositórios |
 | --- | --- | --- | --- | --- |
-| 1 | Squad Fiscal | Londrina, desktop legado MetaNet | Squad Fiscal | projeto Metanet: projeto-metaposto-net |
+| 1 | Squad Fiscal | Londrina, desktop legado MetaNet | Squad Fiscal | projeto Metanet: projeto-metaposto-net.git |
 | 2 | Squad Desktop | Pato Branco, desktop legado AutoXpert | Squad Desktop | projeto ATXDados: AtxDados-DB; projeto AutoXPert: AtxExec, AtxRelat, EAtxFiscal, AtxNFSe, Admin |
 | 3 | Squad Retaguarda WEB | Pato Branco, web | Squad Retaguarda WEB | projeto Metanet: RetaguardaWeb_angular-client, RetaguardaWeb_servidor-nest, BackendWeb_atxdados |
 

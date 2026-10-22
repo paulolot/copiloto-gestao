@@ -22,7 +22,7 @@ export const TIMES: TimeEscopo[] = [
     nome: 'Squad Fiscal',
     projeto: 'Metanet',
     areaPath: 'Metanet\\Squad Fiscal',
-    repos: [{ projeto: 'Metanet', repo: 'projeto-metaposto-net' }],
+    repos: [{ projeto: 'Metanet', repo: 'projeto-metaposto-net.git' }],
   },
   {
     id: 'desktop',
