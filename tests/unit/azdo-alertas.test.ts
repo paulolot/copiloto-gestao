@@ -6,7 +6,7 @@ import type { Database } from 'sql.js';
 import { AzdoClient } from '../../src/ponte/azure/client.js';
 import { TIMES } from '../../src/ponte/azure/escopo.js';
 import { sincronizarTime } from '../../src/ponte/azure/sync.js';
-import { LIMITES_PADRAO, type MetricasTime, type MetricasMes } from '../../src/ponte/azure/metricas.js';
+import { LIMITES_PADRAO, type JanelaBugRate, type MetricasTime, type MetricasMes } from '../../src/ponte/azure/metricas.js';
 import {
   atualizarSinais, avaliarSinais, avaliarTime, itensProblema, marcarAvisado, sinaisAtivos, sinaisNaoAvisados,
 } from '../../src/ponte/azure/alertas.js';
@@ -18,7 +18,7 @@ const base = (o: Partial<MetricasTime> = {}): MetricasTime => ({
   wipPorColuna: {}, wipPorPessoa: { maximo: 0, pessoasAcimaDoLimite: 0 }, bugs: { abertos: 0, externosAbertos: 0, semDono: 0 },
   throughputSemanal: Array.from({ length: 8 }, (_, i) => ({ semana: `s${i}`, entregues: 5 })),
   commitsSemanais: Array.from({ length: 8 }, (_, i) => ({ semana: `s${i}`, commits: 20 })),
-  commitsPorRepo: [], meses: [], cycleTime: { amostras: 0 }, leadTime: { amostras: 0 }, ...o,
+  bugRateJanelas: [], commitsPorRepo: [], meses: [], cycleTime: { amostras: 0 }, leadTime: { amostras: 0 }, ...o,
 });
 const mes = (nome: string, o: Partial<MetricasMes> = {}): MetricasMes => ({ mes: nome, inicio: '', fim: '', encerrado: true, criados: 10, entregues: 9, ...o });
 const chaves = (m: MetricasTime) => avaliarSinais(m, AGORA, LIMITES_PADRAO).map((s) => s.chave);
@@ -54,11 +54,29 @@ describe('avaliarSinais', () => {
     expect(chaves(base({ meses: [s[0], s[1], s[3], mes('5', { cycleTimeDias: 4 })] }))).not.toContain('cycle_time');
   });
 
-  it('flags bug rate above 10% and MTTR above baseline', () => {
-    const k = chaves(base({
-      meses: [mes('1', { mttrDias: 2 }), mes('2', { bugRate: 12, mttrDias: 5 }), mes('3', { encerrado: false, criados: 5 })],
-    }));
-    expect(k).toEqual(['bug_rate', 'mttr']);
+  it('flags MTTR above 1.5x the mean of the earlier months', () => {
+    const meses = (ultimo: number) => [mes('1', { mttrDias: 6 }), mes('2', { mttrDias: 8 }), mes('3', { mttrDias: 7 }), mes('4', { mttrDias: ultimo }), mes('5', { encerrado: false })];
+    expect(chaves(base({ meses: meses(11) }))).toContain('mttr'); // 11 > 7 x 1.5
+    expect(chaves(base({ meses: meses(10) }))).not.toContain('mttr');
+  });
+
+  describe('bug rate windows', () => {
+    const am = (bugs: number, userStories: number) => ({ bugs, userStories, taxa: Math.round((bugs / userStories) * 1000) / 10 });
+    const jan = (dias: number, atual: [number, number], anterior: [number, number]): JanelaBugRate => ({ dias, atual: am(...atual), anterior: am(...anterior) });
+    const desc = (j: JanelaBugRate[]) => avaliarSinais(base({ bugRateJanelas: j }), AGORA, LIMITES_PADRAO).find((s) => s.chave === 'bug_rate')?.descricao;
+
+    it('alerts when the 7 or 30-day window rises and is above the limit', () => {
+      expect(desc([jan(30, [31, 91], [20, 91]), jan(7, [9, 22], [5, 20])])).toBe('Bug rate subindo: 30 dias em 34.1% (era 22%) e 7 dias em 40.9% (era 25%) (limite 10%)');
+      expect(desc([jan(30, [31, 91], [20, 91]), jan(7, [4, 22], [5, 20])])).toBe('Bug rate subindo: 30 dias em 34.1% (era 22%) (limite 10%)');
+    });
+
+    it('stays quiet when it is falling, under the limit, the sample is small, or only the 90-day window rises', () => {
+      expect(desc([jan(30, [20, 91], [31, 91])])).toBeUndefined();
+      expect(desc([jan(30, [8, 91], [5, 91])])).toBeUndefined(); // 8.8% is under 10%
+      expect(desc([jan(7, [4, 9], [1, 12])])).toBeUndefined(); // only 9 User Stories
+      expect(desc([jan(7, [4, 12], [1, 9])])).toBeUndefined(); // only 9 in the previous window
+      expect(desc([jan(90, [79, 272], [60, 270])])).toBeUndefined();
+    });
   });
 });
 

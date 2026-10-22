@@ -67,13 +67,27 @@ export interface MetricasMes {
   entregues: number;         // itens que chegaram a Concluído no mês
   cycleTimeDias?: number;    // mediana dos que terminaram o ciclo no mês
   leadTimeDias?: number;     // mediana dos entregues no mês
-  bugRate?: number;          // % de bugs (Interno e Externo) entre os itens criados no mês
+  bugRate?: number;          // bugs (Interno e Externo) criados no mês ÷ User Stories criadas no mês, em %
   mttrDias?: number;         // média de Backlog a Concluído dos bugs entregues no mês
   cycleTimeP85?: number;
   leadTimeP85?: number;
   /** DORA, change failure rate (approximation): Bug Externo created in the month ÷ items delivered in the month, in %. */
   taxaFalhaMudanca?: number;
 }
+
+/** Bug rate of one period: bugs (Interno and Externo, open or closed) created in it ÷ User Stories created in it. */
+export interface AmostraBugRate {
+  bugs: number;
+  userStories: number;
+  taxa?: number; // %
+}
+/** A rolling window ending now, next to the window of the same length right before it. */
+export interface JanelaBugRate {
+  dias: number;
+  atual: AmostraBugRate;
+  anterior: AmostraBugRate;
+}
+export const JANELAS_BUG_RATE = [7, 30, 90];
 
 export interface MetricasTime {
   time: string;
@@ -92,6 +106,7 @@ export interface MetricasTime {
   leadTime: Percentis;
   leadTimeDias?: number;
   commitsSemanais: { semana: string; commits: number }[];
+  bugRateJanelas: JanelaBugRate[];
   commitsPorRepo: { repo: string; ultimoCommit?: string; commits28Dias: number }[];
   /** Commits dated more than a day ahead of now (a wrong clock or a rebase): left out of every commit figure. */
   commitsComDataFutura: number;
@@ -146,6 +161,26 @@ export const ehBugExterno = (i: ItemBoard) => i.tipoBug?.trim().toLowerCase() ==
 export const ehBloqueado = (i: ItemBoard) => i.paralisado || i.tags.some((t) => TAGS_BLOQUEIO.includes(t.toLowerCase()));
 export const dataFechamento = (i: ItemBoard): number => (ehPronto(i) ? ms(i.fechadoEm ?? i.mudancaEstadoEm ?? i.alteradoEm) : NaN);
 
+const ehUserStory = (i: ItemBoard) => i.tipo.trim().toLowerCase() === 'user story';
+const taxaBugRate = (bugs: number, userStories: number): number | undefined => (userStories ? Math.round((bugs / userStories) * 1000) / 10 : undefined);
+
+/** Items created in (de, ate]: bugs of any state over User Stories, so a bug still open counts the same as a closed one. */
+export function amostraBugRate(itens: ItemBoard[], de: number, ate: number): AmostraBugRate {
+  const criados = itens.filter((i) => { const t = ms(i.criadoEm); return t > de && t <= ate; });
+  const bugs = criados.filter((i) => ehBug(i) || ehBugExterno(i)).length;
+  const userStories = criados.filter(ehUserStory).length;
+  return { bugs, userStories, taxa: taxaBugRate(bugs, userStories) };
+}
+
+export function janelasBugRate(itens: ItemBoard[], agora: Date): JanelaBugRate[] {
+  const t = agora.getTime();
+  return JANELAS_BUG_RATE.map((dias) => ({
+    dias,
+    atual: amostraBugRate(itens, t - dias * DIA, t),
+    anterior: amostraBugRate(itens, t - 2 * dias * DIA, t - dias * DIA),
+  }));
+}
+
 export function carregarItens(db: Database, timeId: string): ItemBoard[] {
   const r = db.exec(
     `SELECT id, tipo, estado, titulo, iteration_path, criado_em, alterado_em, mudanca_estado_em, ativado_em, fechado_em,
@@ -191,7 +226,7 @@ export function metricasDoMes(itens: ItemBoard[], mes: string, agora: Date): Met
     criados: criados.length, entregues: entregues.length,
     cycleTimeDias: mediana(validos(itens.filter((i) => terminouOCiclo(i) && dentro(fimCiclo(i))).map(cycleDias))),
     leadTimeDias: mediana(validos(entregues.map(leadDias))),
-    bugRate: criados.length ? Math.round((bugs.length / criados.length) * 1000) / 10 : undefined,
+    bugRate: taxaBugRate(bugs.length, criados.filter(ehUserStory).length),
     mttrDias: media(validos(bugsEntregues.map(leadDias))),
     cycleTimeP85: percentis(validos(itens.filter((i) => terminouOCiclo(i) && dentro(fimCiclo(i))).map(cycleDias))).p85,
     leadTimeP85: percentis(validos(entregues.map(leadDias))).p85,
@@ -265,7 +300,7 @@ export function calcularMetricas(db: Database, timeId: string, agora = new Date(
     leadTimeDias: mediana(validos(recentes.map(leadDias))),
     cycleTime: percentis(validos(itens.filter((i) => terminouOCiclo(i) && agora.getTime() - fimCiclo(i) <= 84 * DIA).map(cycleDias))),
     leadTime: percentis(validos(itens.filter((i) => ehPronto(i) && agora.getTime() - dataFechamento(i) <= 84 * DIA).map(leadDias))),
-    commitsSemanais, commitsPorRepo, commitsComDataFutura, meses,
+    commitsSemanais, bugRateJanelas: janelasBugRate(itens, agora), commitsPorRepo, commitsComDataFutura, meses,
   };
   guardarHistorico(db, m);
   return m;

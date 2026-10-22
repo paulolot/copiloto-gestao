@@ -30,9 +30,11 @@ export interface LimitesAlerta {
   quedaForte: number;   // fraction of the baseline below which a drop is "strong"
   altaForte: number;    // multiple of the baseline above which a rise is "high"
   commitParadoDiasUteis: number;
+  /** Fewest User Stories created in a bug rate window (and in the one before it) for the window to raise an alert. */
+  bugRateAmostraMinima: number;
 }
 export const LIMITES_ALERTA_PADRAO: LimitesAlerta = {
-  bugRatePercent: 10, quedaForte: 0.5, altaForte: 1.25, commitParadoDiasUteis: 3,
+  bugRatePercent: 10, quedaForte: 0.5, altaForte: 1.25, commitParadoDiasUteis: 3, bugRateAmostraMinima: 10,
 };
 
 export function limitesAlertaDoAmbiente(env: NodeJS.ProcessEnv = process.env): LimitesAlerta {
@@ -41,6 +43,7 @@ export function limitesAlertaDoAmbiente(env: NodeJS.ProcessEnv = process.env): L
     ...LIMITES_ALERTA_PADRAO,
     bugRatePercent: n(env.LIMITE_BUG_RATE_PERCENT, LIMITES_ALERTA_PADRAO.bugRatePercent),
     commitParadoDiasUteis: n(env.LIMITE_COMMIT_PARADO_DIAS_UTEIS, LIMITES_ALERTA_PADRAO.commitParadoDiasUteis),
+    bugRateAmostraMinima: n(env.LIMITE_BUG_RATE_AMOSTRA_MINIMA, LIMITES_ALERTA_PADRAO.bugRateAmostraMinima),
   };
 }
 
@@ -88,11 +91,16 @@ export function avaliarSinais(m: MetricasTime, agora: Date, lim: Limites, la: Li
   };
   if (duasAltas((x) => x.cycleTimeDias, la.altaForte)) add('cycle_time', 'amarelo', 'Cycle time em alta nos últimos 2 meses contra os anteriores');
   const ultima = fechadas.at(-1);
-  if (ultima?.bugRate !== undefined && ultima.bugRate > la.bugRatePercent) {
-    add('bug_rate', 'amarelo', `Bug rate de ${ultima.bugRate}% em ${ultima.mes} (limite ${la.bugRatePercent}%)`);
-  } else if (ult2.length === 2 && ult2[0].bugRate !== undefined && ult2[1].bugRate !== undefined && ult2[1].bugRate > ult2[0].bugRate && ult2[0].bugRate > (fechadas.at(-3)?.bugRate ?? Infinity)) {
-    add('bug_rate', 'amarelo', 'Bug rate em alta por 2 meses');
-  }
+  // Bug rate: only the 7 and 30-day windows alert, and only when the rate is rising against the window before it
+  // and above the limit. Windows with few User Stories say little, so they stay quiet.
+  const subindo = [30, 7].flatMap((dias) => {
+    const j = m.bugRateJanelas.find((x) => x.dias === dias);
+    const { atual, anterior } = j ?? {};
+    if (!atual || !anterior || atual.taxa === undefined || anterior.taxa === undefined) return [];
+    if (atual.userStories < la.bugRateAmostraMinima || anterior.userStories < la.bugRateAmostraMinima) return [];
+    return atual.taxa > anterior.taxa && atual.taxa > la.bugRatePercent ? [`${dias} dias em ${atual.taxa}% (era ${anterior.taxa}%)`] : [];
+  });
+  if (subindo.length) add('bug_rate', 'amarelo', `Bug rate subindo: ${subindo.join(' e ')} (limite ${la.bugRatePercent}%)`);
   if (ultima?.mttrDias !== undefined) {
     const base = media(fechadas.slice(0, -1).map((x) => x.mttrDias).filter((v): v is number => v !== undefined));
     if (base !== undefined && ultima.mttrDias > base * 1.5) add('mttr', 'amarelo', `MTTR de ${ultima.mttrDias} dias em ${ultima.mes}, acima da linha de base (${base} dias)`);
@@ -185,13 +193,21 @@ export interface ItemAviso {
 
 /** Items behind a signal, for the #alertas message. Owner names come out only when `comResponsavel` is on. */
 export function itensDoSinal(db: Database, time: string, chave: string, agora: Date, comResponsavel: boolean, lim = limitesDoAmbiente()): { itens: ItemAviso[]; resumo?: string } {
-  const abertos = carregarItens(db, time).filter((i) => !ehPronto(i) && i.estado !== 'Removed');
+  const todos = carregarItens(db, time);
+  const abertos = todos.filter((i) => !ehPronto(i) && i.estado !== 'Removed');
   const dias = (i: ItemBoard) => diasSemMudanca(i, agora);
   const aviso = (i: ItemBoard): ItemAviso => ({ id: i.id, tipo: i.tipo, titulo: i.titulo, dias: dias(i), ...(comResponsavel && i.donoNome ? { responsavel: i.donoNome } : {}) });
   const ordenar = (l: ItemBoard[]) => l.sort((x, y) => dias(y) - dias(x)).map(aviso);
   if (chave === 'envelhecimento') return { itens: ordenar(abertos.filter((i) => dias(i) > lim.envelhecimentoDias)) };
   if (chave === 'bloqueio') {
     return { itens: ordenar(abertos.filter((i) => ehBloqueado(i) && diasUteisEntre(new Date(i.alteradoEm ?? agora), agora) > lim.bloqueioDiasUteis)) };
+  }
+  if (chave === 'bug_rate') {
+    const idade = (i: ItemBoard) => Math.floor((agora.getTime() - new Date(i.criadoEm ?? agora).getTime()) / 86_400_000);
+    const bugs = (dias: number) => todos.filter((i) => i.estado !== 'Removed' && (ehBug(i) || ehBugExterno(i)) && idade(i) <= dias)
+      .sort((x, y) => idade(x) - idade(y));
+    const lista = bugs(7).length ? bugs(7) : bugs(30);
+    return { itens: lista.map((i) => ({ ...aviso(i), dias: idade(i) })) };
   }
   if (chave === 'bug_sem_dono') return { itens: ordenar(abertos.filter((i) => (ehBug(i) || ehBugExterno(i)) && !i.temDono)) };
   if (chave === 'wip_pessoa' && comResponsavel) {

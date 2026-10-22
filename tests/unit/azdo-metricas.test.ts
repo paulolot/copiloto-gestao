@@ -71,12 +71,22 @@ describe('calcularMetricas', () => {
     expect(m.commitsPorRepo[0]).toMatchObject({ repo: 'projeto-metaposto-net.git', commits28Dias: 5 });
   });
 
+  it('computes rolling bug rate windows: bugs of any state over User Stories, against the window before', () => {
+    const m = calcularMetricas(db, 'fiscal', AGORA);
+    const por = Object.fromEntries(m.bugRateJanelas.map((j) => [j.dias, j]));
+    // items were created 20, 20, 20, 10, 8, 20, 20 days ago (the Ideias item counts nowhere)
+    expect(por[7].atual).toEqual({ bugs: 0, userStories: 0, taxa: undefined });
+    expect(por[30].atual).toEqual({ bugs: 2, userStories: 5, taxa: 40 }); // open Bug Interno + closed Bug Externo
+    expect(por[90].atual).toEqual({ bugs: 2, userStories: 5, taxa: 40 });
+    expect(por[30].anterior).toEqual({ bugs: 0, userStories: 0, taxa: undefined });
+  });
+
   it('computes monthly metrics (no sprints), MTTR and bug rate', () => {
     const m = calcularMetricas(db, 'fiscal', AGORA);
     expect(m.meses.map((x) => x.mes)).toEqual(['2026-10']);
     const o = m.meses[0];
     expect(o).toMatchObject({ encerrado: false, criados: 7, entregues: 2, cycleTimeDias: 4.5, leadTimeDias: 5 });
-    expect(o.bugRate).toBe(28.6); // Bug Interno and Externo both count: 2 of 7 created
+    expect(o.bugRate).toBe(40); // Bug Interno and Externo both count: 2 bugs over 5 User Stories created
     expect(o.mttrDias).toBe(2); // item 5, Backlog → Concluído
   });
 
