@@ -1,6 +1,7 @@
 /**
  * T1.1 — Scope of the three teams (plano.md → Escopo inicial)
- * Teams listed in AZDO_TIMES (comma separated ids) are synced; default is only the first one.
+ * Teams listed in AZDO_TIMES (comma separated) are synced; default is only the first one.
+ * Each entry is the team id (`fiscal`), its name or its Azure DevOps area path (`Squad Fiscal`, `Metanet\\Squad Fiscal`).
  */
 export interface RepoRef {
   projeto: string;
@@ -55,12 +56,23 @@ export function tiposContados(env: NodeJS.ProcessEnv = process.env): string[] {
   return (env.AZDO_TIPOS ?? 'User Story,Bug').split(',').map((s) => s.trim()).filter(Boolean);
 }
 
-export function timesAtivos(env: NodeJS.ProcessEnv = process.env): TimeEscopo[] {
-  const ids = (env.AZDO_TIMES ?? 'fiscal').split(',').map((s) => s.trim()).filter(Boolean);
-  return TIMES.filter((t) => ids.includes(t.id));
+const normalizar = (s: string) =>
+  s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+
+/** Matches id, name, area path or the last segment of the area path (the name shown in Azure DevOps), ignoring case and accents. */
+export function acharTime(ref: string): TimeEscopo | undefined {
+  const k = normalizar(ref.replace(/\//g, '\\'));
+  return TIMES.find((t) => {
+    const area = normalizar(t.areaPath);
+    return [t.id, t.nome, t.areaPath, area.split('\\').pop() ?? ''].some((c) => normalizar(c) === k);
+  });
 }
 
-export function acharTime(idOuNome: string): TimeEscopo | undefined {
-  const k = idOuNome.trim().toLowerCase();
-  return TIMES.find((t) => t.id === k || t.nome.toLowerCase() === k);
+export function timesAtivos(env: NodeJS.ProcessEnv = process.env): TimeEscopo[] {
+  const refs = (env.AZDO_TIMES ?? 'fiscal').split(',').map((s) => s.trim()).filter(Boolean);
+  return refs.map((ref) => {
+    const t = acharTime(ref);
+    if (!t) throw new Error(`AZDO_TIMES: time desconhecido "${ref}". Use: ${TIMES.map((x) => `${x.id} (${x.nome})`).join(', ')}`);
+    return t;
+  });
 }
