@@ -76,7 +76,7 @@ Premissas: o Azure DevOps é acessado só por leitura com PAT; Squad Fiscal prim
   - Pronto quando: testes cobrem as colunas, Ideias fora, cycle time pelas revisões e Bug Interno.
 
 - [x] **T1.10f Sem sprints: janelas mensais e marcos de entrega** [código] (resposta do Paulo, 21/10/2026)
-  - Saem as métricas e alertas de sprint (compromisso, escopo adicionado) e a leitura de iterações do Azure DevOps. Tendências passam a ser por semana (throughput, commits) e por mês (cycle e lead time, bug rate = bugs criados ÷ User Stories criadas (decisão de 22/10/2026; janelas móveis de 7, 30 e 90 dias no briefing), MTTR = Backlog→Concluído dos bugs entregues); alertas de "2 sprints" viram "2 meses seguidos".
+  - Saem as métricas e alertas de sprint (compromisso, escopo adicionado) e a leitura de iterações do Azure DevOps. Tendências passam a ser por semana (throughput, commits) e por mês (cycle e lead time, bug rate = bugs criados ÷ User Stories resolvidas (decisão de 22/10/2026; janelas móveis de 7, 30 e 90 dias no briefing), MTTR = Backlog→Concluído dos bugs entregues); alertas de "2 sprints" viram "2 meses seguidos".
   - Marco de entrega = uma data + os work items marcados por uma tag arbitrária (ver T1.10g).
   - Só User Story e Bug entram nas métricas (Feature, Épico, Atendimento e Task ficam fora; `AZDO_TIPOS`).
   - Pronto quando: testes cobrem os meses, os alertas mensais, os marcos (risco, adiamentos, sinal) e o filtro de tipos.

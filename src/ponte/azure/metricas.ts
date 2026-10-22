@@ -67,7 +67,7 @@ export interface MetricasMes {
   entregues: number;         // itens que chegaram a Concluído no mês
   cycleTimeDias?: number;    // mediana dos que terminaram o ciclo no mês
   leadTimeDias?: number;     // mediana dos entregues no mês
-  bugRate?: number;          // bugs (Interno e Externo) criados no mês ÷ User Stories criadas no mês, em %
+  bugRate?: number;          // bugs (Interno e Externo) criados no mês ÷ User Stories resolvidas (Concluído) no mês, em %
   mttrDias?: number;         // média de Backlog a Concluído dos bugs entregues no mês
   cycleTimeP85?: number;
   leadTimeP85?: number;
@@ -75,10 +75,10 @@ export interface MetricasMes {
   taxaFalhaMudanca?: number;
 }
 
-/** Bug rate of one period: bugs (Interno and Externo, open or closed) created in it ÷ User Stories created in it. */
+/** Bug rate of one period: bugs (Interno and Externo, open or closed) created in it ÷ User Stories resolved (Concluído) in it. */
 export interface AmostraBugRate {
   bugs: number;
-  userStories: number;
+  userStoriesResolvidas: number;
   taxa?: number; // %
 }
 /** A rolling window ending now, next to the window of the same length right before it. */
@@ -164,12 +164,12 @@ export const dataFechamento = (i: ItemBoard): number => (ehPronto(i) ? ms(i.fech
 const ehUserStory = (i: ItemBoard) => i.tipo.trim().toLowerCase() === 'user story';
 const taxaBugRate = (bugs: number, userStories: number): number | undefined => (userStories ? Math.round((bugs / userStories) * 1000) / 10 : undefined);
 
-/** Items created in (de, ate]: bugs of any state over User Stories, so a bug still open counts the same as a closed one. */
+/** Bugs created in (de, ate], of any state (a bug still open counts like a closed one), over User Stories resolved in (de, ate]. */
 export function amostraBugRate(itens: ItemBoard[], de: number, ate: number): AmostraBugRate {
-  const criados = itens.filter((i) => { const t = ms(i.criadoEm); return t > de && t <= ate; });
-  const bugs = criados.filter((i) => ehBug(i) || ehBugExterno(i)).length;
-  const userStories = criados.filter(ehUserStory).length;
-  return { bugs, userStories, taxa: taxaBugRate(bugs, userStories) };
+  const dentro = (t: number) => t > de && t <= ate;
+  const bugs = itens.filter((i) => (ehBug(i) || ehBugExterno(i)) && dentro(ms(i.criadoEm))).length;
+  const userStoriesResolvidas = itens.filter((i) => ehUserStory(i) && ehPronto(i) && dentro(dataFechamento(i))).length;
+  return { bugs, userStoriesResolvidas, taxa: taxaBugRate(bugs, userStoriesResolvidas) };
 }
 
 export function janelasBugRate(itens: ItemBoard[], agora: Date): JanelaBugRate[] {
@@ -226,7 +226,7 @@ export function metricasDoMes(itens: ItemBoard[], mes: string, agora: Date): Met
     criados: criados.length, entregues: entregues.length,
     cycleTimeDias: mediana(validos(itens.filter((i) => terminouOCiclo(i) && dentro(fimCiclo(i))).map(cycleDias))),
     leadTimeDias: mediana(validos(entregues.map(leadDias))),
-    bugRate: taxaBugRate(bugs.length, criados.filter(ehUserStory).length),
+    bugRate: taxaBugRate(bugs.length, entregues.filter(ehUserStory).length),
     mttrDias: media(validos(bugsEntregues.map(leadDias))),
     cycleTimeP85: percentis(validos(itens.filter((i) => terminouOCiclo(i) && dentro(fimCiclo(i))).map(cycleDias))).p85,
     leadTimeP85: percentis(validos(entregues.map(leadDias))).p85,

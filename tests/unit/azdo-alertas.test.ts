@@ -61,7 +61,7 @@ describe('avaliarSinais', () => {
   });
 
   describe('bug rate windows', () => {
-    const am = (bugs: number, userStories: number) => ({ bugs, userStories, taxa: Math.round((bugs / userStories) * 1000) / 10 });
+    const am = (bugs: number, userStoriesResolvidas: number) => ({ bugs, userStoriesResolvidas, taxa: Math.round((bugs / userStoriesResolvidas) * 1000) / 10 });
     const jan = (dias: number, atual: [number, number], anterior: [number, number]): JanelaBugRate => ({ dias, atual: am(...atual), anterior: am(...anterior) });
     const desc = (j: JanelaBugRate[]) => avaliarSinais(base({ bugRateJanelas: j }), AGORA, LIMITES_PADRAO).find((s) => s.chave === 'bug_rate')?.descricao;
 
@@ -73,7 +73,7 @@ describe('avaliarSinais', () => {
     it('stays quiet when it is falling, under the limit, the sample is small, or only the 90-day window rises', () => {
       expect(desc([jan(30, [20, 91], [31, 91])])).toBeUndefined();
       expect(desc([jan(30, [8, 91], [5, 91])])).toBeUndefined(); // 8.8% is under 10%
-      expect(desc([jan(7, [4, 9], [1, 12])])).toBeUndefined(); // only 9 User Stories
+      expect(desc([jan(7, [4, 9], [1, 12])])).toBeUndefined(); // only 9 User Stories resolved
       expect(desc([jan(7, [4, 12], [1, 9])])).toBeUndefined(); // only 9 in the previous window
       expect(desc([jan(90, [79, 272], [60, 270])])).toBeUndefined();
     });

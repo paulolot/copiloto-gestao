@@ -96,7 +96,7 @@ Toda ação fica num log com motivo e fonte.
 | Throughput | Queda forte contra a média |
 | Bugs abertos e escapados | Acima do usual ou sem dono |
 | Marco de entrega | Data próxima com itens abertos acima do ritmo habitual; data vencida com itens abertos; adiamentos |
-| Bug rate | Subindo contra a janela anterior (7 ou 30 dias) e acima de 10%, com ao menos 10 User Stories criadas nas duas janelas. Bug rate = bugs criados (Interno e Externo, abertos ou fechados) ÷ User Stories criadas no mesmo período. O briefing mostra as janelas de 7, 30 e 90 dias |
+| Bug rate | Subindo contra a janela anterior (7 ou 30 dias) e acima de 10%, com ao menos 10 User Stories resolvidas nas duas janelas. Bug rate = bugs criados (Interno e Externo, abertos ou fechados) ÷ User Stories resolvidas (Concluído) no mesmo período. O briefing mostra as janelas de 7, 30 e 90 dias |
 | MTTR | Média em alta contra a linha de base; sem tempo-alvo |
 | Frequência de commit | Repositório ativo parado por dias, ou queda forte |
 

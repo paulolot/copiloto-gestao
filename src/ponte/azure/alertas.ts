@@ -30,7 +30,7 @@ export interface LimitesAlerta {
   quedaForte: number;   // fraction of the baseline below which a drop is "strong"
   altaForte: number;    // multiple of the baseline above which a rise is "high"
   commitParadoDiasUteis: number;
-  /** Fewest User Stories created in a bug rate window (and in the one before it) for the window to raise an alert. */
+  /** Fewest User Stories resolved in a bug rate window (and in the one before it) for the window to raise an alert. */
   bugRateAmostraMinima: number;
 }
 export const LIMITES_ALERTA_PADRAO: LimitesAlerta = {
@@ -97,7 +97,7 @@ export function avaliarSinais(m: MetricasTime, agora: Date, lim: Limites, la: Li
     const j = m.bugRateJanelas.find((x) => x.dias === dias);
     const { atual, anterior } = j ?? {};
     if (!atual || !anterior || atual.taxa === undefined || anterior.taxa === undefined) return [];
-    if (atual.userStories < la.bugRateAmostraMinima || anterior.userStories < la.bugRateAmostraMinima) return [];
+    if (atual.userStoriesResolvidas < la.bugRateAmostraMinima || anterior.userStoriesResolvidas < la.bugRateAmostraMinima) return [];
     return atual.taxa > anterior.taxa && atual.taxa > la.bugRatePercent ? [`${dias} dias em ${atual.taxa}% (era ${anterior.taxa}%)`] : [];
   });
   if (subindo.length) add('bug_rate', 'amarelo', `Bug rate subindo: ${subindo.join(' e ')} (limite ${la.bugRatePercent}%)`);

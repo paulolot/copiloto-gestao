@@ -100,7 +100,7 @@ describe('colunas no sync e nas métricas', () => {
     const s = calcularMetricas(db, 'fiscal', AGORA).meses.find((x) => x.mes === '2026-10')!;
     // item 5 (Externo): 8→6 days = 2; item 6 (Interno): created 20 days ago, closed 4 days ago = 16; mean 9
     expect(s.mttrDias).toBe(9);
-    expect(s.bugRate).toBe(40);
+    expect(s.bugRate).toBe(200);
   });
 
   it('fetches the cycle start only for finished items, once, and keeps it across syncs', async () => {

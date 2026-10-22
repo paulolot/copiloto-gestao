@@ -25,15 +25,15 @@ Liste os eventos de hoje com horário, título e participantes. Aponte conflitos
 Chame `boards_sincronizar` e depois `boards_saude` (sem parâmetro: todos os times ativos). Para cada time, em até 3 linhas:
 - sinais ativos, com severidade (🔴 vermelho, 🟡 amarelo) e **desde quando** o sinal existe;
 - o número que mais mudou desde ontem (itens bloqueados, envelhecendo, bugs sem dono).
-Depois, para cada time, o bloco **Bug rate** com as janelas de `metricas.bugRateJanelas` (campo `dias` 7, 30 e 90; `atual` contra `anterior`, a janela imediatamente anterior do mesmo tamanho). Bug rate = bugs criados na janela (Interno e Externo, abertos ou fechados) ÷ User Stories criadas na janela. Use este formato, uma linha por janela, com a tendência (▲ subiu, ▼ caiu, = igual; diferença em pontos percentuais) e o tamanho da amostra:
+Depois, para cada time, o bloco **Bug rate** com as janelas de `metricas.bugRateJanelas` (campo `dias` 7, 30 e 90; `atual` contra `anterior`, a janela imediatamente anterior do mesmo tamanho). Bug rate = bugs criados na janela (Interno e Externo, abertos ou fechados) ÷ User Stories resolvidas (Concluído) na janela. Pode passar de 100%. Use este formato, uma linha por janela, com a tendência (▲ subiu, ▼ caiu, = igual; diferença em pontos percentuais) e o tamanho da amostra:
 ```
 📊 Bug rate · Squad Fiscal
-  7 dias    41%  (anterior 25%)  ▲ +16 pp   (9 bugs / 22 US)
+  7 dias    41%  (anterior 25%)  ▲ +16 pp   (9 bugs / 22 US resolvidas)
   30 dias   34%  (anterior 22%)  ▲ +12 pp   (31 / 91)
   90 dias   29%  (anterior 27%)  ▲ +2 pp    (79 / 272)
   Limite: 10%
 ```
-Se `taxa` for nulo numa janela, escreva "sem User Stories no período". Se uma janela tiver menos de 10 User Stories, acrescente "(amostra pequena)" e não comente a tendência dela. Cite a fonte: boards_saude, Azure DevOps.
+Se `taxa` for nulo numa janela, escreva "sem User Stories no período". Se uma janela tiver menos de 10 User Stories resolvidas, acrescente "(amostra pequena)" e não comente a tendência dela. Cite a fonte: boards_saude, Azure DevOps.
 Se houver sinal vermelho, chame `boards_itens_problema` do tipo certo e cite os work items (#id e título). Se não houver nenhum sinal, escreva "Boards sem alertas" e uma frase sobre o ritmo (throughput da semana).
 Se `ultimoErro` na fonte não for nulo, avise que os dados podem estar desatualizados e desde quando.
 
