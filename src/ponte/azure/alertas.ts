@@ -140,7 +140,8 @@ export function atualizarSinais(db: Database, time: string, sinais: Sinal[], ago
   }
   const atuais = new Set(sinais.map((s) => s.chave));
   const resolvidos = [...existentes].filter(([k, v]) => v.ativo && !atuais.has(k)).map(([k]) => k);
-  for (const k of resolvidos) db.run('UPDATE sinais SET ativo = 0 WHERE time_id = ? AND chave = ?', [time, k]);
+  // A signal that had been announced and stops holding gets one "resolved" notice (resolvido_em marks it as pending).
+  for (const k of resolvidos) db.run('UPDATE sinais SET ativo = 0, resolvido_em = CASE WHEN avisado = 1 THEN ? ELSE NULL END, resolucao_avisada = 0 WHERE time_id = ? AND chave = ?', [t, time, k]);
   persist(db);
   return { ativos, novos, resolvidos };
 }
@@ -157,6 +158,22 @@ export function sinaisAtivos(db: Database, time?: string): SinalRegistrado[] {
 export function sinaisNaoAvisados(db: Database): SinalRegistrado[] {
   const r = db.exec(`SELECT time_id, chave, descricao, severidade, desde FROM sinais WHERE ativo = 1 AND avisado = 0 ORDER BY desde`);
   return (r[0]?.values ?? []).map((v) => ({ time: v[0] as string, chave: v[1] as string, descricao: v[2] as string, severidade: v[3] as Severidade, desde: v[4] as string }));
+}
+
+export interface SinalResolvido extends SinalRegistrado {
+  resolvidoEm: string;
+}
+
+/** Signals that were announced, stopped holding, and whose "resolved" notice has not gone out yet. */
+export function sinaisResolvidosNaoAvisados(db: Database): SinalResolvido[] {
+  const r = db.exec(`SELECT time_id, chave, descricao, severidade, desde, resolvido_em FROM sinais
+                     WHERE ativo = 0 AND avisado = 1 AND resolvido_em IS NOT NULL AND resolucao_avisada = 0 ORDER BY resolvido_em`);
+  return (r[0]?.values ?? []).map((v) => ({ time: v[0] as string, chave: v[1] as string, descricao: v[2] as string, severidade: v[3] as Severidade, desde: v[4] as string, resolvidoEm: v[5] as string }));
+}
+
+export function marcarResolucaoAvisada(db: Database, time: string, chave: string): void {
+  db.run('UPDATE sinais SET resolucao_avisada = 1 WHERE time_id = ? AND chave = ?', [time, chave]);
+  persist(db);
 }
 
 export function marcarAvisado(db: Database, time: string, chave: string): void {
