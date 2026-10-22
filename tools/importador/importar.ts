@@ -34,8 +34,12 @@ export function inferTipo(relativePath: string): string {
   return map[firstDir] ?? 'pessoa'; // everything imported lands in pessoas/
 }
 
-/** Keeps the existing frontmatter text exactly as is and only appends the keys that are missing. */
-export function addFrontmatter(content: string, rel: string, hoje = new Date().toISOString().slice(0, 10)): string {
+/**
+ * Keeps the existing frontmatter text as is and only appends the keys that are missing.
+ * Line endings are normalised to LF (a vault written on Windows has CRLF), so the result never mixes the two.
+ */
+export function addFrontmatter(rawContent: string, rel: string, hoje = new Date().toISOString().slice(0, 10)): string {
+  const content = rawContent.replace(/\r\n?/g, '\n');
   const m = FRONTMATTER.exec(content);
   const existing = m ? m[1] : '';
   const body = m ? content.slice(m[0].length) : content;
