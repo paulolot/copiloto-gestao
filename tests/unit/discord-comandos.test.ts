@@ -80,7 +80,8 @@ describe('ajuda dos canais e documentação', () => {
   });
 
   it('the committed docs/discord-canais.md is up to date (run npm run docs:discord)', () => {
-    expect(readFileSync('docs/discord-canais.md', 'utf8')).toBe(docsDiscord());
+    // compared without regard to the line ending the checkout used (CRLF on Windows)
+    expect(readFileSync('docs/discord-canais.md', 'utf8').replace(/\r\n/g, '\n')).toBe(docsDiscord());
   });
 
   it('/ajuda shows the topic and the commands of the channel', async () => {

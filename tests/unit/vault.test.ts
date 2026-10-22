@@ -105,7 +105,14 @@ describe('hardening', () => {
 
   it('blocks a symlink that points outside the vault', () => {
     const outside = mkdtempSync(join(tmpdir(), 'fora-'));
-    symlinkSync(outside, join(FIXTURE_ROOT, 'link-fora'));
+    try {
+      symlinkSync(outside, join(FIXTURE_ROOT, 'link-fora'));
+    } catch (e) {
+      // Windows only allows symlinks with administrator rights or Developer Mode; the check cannot be exercised there
+      rmSync(outside, { recursive: true });
+      if (['EPERM', 'EACCES'].includes((e as NodeJS.ErrnoException).code ?? '')) return;
+      throw e;
+    }
     expect(() => vaultListar('link-fora')).toThrow('fora do vault');
     expect(() => vaultBuscar('x', { pasta: 'link-fora' })).toThrow('fora do vault');
     rmSync(join(FIXTURE_ROOT, 'link-fora'));

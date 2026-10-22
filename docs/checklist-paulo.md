@@ -25,6 +25,18 @@ O que só você pode fazer, porque depende das suas contas ou da sua máquina. M
 - [X] **Token do Azure DevOps:** criar um Personal Access Token na organização `metanetsistema` com escopo **somente leitura**: Work Items (Read), Code (Read), Analytics (Read). Guardar fora do Git.
 - [ ] **Limites de alerta:** revisar a lista de métricas em `docs/plano.md` e anotar limites diferentes dos padrões, se houver.
 
+## Fase 2 (reuniões e pessoas): decisões e material para destravar
+
+Detalhes em `docs/backlog-fase-2.md` (T2.0, T2.3, T2.12). Pode adiantar enquanto a fase 1 roda.
+
+- [ ] **Embeddings da busca por significado:** modelo **local** na sua máquina (nada sai dela; recomendado por causa de PDI e 1:1) ou **API** (mais simples; o texto das notas vai ao provedor)?
+- [ ] **Reunião dispensável ou delegável:** quais critérios valem (sem pauta, sem decisão nas últimas ocorrências, você não é o decisor, só informativa…).
+- [ ] **Como o Copiloto reconhece na agenda:** um 1:1 (título com "1:1"? só dois participantes?), a reunião com o CTO (título? e-mail do CTO?) e em que semanas ela cai.
+- [ ] **Cadência de 1:1 por pessoa** (semanal, quinzenal…) e a cada quanto tempo revisar o PDI.
+- [ ] **Planos por papel:** material de **Tech Lead** e **Scrum Master** (competências, expectativas por nível, trilha). O Claude monta a v1 para você revisar.
+- [ ] **Persona v1:** o compilado e as 5 a 10 mensagens (item da fase 0 acima); o Coach e a pauta do CTO dependem dele.
+- [ ] **Importador:** rodar na pasta de colaboradores, `--simular` primeiro (T2.12).
+
 ## Respostas já registradas
 
 - Repositórios do Squad Fiscal e do Retaguarda WEB: projeto Metanet.
