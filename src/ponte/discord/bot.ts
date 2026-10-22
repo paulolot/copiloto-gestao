@@ -114,7 +114,7 @@ export async function handleApprovalButton(deps: ApprovalDeps, i: ButtonLike): P
   const state = action === 'aprovar' ? 'aprovado' : 'recusado';
   updateQueueState(deps.db, queueId, state);
   audit(deps, i.user.id, action, queueId, 'ok');
-  await i.update({ content: `${buildApprovalMessage(queueId, item.tool, item.action, item.content)}\n\n**${state.toUpperCase()}**`, components: [] });
+  await i.update({ content: `${buildApprovalMessage(queueId, item.tool, item.action, item.content, item)}\n\n**${state.toUpperCase()}**`, components: [] });
   if (state === 'aprovado') await deps.onDecision?.();
 }
 
@@ -139,7 +139,7 @@ export async function handleEditSubmit(deps: ApprovalDeps, i: ModalLike): Promis
   const edited = i.fields.getTextInputValue(EDIT_FIELD);
   updateQueueState(deps.db, queueId, 'editado', { edited_content: edited });
   audit(deps, i.user.id, 'editar', queueId, 'ok');
-  await i.update({ content: `${buildApprovalMessage(queueId, item.tool, item.action, edited)}\n\n**EDITADO E APROVADO**`, components: [] });
+  await i.update({ content: `${buildApprovalMessage(queueId, item.tool, item.action, edited, item)}\n\n**EDITADO E APROVADO**`, components: [] });
   await deps.onDecision?.();
 }
 
@@ -152,7 +152,7 @@ export async function announcePending(
   for (const item of getUnannouncedItems(db)) {
     if (item.id === undefined) continue;
     const msg = await send({
-      content: buildApprovalMessage(item.id, item.tool, item.action, item.content),
+      content: buildApprovalMessage(item.id, item.tool, item.action, item.content, item),
       components: [approvalButtons(item.id)],
     });
     setQueueDiscordMessage(db, item.id, msg.id);

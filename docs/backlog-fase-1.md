@@ -97,6 +97,13 @@ Premissas: o Azure DevOps é acessado só por leitura com PAT; Squad Fiscal prim
   - `grok/rotinas/README.md` (roteiro único de todas as rotinas e skills, com horários) e `docs/discord-configuracao.md` (permissões em inglês e português).
   - Pronto quando: testes cobrem os comandos, a área restrita, a leitura dos canais e os limites do Discord.
 
+- [x] **T1.10i Mensagens para outras pessoas pela fila de aprovações** [código] ✅ 22/10/2026 (RF-28, regra 9 da persona)
+  - `mensagem_propor(destinatario, canal, texto, motivo, fontes)`: nível `pede_ok`; só enfileira, nada é enviado. O log de auditoria guarda destinatário e canal, nunca o texto.
+  - `aprovacao_consultar(id)`: devolve estado e texto final (o editado, se o Paulo editou); recusado ou pendente não devolve texto.
+  - A mensagem em `#aprovacoes` passa a mostrar para quem, o motivo e até 1300 caracteres do texto; o texto inteiro está no botão Editar.
+  - Sem handler de envio: aprovado fica `aprovado` e o Paulo copia o texto. O envio automático é uma tarefa futura.
+  - Pronto quando: testes cobrem a fila, a validação, o log sem o texto, o executor sem aprovação, a consulta por estado e a mensagem no Discord.
+
 - [ ] **T1.12 DORA completo** [código + Paulo] — depende de o Paulo informar o pipeline de produção e dar leitura de Build/Release ao PAT
   - Frequência de deploy e lead time de mudanças (commit → produção) a partir dos pipelines do Azure DevOps.
 

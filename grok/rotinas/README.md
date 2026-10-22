@@ -29,7 +29,7 @@ Este é o roteiro único para cadastrar no Grok Bot. Cada rotina tem um arquivo 
 
 | Skill | Arquivo | Uso |
 | --- | --- | --- |
-| **Persona** | `../skills/persona.md` | Princípios e tom do Paulo. Todas as rotinas leem `persona/guia-de-estilo.md` antes de escrever em seu nome. Versão 1 de 22/10/2026; o texto integral fica no vault privado e as pendências estão em `../../docs/checklist-paulo.md`. |
+| **Persona** | `../skills/persona.md` | Princípios e tom do Paulo; texto para outra pessoa entra na fila com `mensagem_propor`. Todas as rotinas leem `persona/guia-de-estilo.md` antes de escrever em seu nome. Versão 1 de 22/10/2026; o texto integral fica no vault privado e as pendências estão em `../../docs/checklist-paulo.md`. |
 
 ## 3. O que ainda vai existir (textos escritos nas fases indicadas)
 

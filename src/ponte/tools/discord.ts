@@ -70,9 +70,15 @@ export async function discordPostar(canal: DiscordCanal, texto: string, componen
   return { messageId: data.id, canal };
 }
 
-export function buildApprovalMessage(queueId: number, tool: string, action: string, content?: string): string {
-  const preview = content ? `\n> ${content.slice(0, 300).replace(/\n/g, '\n> ')}` : '';
-  return `🔔 **Aprovação necessária** (ID #${queueId})\n**Ferramenta:** \`${tool}\`\n**Ação:** ${action}${preview}\n\nUse os botões abaixo para aprovar, editar ou recusar.`;
+/** Longest preview that still fits in one Discord message (2000 characters) with the header and the buttons' text. */
+const LIMITE_PREVIA = 1300;
+
+export function buildApprovalMessage(queueId: number, tool: string, action: string, content?: string, extra?: { destination?: string; reason?: string }): string {
+  const cortado = content && content.length > LIMITE_PREVIA;
+  const preview = content ? `\n> ${content.slice(0, LIMITE_PREVIA).replace(/\n/g, '\n> ')}${cortado ? '\n> … (texto completo no botão Editar)' : ''}` : '';
+  const destino = extra?.destination ? `\n**Para:** ${extra.destination}` : '';
+  const motivo = extra?.reason ? `\n**Motivo:** ${extra.reason.slice(0, 300)}` : '';
+  return `🔔 **Aprovação necessária** (ID #${queueId})\n**Ferramenta:** \`${tool}\`\n**Ação:** ${action}${destino}${motivo}${preview}\n\nUse os botões abaixo para aprovar, editar ou recusar.`;
 }
 
 /** Channels where Paulo talks to the Copiloto; only his messages are read from them. */

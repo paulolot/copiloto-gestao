@@ -1,6 +1,6 @@
 /**
  * T0.3 — MCP tool definitions
- * Exposes: ping, vault_*, discord_postar, boards_* and metricas_time (phase 1)
+ * Exposes: ping, vault_*, discord_postar, boards_*, metricas_time, mensagem_propor and aprovacao_consultar (phase 1)
  *
  * Every call goes through `audited`, so no tool can forget to write the audit log.
  */
@@ -15,6 +15,7 @@ import { boardsMarcoDefinir, boardsMarcos, boardsTags, metricasColaborador, boar
 import { tarefaConcluir, tarefaCriar, tarefaListar } from './tools/tarefas.js';
 import { mensagemTarefasAbertas } from './discord/tarefas.js';
 import { conquistaRegistrar } from './tools/conquistas.js';
+import { CANAIS_MENSAGEM, MAX_TEXTO, aprovacaoConsultar, mensagemPropor } from './tools/mensagens.js';
 import { TIPOS_PROBLEMA } from './azure/alertas.js';
 
 type ToolResult = { content: { type: 'text'; text: string }[]; isError?: boolean };
@@ -324,6 +325,31 @@ export function createMcpServer(db: Database, deps: Omit<BoardsDeps, 'db'> = {})
     'Marca as mensagens do canal de conversa como tratadas, até o id informado (ateId, devolvido por discord_ler_novas)',
     { canal: z.enum(CANAIS_CONVERSA).default('planejamento'), ateId: z.string().regex(/^\d+$/) },
     ({ canal, ateId }) => audited(db, 'discord_marcar_lido', { canal, ateId }, () => { discordMarcarLido(db, canal, ateId); return 'ok'; }),
+  );
+
+  // Texto para outra pessoa: nível pede_ok. Nada é enviado; vai para a fila e o Paulo decide em #aprovacoes.
+  mcp.tool(
+    'mensagem_propor',
+    'Propõe uma mensagem, e-mail ou resposta para OUTRA PESSOA. Nada é enviado: o texto entra na fila de aprovações e o Paulo decide (aprova, edita ou recusa) em #aprovacoes. Use sempre que um texto em nome do Paulo chegar a alguém, depois de aplicar a persona. Devolve o número do item; consulte o resultado com aprovacao_consultar',
+    {
+      destinatario: z.string().min(1).max(200).describe('Quem vai receber (nome, grupo ou canal)'),
+      canal: z.enum(CANAIS_MENSAGEM).describe('Por onde o Paulo vai enviar'),
+      texto: z.string().min(1).max(MAX_TEXTO).describe('Texto final, já na voz do Paulo'),
+      motivo: z.string().min(1).max(500).describe('Por que esta mensagem precisa sair agora'),
+      fontes: z.array(z.string()).optional().describe('Fontes citadas (work item, nota do vault, e-mail, reunião)'),
+    },
+    ({ destinatario, canal, texto, motivo, fontes }) =>
+      audited(db, 'mensagem_propor', { destinatario, canal }, () => {
+        const id = mensagemPropor(db, { destinatario, canal, texto, motivo, fontes });
+        return `Item #${id} na fila de aprovações. Nada foi enviado: aguarde o OK do Paulo em #aprovacoes (aprovacao_consultar com id ${id}).`;
+      }),
+  );
+
+  mcp.tool(
+    'aprovacao_consultar',
+    'Consulta um item da fila de aprovações: se o Paulo já decidiu e qual é o texto final (o editado, se ele editou). Só leitura',
+    { id: z.number().int().positive().describe('Número do item, devolvido por mensagem_propor') },
+    ({ id }) => audited(db, 'aprovacao_consultar', { id }, () => JSON.stringify(aprovacaoConsultar(db, id), null, 2)),
   );
 
   return mcp;
