@@ -77,9 +77,19 @@ Premissas: o Azure DevOps é acessado só por leitura com PAT; Squad Fiscal prim
 
 - [x] **T1.10f Sem sprints: janelas mensais e marcos de entrega** [código] (resposta do Paulo, 21/10/2026)
   - Saem as métricas e alertas de sprint (compromisso, escopo adicionado) e a leitura de iterações do Azure DevOps. Tendências passam a ser por semana (throughput, commits) e por mês (cycle e lead time, bug rate = bugs criados ÷ itens criados, MTTR = Backlog→Concluído dos bugs entregues); alertas de "2 sprints" viram "2 meses seguidos".
-  - Marco de entrega = uma data + os work items marcados por uma tag arbitrária (decidida na hora). `marco_registrar(nome, tag, data, time?)`, `marco_atualizar(id, data?, tag?, estado?)` (data posterior conta como adiamento; guarda a data original), `boards_marcos(id?)` e `boards_tags(time?)` (tags em uso, para achar a do marco). Risco estimado = itens abertos contra o ritmo médio das últimas 8 semanas nas semanas que faltam; marco em risco gera sinal datado em `#alertas`.
+  - Marco de entrega = uma data + os work items marcados por uma tag arbitrária (ver T1.10g).
   - Só User Story e Bug entram nas métricas (Feature, Épico, Atendimento e Task ficam fora; `AZDO_TIPOS`).
   - Pronto quando: testes cobrem os meses, os alertas mensais, os marcos (risco, adiamentos, sinal) e o filtro de tipos.
+
+- [x] **T1.10g Marcos com regras, previsão por percentis e registro por conversa** [código] (pedido do Paulo, 22/10/2026)
+  - `marco_definir`: cria ou muda um marco e as regras dele a qualquer momento, por time; só com regras fica "planejado" (próximo marco), com tag e data passa a "ativo"; data posterior conta adiamento. Regras: confiança (percentil, padrão 85), janela de histórico (padrão 12 semanas), tipos, escopo fechado e observação livre.
+  - Previsão por Monte Carlo (`azure/previsao.ts`) sobre a vazão semanal real, com gerador de números com semente (mesma resposta no mesmo dia): chance de entregar até a data e datas P50/P85/P95. O risco compara a chance com a confiança da regra; fim das médias.
+  - Cycle e lead time em P50/P85/P95 (12 semanas) e por mês; taxa de falha de mudança (aproximação do DORA).
+  - `discord_ler_novas` / `discord_marcar_lido`: leitura do `#planejamento`, só das mensagens do Paulo (as de outras pessoas e de bots são ignoradas), com cursor que só avança quando o Grok Bot confirma. Rotina `grok/rotinas/planejamento.md`.
+  - Pronto quando: testes cobrem percentis, previsão determinística, regras, estados, leitura do canal (dono, cursor, intent) e sinais.
+
+- [ ] **T1.12 DORA completo** [código + Paulo] — depende de o Paulo informar o pipeline de produção e dar leitura de Build/Release ao PAT
+  - Frequência de deploy e lead time de mudanças (commit → produção) a partir dos pipelines do Azure DevOps.
 
 - [ ] **T1.11 Validação com dados reais** [Paulo + máquina] — depende de todas
   - Criar o PAT, ligar `AZDO_PAT`, sincronizar o Squad Fiscal, conferir métricas contra o board, colar as rotinas no Grok Bot.

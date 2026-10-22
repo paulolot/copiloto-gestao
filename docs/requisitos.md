@@ -14,6 +14,8 @@ Um requisito só é dado como pronto quando o Paulo o usa no dia a dia por uma s
 | RF-04 | Alertar quando uma métrica sai do limite; sem limite, usar desvio contra a linha de base de 8 semanas | 1 | Ponte + Grok |
 | RF-05 | Apontar itens parados, bloqueados, sem dono ou sem estimativa | 1 | Ponte |
 | RF-06 | Métricas por time; por colaborador só em ferramenta específica e restrita (uso do Paulo em 1:1 e PDI), nunca como ranking nem em canal compartilhado | 1 | Ponte |
+| RF-38 | Definir por conversa no Discord (`#planejamento`) os marcos de entrega e as regras do próximo marco de cada time, a qualquer momento | 1 | Ponte + Grok |
+| RF-39 | Previsão de entrega por percentis (simulação de Monte Carlo), sem média; cycle e lead time em P50/P85/P95 | 1 | Ponte |
 
 ### Rotina diária
 

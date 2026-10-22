@@ -18,7 +18,7 @@ const base = (o: Partial<MetricasTime> = {}): MetricasTime => ({
   wipPorColuna: {}, wipPorPessoa: { maximo: 0, pessoasAcimaDoLimite: 0 }, bugs: { abertos: 0, externosAbertos: 0, semDono: 0 },
   throughputSemanal: Array.from({ length: 8 }, (_, i) => ({ semana: `s${i}`, entregues: 5 })),
   commitsSemanais: Array.from({ length: 8 }, (_, i) => ({ semana: `s${i}`, commits: 20 })),
-  commitsPorRepo: [], meses: [], ...o,
+  commitsPorRepo: [], meses: [], cycleTime: { amostras: 0 }, leadTime: { amostras: 0 }, ...o,
 });
 const mes = (nome: string, o: Partial<MetricasMes> = {}): MetricasMes => ({ mes: nome, inicio: '', fim: '', encerrado: true, criados: 10, entregues: 9, ...o });
 const chaves = (m: MetricasTime) => avaliarSinais(m, AGORA, LIMITES_PADRAO).map((s) => s.chave);

@@ -70,6 +70,17 @@ describe('calcularMetricas', () => {
     expect(o.mttrDias).toBe(2); // item 5, Backlog → Concluído
   });
 
+  it('gives percentiles of cycle and lead time (P50, P85, P95) and the change failure rate', () => {
+    const m = calcularMetricas(db, 'fiscal', AGORA);
+    // cycle: item 4 = 7 days, item 5 = 2 days; lead: 8 and 2
+    expect(m.cycleTime).toEqual({ p50: 4.5, p85: 6.3, p95: 6.8, amostras: 2 });
+    expect(m.leadTime).toEqual({ p50: 5, p85: 7.1, p95: 7.7, amostras: 2 });
+    const o = m.meses[0];
+    expect(o.cycleTimeP85).toBe(6.3);
+    expect(o.leadTimeP85).toBe(7.1);
+    expect(o.taxaFalhaMudanca).toBe(50); // 1 Bug Externo created, 2 items delivered
+  });
+
   it('keeps history in snapshots', () => {
     calcularMetricas(db, 'fiscal', AGORA);
     const r = db.exec(`SELECT valor FROM metric_snapshots WHERE periodo = 'mes:2026-10' AND metrica = 'mttr'`);

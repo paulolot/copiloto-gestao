@@ -5,6 +5,7 @@
  */
 import type { Database } from 'sql.js';
 import { tiposContados } from './escopo.js';
+import { percentis, type Percentis } from './previsao.js';
 import { colunaEfetiva, ehIgnorada, emCiclo } from './colunas.js';
 import { persist } from '../db/database.js';
 
@@ -67,6 +68,10 @@ export interface MetricasMes {
   leadTimeDias?: number;     // mediana dos entregues no mês
   bugRate?: number;          // % de bugs (Interno e Externo) entre os itens criados no mês
   mttrDias?: number;         // média de Backlog a Concluído dos bugs entregues no mês
+  cycleTimeP85?: number;
+  leadTimeP85?: number;
+  /** DORA, change failure rate (approximation): Bug Externo created in the month ÷ items delivered in the month, in %. */
+  taxaFalhaMudanca?: number;
 }
 
 export interface MetricasTime {
@@ -81,6 +86,9 @@ export interface MetricasTime {
   bugs: { abertos: number; externosAbertos: number; semDono: number };
   throughputSemanal: { semana: string; entregues: number }[]; // últimas 8 semanas, da mais antiga à atual
   cycleTimeDias?: number;      // mediana dos entregues nos últimos 28 dias
+  /** Percentiles over the last 12 weeks (Kanban/DORA style: read P85 as "85% of the items finish within this many days"). */
+  cycleTime: Percentis;
+  leadTime: Percentis;
   leadTimeDias?: number;
   commitsSemanais: { semana: string; commits: number }[];
   commitsPorRepo: { repo: string; ultimoCommit?: string; commits28Dias: number }[];
@@ -182,6 +190,9 @@ export function metricasDoMes(itens: ItemBoard[], mes: string, agora: Date): Met
     leadTimeDias: mediana(validos(entregues.map(leadDias))),
     bugRate: criados.length ? Math.round((bugs.length / criados.length) * 1000) / 10 : undefined,
     mttrDias: media(validos(bugsEntregues.map(leadDias))),
+    cycleTimeP85: percentis(validos(itens.filter((i) => terminouOCiclo(i) && dentro(fimCiclo(i))).map(cycleDias))).p85,
+    leadTimeP85: percentis(validos(entregues.map(leadDias))).p85,
+    taxaFalhaMudanca: entregues.length ? Math.round((criados.filter(ehBugExterno).length / entregues.length) * 1000) / 10 : undefined,
   };
 }
 
@@ -245,6 +256,8 @@ export function calcularMetricas(db: Database, timeId: string, agora = new Date(
     throughputSemanal,
     cycleTimeDias: mediana(validos(itens.filter((i) => terminouOCiclo(i) && agora.getTime() - fimCiclo(i) <= 28 * DIA).map(cycleDias))),
     leadTimeDias: mediana(validos(recentes.map(leadDias))),
+    cycleTime: percentis(validos(itens.filter((i) => terminouOCiclo(i) && agora.getTime() - fimCiclo(i) <= 84 * DIA).map(cycleDias))),
+    leadTime: percentis(validos(itens.filter((i) => ehPronto(i) && agora.getTime() - dataFechamento(i) <= 84 * DIA).map(leadDias))),
     commitsSemanais, commitsPorRepo, meses,
   };
   guardarHistorico(db, m);
@@ -268,6 +281,9 @@ function guardarHistorico(db: Database, m: MetricasTime): void {
     grava(p, 'lead_time', x.leadTimeDias);
     grava(p, 'bug_rate', x.bugRate);
     grava(p, 'mttr', x.mttrDias);
+    grava(p, 'cycle_time_p85', x.cycleTimeP85);
+    grava(p, 'lead_time_p85', x.leadTimeP85);
+    grava(p, 'taxa_falha_mudanca', x.taxaFalhaMudanca);
   }
   persist(db);
 }

@@ -9,7 +9,7 @@ import { colunaDesconhecida } from '../azure/colunas.js';
 import { acharTime, timesAtivos, type TimeEscopo } from '../azure/escopo.js';
 import { sincronizarTime } from '../azure/sync.js';
 import { metricasColaboradores } from '../azure/metricas-pessoa.js';
-import { marcoAtualizar, marcoListar, marcoObter, marcoRegistrar, sinaisDeMarcos, statusDoMarco, tagsEmUso, type EstadoMarco } from '../azure/marcos.js';
+import { marcoDefinir, marcoListar, marcoObter, sinaisDeMarcos, statusDoMarco, tagsEmUso, type EntradaMarco } from '../azure/marcos.js';
 import { avaliarTime, itensProblema, sinaisAtivos, type TipoProblema } from '../azure/alertas.js';
 
 export interface BoardsDeps {
@@ -90,18 +90,17 @@ export function metricasColaborador(db: Database, opts: { time?: string; pessoa?
   return JSON.stringify({ fonte: times.map((t) => fonte(db, t)), ...r }, null, 2);
 }
 
-/** Registers a delivery milestone: a date and the tag that marks its work items. */
-export function boardsMarcoRegistrar(db: Database, m: { nome: string; tag: string; data: string; time?: string }, agora = new Date()): string {
-  const timeId = m.time ? resolverTimes(m.time)[0].id : undefined;
-  const id = marcoRegistrar(db, { nome: m.nome, tag: m.tag, data: m.data, timeId });
-  const s = statusDoMarco(db, marcoObter(db, id)!, agora);
+/** Creates or changes a milestone and its rules, as many times as Paulo wants (see marcoDefinir). */
+export function boardsMarcoDefinir(db: Database, e: Omit<EntradaMarco, 'timeId'> & { time?: string }, agora = new Date()): string {
+  const timeId = e.time ? resolverTimes(e.time)[0].id : undefined;
+  const { marco, criado } = marcoDefinir(db, { ...e, timeId });
+  const s = statusDoMarco(db, marco, agora);
   return JSON.stringify({
-    id, ...(s.totalItens === 0 ? { aviso: `Nenhum item sincronizado tem a tag "${m.tag}". Confira a grafia (maiúsculas e acentos não importam) ou rode boards_sincronizar.` } : { itensComATag: s.totalItens }),
-  });
-}
-
-export function boardsMarcoAtualizar(db: Database, id: number, mudanca: { data?: string; tag?: string; estado?: EstadoMarco }): string {
-  return JSON.stringify(marcoAtualizar(db, id, mudanca));
+    acao: criado ? 'criado' : 'atualizado',
+    marco: s,
+    ...(marco.estado === 'planejado' ? { aviso: 'Marco planejado: as regras estão guardadas; falta a tag e a data para ele passar a ser acompanhado.' } : {}),
+    ...(marco.estado === 'ativo' && s.totalItens === 0 ? { aviso: `Nenhum item sincronizado tem a tag "${marco.tag}". Confira a grafia (maiúsculas e acentos não importam) ou rode boards_sincronizar.` } : {}),
+  }, null, 2);
 }
 
 /** Status of the active milestones (or one), with the risk estimate and the dated signals. */
@@ -114,7 +113,7 @@ export function boardsMarcos(db: Database, opts: { id?: number; incluirEncerrado
     fonte: times.map((t) => fonte(db, t)),
     ...(sinceTimes < times.length ? { aviso: 'Algum time ainda não foi sincronizado: os números do marco podem estar incompletos (boards_sincronizar).' } : {}),
     marcos: marcos.map((m) => statusDoMarco(db, m!, agora)),
-    observacao: 'Risco é estimativa: itens abertos contra o ritmo médio de conclusão das últimas 8 semanas (todos os itens do time) nas semanas que faltam.',
+    observacao: 'Previsão probabilística: simulação de Monte Carlo sobre a vazão semanal real do time na janela definida nas regras do marco (todos os itens do time, não só os do marco). O risco compara a chance de entregar até a data com a confiança exigida pelo marco.',
   }, null, 2);
 }
 

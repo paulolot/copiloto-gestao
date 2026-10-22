@@ -28,7 +28,7 @@ Abra `.env` e preencha:
 | `DISCORD_BOT_TOKEN` | Token do bot (Discord Developer Portal) |
 | `DISCORD_GUILD_ID` | ID do seu servidor Discord (botão direito → Copiar ID do servidor) |
 | `DISCORD_OWNER_ID` | Seu ID de usuário no Discord (Configurações → Avançado → Modo desenvolvedor → botão direito no seu nome) |
-| `DISCORD_CANAL_*` | ID de cada canal (botão direito no canal → Copiar ID) |
+| `DISCORD_CANAL_*` | ID de cada canal, incluindo `DISCORD_CANAL_PLANEJAMENTO` (botão direito no canal → Copiar ID) |
 | `AZDO_ORG` | `metanetsistema` (fase 1) |
 | `AZDO_PAT` | Personal Access Token **somente leitura** (Work Items, Code, Analytics). Só no `.env`: nunca em chat, commit ou URL |
 | `AZDO_CAMPO_PARALISADO` / `AZDO_CAMPO_TIPO_BUG` | Nome técnico dos campos Paralisado e Tipo Bug (padrão `Custom.Status` e `Custom.TipoBug`) |
@@ -120,7 +120,7 @@ cloudflared tunnel run copiloto-gestao
    - **URL:** `https://copiloto.SEUDOMINIO.com/mcp/SEU_PONTE_TOKEN` (o mesmo token do `.env`, no fim da URL)
    - Se o Grok pedir "credenciais OAuth", a URL está sem o token ou com o token errado.
    - O token na URL pode aparecer em logs: use um token longo e aleatório, nunca o compartilhe e troque-o se vazar. Clientes que aceitam cabeçalho podem usar `Authorization: Bearer` na URL `/mcp`.
-4. Clique em **Testar conexão** — deve listar as ferramentas: `ping`, `vault_listar`, `vault_ler`, `vault_buscar`, `vault_criar_nota`, `discord_postar`, `boards_sincronizar`, `boards_saude`, `boards_alertas`, `boards_itens_problema`, `boards_marcos`, `boards_tags`, `marco_registrar`, `marco_atualizar`, `metricas_time`, `metricas_colaborador`, `metricas_colaboradores`, `tarefa_criar`, `tarefa_listar`, `tarefa_concluir`, `tarefas_postar`, `conquista_registrar`
+4. Clique em **Testar conexão** — deve listar as ferramentas: `ping`, `vault_listar`, `vault_ler`, `vault_buscar`, `vault_criar_nota`, `discord_postar`, `boards_sincronizar`, `boards_saude`, `boards_alertas`, `boards_itens_problema`, `boards_marcos`, `boards_tags`, `marco_definir`, `metricas_time`, `metricas_colaborador`, `metricas_colaboradores`, `tarefa_criar`, `tarefa_listar`, `tarefa_concluir`, `tarefas_postar`, `conquista_registrar`
 5. Salve
 
 ## Passo 7 — Rodar o teste de fundação

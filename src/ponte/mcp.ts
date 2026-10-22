@@ -10,8 +10,8 @@ import type { Database } from 'sql.js';
 import { logAudit } from './db/audit.js';
 import { enforcePolicy } from './middleware/autonomy.js';
 import { vaultListar, vaultLer, vaultBuscar, vaultCriarNota } from './tools/vault.js';
-import { discordPostar } from './tools/discord.js';
-import { boardsMarcoAtualizar, boardsMarcoRegistrar, boardsMarcos, boardsTags, metricasColaborador, boardsAlertas, boardsItensProblema, boardsSaude, boardsSincronizar, metricasTime, type BoardsDeps } from './tools/boards.js';
+import { discordLerNovas, discordMarcarLido, discordPostar } from './tools/discord.js';
+import { boardsMarcoDefinir, boardsMarcos, boardsTags, metricasColaborador, boardsAlertas, boardsItensProblema, boardsSaude, boardsSincronizar, metricasTime, type BoardsDeps } from './tools/boards.js';
 import { tarefaConcluir, tarefaCriar, tarefaListar } from './tools/tarefas.js';
 import { mensagemTarefasAbertas } from './discord/tarefas.js';
 import { conquistaRegistrar } from './tools/conquistas.js';
@@ -97,7 +97,7 @@ export function createMcpServer(db: Database, deps: Omit<BoardsDeps, 'db'> = {})
     'discord_postar',
     'Posta uma mensagem em um canal do Discord do servidor privado do Paulo',
     {
-      canal: z.enum(['briefing', 'alertas', 'aprovacoes', 'reunioes', 'pessoas', 'cto']).describe('Canal de destino'),
+      canal: z.enum(['briefing', 'alertas', 'aprovacoes', 'reunioes', 'pessoas', 'cto', 'planejamento']).describe('Canal de destino'),
       texto: z.string().min(1).max(2000).describe('Mensagem (máx 2000 caracteres)'),
     },
     ({ canal, texto }) =>
@@ -142,27 +142,22 @@ export function createMcpServer(db: Database, deps: Omit<BoardsDeps, 'db'> = {})
 
   // Marcos de entrega (os times não usam sprints): uma data + os work items marcados por uma tag
   mcp.tool(
-    'marco_registrar',
-    'Registra um marco de entrega: nome, a tag (arbitrária) que marca os work items e a data combinada. Lista interna do Paulo, nível sozinho',
+    'marco_definir',
+    'Cria ou muda um marco de entrega e as regras dele, quando o Paulo quiser, por time. Só com regras = próximo marco planejado (sem tag nem data); com tag e data o marco passa a ser acompanhado. Uma data posterior conta como adiamento. Lista interna do Paulo, nível sozinho: depois de usar, repita ao Paulo o que ficou registrado',
     {
-      nome: z.string().min(1).max(200),
-      tag: z.string().min(1).max(100).describe('Tag dos work items do marco (maiúsculas e acentos não importam)'),
-      data: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).describe('Data de entrega, AAAA-MM-DD'),
-      time: z.string().optional().describe('Limitar a um time; sem ele, vale para todos os times ativos'),
-    },
-    ({ nome, tag, data, time }) => audited(db, 'marco_registrar', { nome, tag, data, time }, () => boardsMarcoRegistrar(db, { nome, tag, data, time })),
-  );
-
-  mcp.tool(
-    'marco_atualizar',
-    'Muda a data (data posterior conta como adiamento), a tag ou o estado (ativo, entregue, cancelado) de um marco',
-    {
-      id: z.number().int().positive(),
-      data: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-      tag: z.string().min(1).max(100).optional(),
+      id: z.number().int().positive().optional().describe('Marco existente; sem ele, usa o marco da mesma tag ou o planejado do mesmo time, ou cria um'),
+      nome: z.string().min(1).max(200).optional(),
+      time: z.string().optional().describe('Time do marco: fiscal, desktop ou retaguarda; sem ele vale para todos os times ativos'),
+      tag: z.string().min(1).max(100).optional().describe('Tag dos work items do marco (maiúsculas e acentos não importam)'),
+      data: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().describe('Data de entrega, AAAA-MM-DD'),
+      confianca: z.number().int().min(50).max(99).optional().describe('Percentil de confiança exigido da previsão (padrão 85)'),
+      janelaSemanas: z.number().int().min(4).max(52).optional().describe('Semanas de histórico usadas na previsão (padrão 12)'),
+      tipos: z.array(z.string()).optional().describe('Tipos de item contados (padrão: User Story e Bug)'),
+      escopoFechado: z.boolean().optional().describe('Avisar se entrarem itens depois do registro'),
+      observacao: z.string().max(1000).optional().describe('Outras regras, em texto livre'),
       estado: z.enum(['ativo', 'entregue', 'cancelado']).optional(),
     },
-    ({ id, data, tag, estado }) => audited(db, 'marco_atualizar', { id, data, tag, estado }, () => boardsMarcoAtualizar(db, id, { data, tag, estado })),
+    (args) => audited(db, 'marco_definir', args, () => boardsMarcoDefinir(db, args)),
   );
 
   mcp.tool(
@@ -255,6 +250,30 @@ export function createMcpServer(db: Database, deps: Omit<BoardsDeps, 'db'> = {})
     },
     ({ titulo, descricao, times, fontes }) =>
       audited(db, 'conquista_registrar', { titulo, times, fontes }, () => `Conquista registrada: ${conquistaRegistrar({ titulo, descricao, times, fontes })}`),
+  );
+
+  // Conversa com o Paulo no Discord (#planejamento): só as mensagens dele são lidas
+  mcp.tool(
+    'discord_ler_novas',
+    'Lê as mensagens novas do Paulo no canal de conversa #planejamento (de outras pessoas e de bots, nada). Depois de tratar, chame discord_marcar_lido com ateId',
+    { canal: z.enum(['planejamento']).default('planejamento') },
+    ({ canal }) =>
+      audited(db, 'discord_ler_novas', { canal }, async () => {
+        const ownerId = process.env.DISCORD_OWNER_ID;
+        if (!ownerId) throw new Error('DISCORD_OWNER_ID não configurado');
+        const r = await discordLerNovas(db, canal, ownerId);
+        return JSON.stringify({
+          ...r,
+          ...(r.semConteudo ? { aviso: 'Há mensagens do Paulo com o texto vazio: ative o "Message Content Intent" do bot no Discord Developer Portal, ou peça a ele para mencionar o bot (@) na mensagem.' } : {}),
+        }, null, 2);
+      }),
+  );
+
+  mcp.tool(
+    'discord_marcar_lido',
+    'Marca as mensagens do canal de conversa como tratadas, até o id informado (ateId, devolvido por discord_ler_novas)',
+    { canal: z.enum(['planejamento']).default('planejamento'), ateId: z.string().regex(/^\d+$/) },
+    ({ canal, ateId }) => audited(db, 'discord_marcar_lido', { canal, ateId }, () => { discordMarcarLido(db, canal, ateId); return 'ok'; }),
   );
 
   return mcp;

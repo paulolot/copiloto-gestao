@@ -10,7 +10,7 @@ O que só você pode fazer, porque depende das suas contas ou da sua máquina. M
 - [ ] **Transcrição do Meet:** verificar se a transcrição de reuniões está ativa no Workspace da empresa.
 - [ ] **Discord:**
   - [ ] Criar um servidor privado só seu, com verificação em duas etapas na sua conta.
-  - [ ] Criar os canais: `#briefing`, `#alertas`, `#aprovacoes`, `#reunioes`, `#pessoas`, `#cto`.
+  - [ ] Criar os canais: `#briefing`, `#alertas`, `#aprovacoes`, `#reunioes`, `#pessoas`, `#cto` e `#planejamento` (onde você conversa com o Copiloto para definir marcos, regras e tarefas).
   - [ ] Criar a aplicação e o bot no Discord Developer Portal, copiar o token (guardar fora do Git) e convidar o bot para o servidor.
   - [ ] Anotar o seu ID de usuário no Discord (único autorizado a aprovar).
 - [ ] **Vault:**
@@ -33,7 +33,13 @@ O que só você pode fazer, porque depende das suas contas ou da sua máquina. M
   - [x] Respondido: lead de Backlog a Concluído; cycle de Fazendo Análise a Pronto pra release (Resolved); Ideias e UX fora; Fiscal sem Release candidate; throughput só em Concluído.
   - [ ] Depois da primeira sincronização, conferir `fonte.colunasDesconhecidas` em `boards_saude`: se aparecer algum nome, é coluna que o código não reconheceu (a comparação ignora maiúsculas, acentos e espaços, então seria outra grafia ou outra coluna). Me diga o nome exato.
   - [ ] Campo de pontos: usei `StoryPoints` e, na falta, `Effort`.
-- [ ] **Registrar os marcos de entrega em andamento:** peça ao Grok Bot `boards_tags` (mostra as tags dos itens abertos) e depois `marco_registrar` com o nome, a tag e a data de cada marco. Quando a data mudar, `marco_atualizar` (assim o adiamento fica registrado). O risco é uma estimativa; diga se a regra (itens abertos x ritmo das últimas 8 semanas) faz sentido ou se prefere outra.
+- [ ] **Canal `#planejamento` (registro de marcos por conversa):**
+  - [ ] Criar o canal no servidor privado e pôr o ID em `DISCORD_CANAL_PLANEJAMENTO` no `.env`.
+  - [ ] No Discord Developer Portal → seu bot → Bot → ligar **Message Content Intent** (sem isso o Discord entrega as mensagens vazias, a não ser que você mencione o bot com @). Dê ao bot as permissões Ver canal, Ler histórico de mensagens e Enviar mensagens nesse canal.
+  - [ ] Cadastrar a rotina `grok/rotinas/planejamento.md` no Grok Bot (a cada 15 minutos, dias úteis). O intervalo mínimo depende do seu plano; para resposta na hora, converse no app do Grok Bot, que usa as mesmas ferramentas.
+  - [ ] Testar: escreva no canal "regras do próximo marco do fiscal: confiança 95, janela de 8 semanas, escopo fechado" e depois "a tag é <tag>, entrega em <data>". O Copiloto deve responder o que registrou.
+- [ ] **Regras dos marcos:** hoje as regras são confiança (percentil), janela de histórico, tipos, escopo fechado e uma observação em texto livre. Diga se há outras regras que você define a cada marco (por exemplo limite de WIP, itens que não podem entrar, dia de congelamento) para virarem regras de verdade.
+- [ ] **DORA (T1.12):** frequência de deploy e lead time de mudanças precisam dos pipelines do Azure DevOps. Diga qual pipeline (ou ambiente) representa produção em cada time e, ao criar o PAT, inclua **Build (Read)** e **Release (Read)**.
 - [ ] **Limites de alerta:** padrões atuais: envelhecimento 7 dias, bloqueio 2 dias úteis, WIP 3 por pessoa, bug rate 10%, commit parado 3 dias úteis. Anote os diferentes e eles viram variáveis no `.env`.
 - [ ] **Ligar o Azure DevOps na ponte** (passo 8 de `docs/conectar.md`) e comparar `boards_saude` com o board real.
 - [ ] **Cadastrar as rotinas** de `grok/rotinas/` no Grok Bot: briefing diário (7h30), resumo semanal (sexta, 16h), observador (opcional).

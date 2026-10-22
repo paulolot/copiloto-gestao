@@ -131,18 +131,32 @@ function initSchema(db: Database): void {
     );
 
     -- Marcos de entrega: uma data combinada + os work items marcados com uma tag (a tag é arbitrária,
-    -- por isso o marco é registrado aqui: nome, tag, data)
+    -- por isso o marco é registrado aqui). 'planejado' = regras do próximo marco já definidas, ainda sem tag ou data.
     CREATE TABLE IF NOT EXISTS marcos (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       nome TEXT NOT NULL,
-      tag TEXT NOT NULL,
+      tag TEXT,
       time_id TEXT,                  -- NULL = todos os times ativos
-      data TEXT NOT NULL,            -- AAAA-MM-DD, data atual combinada
-      data_original TEXT NOT NULL,
+      data TEXT,                     -- AAAA-MM-DD, data atual combinada
+      data_original TEXT,
       adiamentos INTEGER NOT NULL DEFAULT 0,
-      estado TEXT NOT NULL DEFAULT 'ativo' CHECK(estado IN ('ativo','entregue','cancelado')),
+      estado TEXT NOT NULL DEFAULT 'planejado' CHECK(estado IN ('planejado','ativo','entregue','cancelado')),
+      -- regras do marco, definidas pelo Paulo quando quiser
+      confianca INTEGER NOT NULL DEFAULT 85,        -- nível de confiança exigido da previsão (percentil)
+      janela_semanas INTEGER NOT NULL DEFAULT 12,   -- semanas de histórico usadas na previsão
+      tipos TEXT,                                   -- tipos de item contados (padrão: os do ambiente)
+      escopo_fechado INTEGER NOT NULL DEFAULT 0,    -- 1 = avisar se entrarem itens depois do registro
+      escopo_inicial INTEGER,                       -- itens com a tag quando o marco foi ativado
+      observacao TEXT,                              -- regras em texto livre, mostradas junto ao marco
       criado_em TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
       atualizado_em TEXT
+    );
+
+    -- Até onde as mensagens de um canal de conversa já foram lidas pelo Copiloto
+    CREATE TABLE IF NOT EXISTS discord_cursor (
+      canal TEXT PRIMARY KEY,
+      ultimo_id TEXT NOT NULL,
+      atualizado_em TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
     );
 
     CREATE TABLE IF NOT EXISTS tarefas (
