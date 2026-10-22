@@ -88,6 +88,15 @@ Premissas: o Azure DevOps é acessado só por leitura com PAT; Squad Fiscal prim
   - `discord_ler_novas` / `discord_marcar_lido`: leitura do `#planejamento`, só das mensagens do Paulo (as de outras pessoas e de bots são ignoradas), com cursor que só avança quando o Grok Bot confirma. Rotina `grok/rotinas/planejamento.md`.
   - Pronto quando: testes cobrem percentis, previsão determinística, regras, estados, leitura do canal (dono, cursor, intent) e sinais.
 
+- [x] **T1.10h Canais de captura, comandos `/` e roteiro das rotinas** [código] (pedido do Paulo, 22/10/2026)
+  - Canais de entrada `#insights`, `#pessoas` (sigilo) e `#cobrancas`, além do `#planejamento`; `discord_ler_novas` lê os quatro, com um cursor por canal.
+  - Ferramentas da área restrita `pessoa_registrar` / `pessoa_listar` / `pessoa_ler`: o texto nunca vai para o log nem é repetido no Discord, só o caminho da nota.
+  - Tarefas de cobrança (`cobrarDe`, `lembrarEm`); o briefing lista as cobranças do dia.
+  - Comandos `/tarefa`, `/tarefas`, `/marcos`, `/cobrar`, `/insight`, `/pessoa`, `/ajuda`: só o Paulo, cada um nos seus canais, respondem na hora.
+  - Texto de ajuda e tópico de cada canal (até 1024 caracteres) numa fonte única; `docs/discord-canais.md` é gerado e um teste falha se estiver desatualizado.
+  - `grok/rotinas/README.md` (roteiro único de todas as rotinas e skills, com horários) e `docs/discord-configuracao.md` (permissões em inglês e português).
+  - Pronto quando: testes cobrem os comandos, a área restrita, a leitura dos canais e os limites do Discord.
+
 - [ ] **T1.12 DORA completo** [código + Paulo] — depende de o Paulo informar o pipeline de produção e dar leitura de Build/Release ao PAT
   - Frequência de deploy e lead time de mudanças (commit → produção) a partir dos pipelines do Azure DevOps.
 

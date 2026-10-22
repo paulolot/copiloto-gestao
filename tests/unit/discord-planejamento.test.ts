@@ -71,6 +71,23 @@ describe('discordLerNovas', () => {
     expect(r.semConteudo).toBe(1);
   });
 
+  it('reads the other conversation channels from their own ids', async () => {
+    process.env.DISCORD_CANAL_INSIGHTS = '555';
+    process.env.DISCORD_CANAL_PESSOAS = '556';
+    process.env.DISCORD_CANAL_COBRANCAS = '557';
+    for (const [canal, id] of [['insights', '555'], ['pessoas', '556'], ['cobrancas', '557']] as const) {
+      await discordLerNovas(db, canal, OWNER, fakeDiscord([]));
+      expect(urls.at(-1)).toContain(`/channels/${id}/messages`);
+    }
+    // each channel keeps its own cursor
+    discordMarcarLido(db, 'insights', '10');
+    discordMarcarLido(db, 'cobrancas', '20');
+    await discordLerNovas(db, 'insights', OWNER, fakeDiscord([]));
+    expect(urls.at(-1)).toContain('after=10');
+    await discordLerNovas(db, 'pessoas', OWNER, fakeDiscord([]));
+    expect(urls.at(-1)).not.toContain('after=');
+  });
+
   it('fails clearly without configuration or when Discord refuses', async () => {
     await expect(discordLerNovas(db, 'planejamento', OWNER, fakeDiscord([], 403))).rejects.toThrow('403');
     delete process.env.DISCORD_CANAL_PLANEJAMENTO;

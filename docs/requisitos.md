@@ -16,6 +16,7 @@ Um requisito só é dado como pronto quando o Paulo o usa no dia a dia por uma s
 | RF-06 | Métricas por time; por colaborador só em ferramenta específica e restrita (uso do Paulo em 1:1 e PDI), nunca como ranking nem em canal compartilhado | 1 | Ponte |
 | RF-38 | Definir por conversa no Discord (`#planejamento`) os marcos de entrega e as regras do próximo marco de cada time, a qualquer momento | 1 | Ponte + Grok |
 | RF-39 | Previsão de entrega por percentis (simulação de Monte Carlo), sem média; cycle e lead time em P50/P85/P95 | 1 | Ponte |
+| RF-40 | Captura por Discord: insights do dia, impressões e conversas privadas sobre pessoas (área restrita, sem repetir o conteúdo) e cobranças com lembrete; por comandos `/` (na hora) e por texto livre (rotina a cada 2h) | 1 | Ponte + Grok |
 
 ### Rotina diária
 

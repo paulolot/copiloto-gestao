@@ -18,6 +18,8 @@ import type { Database } from 'sql.js';
 import { logAudit } from '../db/audit.js';
 import { getQueueItem, getUnannouncedItems, setQueueDiscordMessage, updateQueueState } from '../db/queue.js';
 import { buildApprovalMessage } from '../tools/discord.js';
+import { definicoesSlash, tratarComando, type ComandoLike } from './comandos.js';
+import type { CanalId } from './ajuda.js';
 import { handleTarefaButton, parseTarefaId, type TarefaButtonLike } from './tarefas.js';
 
 export type ApprovalAction = 'aprovar' | 'editar' | 'recusar';
@@ -160,12 +162,14 @@ export async function announcePending(
 }
 
 /** Connects the bot, announces pending items and routes button/modal interactions. */
-export async function startBot(deps: ApprovalDeps & { token: string; canalAprovacoesId: string; pollMs?: number }): Promise<Client> {
+export async function startBot(deps: ApprovalDeps & { token: string; canalAprovacoesId: string; pollMs?: number; guildId?: string; canais?: Map<string, CanalId> }): Promise<Client> {
   const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
   client.on('interactionCreate', (i: Interaction) => {
     const run = async () => {
-      if (i.isButton() && parseTarefaId(i.customId) !== null) await handleTarefaButton(deps, i as unknown as TarefaButtonLike);
+      if (i.isChatInputCommand()) {
+        await tratarComando({ db: deps.db, ownerId: deps.ownerId, canais: deps.canais ?? new Map() }, i as unknown as ComandoLike);
+      } else if (i.isButton() && parseTarefaId(i.customId) !== null) await handleTarefaButton(deps, i as unknown as TarefaButtonLike);
       else if (i.isButton()) await handleApprovalButton(deps, i);
       else if (i.isModalSubmit()) await handleEditSubmit(deps, i as unknown as ModalLike);
     };
@@ -173,6 +177,15 @@ export async function startBot(deps: ApprovalDeps & { token: string; canalAprova
   });
 
   await client.login(deps.token);
+
+  // Guild commands appear at once. Needs the applications.commands scope on the bot invite; without it the bot still works.
+  if (deps.guildId) {
+    try {
+      await client.application!.commands.set(definicoesSlash() as never, deps.guildId);
+    } catch (e) {
+      console.error(`Comandos / NÃO registrados: ${(e as Error).message}. Convide o bot de novo com o escopo applications.commands (docs/discord-configuracao.md).`);
+    }
+  }
 
   const tick = async () => {
     try {

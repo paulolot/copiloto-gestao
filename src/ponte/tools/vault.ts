@@ -191,3 +191,68 @@ ${nota.conteudo}
     }
   }
 }
+
+export type TipoRegistroPessoa = 'impressao' | 'conversa' | 'feedback' | 'combinado';
+export const TIPOS_REGISTRO_PESSOA: TipoRegistroPessoa[] = ['impressao', 'conversa', 'feedback', 'combinado'];
+
+export interface RegistroPessoa {
+  pessoa: string;
+  tipo: TipoRegistroPessoa;
+  texto: string;
+  fonte?: string;
+}
+
+/**
+ * Restricted area (RNF-05): a note about a person goes to pessoas/<name>/ and nowhere else.
+ * Returns the path only; callers must never echo the text into a shared channel or the audit log.
+ * Never overwrites an existing note.
+ */
+export function pessoaRegistrar(r: RegistroPessoa): string {
+  if (!r.pessoa.trim()) throw new Error('Informe a pessoa');
+  if (!r.texto.trim()) throw new Error('Informe o texto do registro');
+  if (!TIPOS_REGISTRO_PESSOA.includes(r.tipo)) throw new Error(`Tipo inválido. Use: ${TIPOS_REGISTRO_PESSOA.join(', ')}`);
+  const root = getVaultRoot();
+  const dir = safePath(root, `pessoas/${slugify(r.pessoa)}`, true);
+  mkdirSync(dir, { recursive: true });
+  const data = new Date().toISOString().slice(0, 10);
+  const content = `---
+tipo: ${JSON.stringify(r.tipo)}
+data: ${data}
+pessoas: [${JSON.stringify(r.pessoa.trim())}]
+fonte: ${JSON.stringify(r.fonte ?? 'registro do Paulo')}
+origem: copiloto
+restrito: true
+revisado: false
+---
+
+${r.texto.trim()}
+`;
+  const base = `${data}-${r.tipo}`;
+  for (let n = 0; ; n++) {
+    const full = join(dir, n === 0 ? `${base}.md` : `${base}-${n + 1}.md`);
+    try {
+      writeFileSync(full, content, { encoding: 'utf8', flag: 'wx' });
+      return relative(root, full).split(sep).join('/');
+    } catch (e) {
+      if ((e as NodeJS.ErrnoException).code !== 'EEXIST') throw e;
+    }
+  }
+}
+
+/** Notes about one person, newest first (paths only). Restricted-area tool. */
+export function pessoaListar(pessoa: string): string[] {
+  const root = getVaultRoot();
+  const dir = safePath(root, `pessoas/${slugify(pessoa)}`, true);
+  if (!existsSync(dir)) return [];
+  // newest first: by date, then by the sequence number of the day ("...-2.md" comes after "....md")
+  const chave = (f: string) => { const m = /^(\d{4}-\d{2}-\d{2})-.*?(?:-(\d+))?\.md$/.exec(f); return `${m?.[1] ?? ''}|${String(m?.[2] ?? 1).padStart(4, '0')}`; };
+  return readdirSync(dir).filter((f) => f.endsWith('.md')).sort((x, y) => chave(y).localeCompare(chave(x))).map((f) => `pessoas/${slugify(pessoa)}/${f}`);
+}
+
+/** Reads a note of the restricted area; refuses any path outside pessoas/. */
+export function pessoaLer(caminho: string): string {
+  const root = getVaultRoot();
+  const full = safePath(root, caminho, true);
+  if (!isRestricted(root, full)) throw new Error('Esta ferramenta só lê a área restrita (pessoas/). Use vault_ler para as demais notas.');
+  return vaultLer(caminho, true);
+}

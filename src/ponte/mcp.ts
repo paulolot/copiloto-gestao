@@ -9,8 +9,8 @@ import { z } from 'zod';
 import type { Database } from 'sql.js';
 import { logAudit } from './db/audit.js';
 import { enforcePolicy } from './middleware/autonomy.js';
-import { vaultListar, vaultLer, vaultBuscar, vaultCriarNota } from './tools/vault.js';
-import { discordLerNovas, discordMarcarLido, discordPostar } from './tools/discord.js';
+import { vaultListar, vaultLer, vaultBuscar, vaultCriarNota, pessoaRegistrar, pessoaListar, pessoaLer, TIPOS_REGISTRO_PESSOA } from './tools/vault.js';
+import { CANAIS_CONVERSA, discordLerNovas, discordMarcarLido, discordPostar } from './tools/discord.js';
 import { boardsMarcoDefinir, boardsMarcos, boardsTags, metricasColaborador, boardsAlertas, boardsItensProblema, boardsSaude, boardsSincronizar, metricasTime, type BoardsDeps } from './tools/boards.js';
 import { tarefaConcluir, tarefaCriar, tarefaListar } from './tools/tarefas.js';
 import { mensagemTarefasAbertas } from './discord/tarefas.js';
@@ -97,7 +97,7 @@ export function createMcpServer(db: Database, deps: Omit<BoardsDeps, 'db'> = {})
     'discord_postar',
     'Posta uma mensagem em um canal do Discord do servidor privado do Paulo',
     {
-      canal: z.enum(['briefing', 'alertas', 'aprovacoes', 'reunioes', 'pessoas', 'cto', 'planejamento']).describe('Canal de destino'),
+      canal: z.enum(['briefing', 'alertas', 'aprovacoes', 'reunioes', 'pessoas', 'cto', 'planejamento', 'insights', 'cobrancas']).describe('Canal de destino'),
       texto: z.string().min(1).max(2000).describe('Mensagem (máx 2000 caracteres)'),
     },
     ({ canal, texto }) =>
@@ -199,22 +199,29 @@ export function createMcpServer(db: Database, deps: Omit<BoardsDeps, 'db'> = {})
   // Fase 1 — tarefas do Paulo (lista interna, nível `sozinho`)
   mcp.tool(
     'tarefa_criar',
-    'Cria uma tarefa na lista do Paulo, com prioridade, origem (para citar a fonte) e prazo',
+    'Cria uma tarefa na lista do Paulo, com prioridade, origem (para citar a fonte) e prazo. Para cobrar algo de alguém, informe cobrarDe (quem) e lembrarEm (quando lembrar o Paulo)',
     {
       titulo: z.string().min(1).max(300),
       prioridade: z.enum(['alta', 'media', 'baixa']).default('media'),
-      origem: z.string().max(300).optional().describe('De onde veio: work item, e-mail, reunião...'),
+      origem: z.string().max(300).optional().describe('De onde veio: work item, e-mail, reunião, conversa...'),
       prazo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().describe('AAAA-MM-DD'),
+      cobrarDe: z.string().max(100).optional().describe('Pessoa que deve algo ao Paulo (tarefa de cobrança)'),
+      lembrarEm: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().describe('AAAA-MM-DD em que lembrar o Paulo de cobrar'),
     },
-    ({ titulo, prioridade, origem, prazo }) =>
-      audited(db, 'tarefa_criar', { titulo, prioridade, origem, prazo }, () => `Tarefa #${tarefaCriar(db, { titulo, prioridade, origem, prazo })} criada`),
+    ({ titulo, prioridade, origem, prazo, cobrarDe, lembrarEm }) =>
+      audited(db, 'tarefa_criar', { titulo, prioridade, origem, prazo, cobrarDe, lembrarEm }, () => `Tarefa #${tarefaCriar(db, { titulo, prioridade, origem, prazo, cobrarDe, lembrarEm })} criada`),
   );
 
   mcp.tool(
     'tarefa_listar',
-    'Lista as tarefas abertas do Paulo por prioridade e prazo',
-    { incluirFeitas: z.boolean().default(false) },
-    ({ incluirFeitas }) => audited(db, 'tarefa_listar', { incluirFeitas }, () => JSON.stringify(tarefaListar(db, { incluirFeitas }), null, 2)),
+    'Lista as tarefas abertas do Paulo por prioridade e data. soCobrancas = só as de cobrar alguém; lembrarAte = só as que o lembrete ou o prazo vencem até aquele dia',
+    {
+      incluirFeitas: z.boolean().default(false),
+      soCobrancas: z.boolean().default(false),
+      lembrarAte: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().describe('AAAA-MM-DD'),
+    },
+    ({ incluirFeitas, soCobrancas, lembrarAte }) =>
+      audited(db, 'tarefa_listar', { incluirFeitas, soCobrancas, lembrarAte }, () => JSON.stringify(tarefaListar(db, { incluirFeitas, soCobrancas, lembrarAte }), null, 2)),
   );
 
   mcp.tool(
@@ -238,6 +245,49 @@ export function createMcpServer(db: Database, deps: Omit<BoardsDeps, 'db'> = {})
       }),
   );
 
+  // Área restrita (pessoas/): ferramentas específicas; o texto nunca vai para o log, só o caminho da nota
+  const restrito = async (tool: string, params: Record<string, unknown>, body: () => { texto: string; caminho?: string }): Promise<ToolResult> => {
+    const inicio = Date.now();
+    try {
+      const r = body();
+      logAudit(db, { tool, params, origin: 'mcp', result: 'ok', duration_ms: Date.now() - inicio, restricted_path: r.caminho });
+      return text(r.texto);
+    } catch (e) {
+      logAudit(db, { tool, params, origin: 'mcp', result: 'error', error_msg: (e as Error).message, duration_ms: Date.now() - inicio });
+      return text(`Erro: ${(e as Error).message}`, true);
+    }
+  };
+
+  mcp.tool(
+    'pessoa_registrar',
+    'Registra na área restrita do vault (pessoas/<nome>/) uma impressão, conversa privada, feedback ou combinado sobre uma pessoa. Nível sozinho. Não repita o conteúdo em canal do Discord: confirme só o caminho',
+    {
+      pessoa: z.string().min(2).max(100),
+      tipo: z.enum(TIPOS_REGISTRO_PESSOA as [string, ...string[]]),
+      texto: z.string().min(1).max(8000).describe('O que o Paulo quer registrar, com as palavras dele'),
+      fonte: z.string().max(200).optional().describe('Ex.: conversa no #pessoas de 22/10'),
+    },
+    ({ pessoa, tipo, texto, fonte }) =>
+      restrito('pessoa_registrar', { pessoa: '[restrito]', tipo }, () => {
+        const caminho = pessoaRegistrar({ pessoa, tipo: tipo as (typeof TIPOS_REGISTRO_PESSOA)[number], texto, fonte });
+        return { texto: `Registrado em ${caminho}`, caminho };
+      }),
+  );
+
+  mcp.tool(
+    'pessoa_listar',
+    'Lista os caminhos das notas da área restrita sobre uma pessoa, da mais recente para a mais antiga (só caminhos)',
+    { pessoa: z.string().min(2).max(100) },
+    ({ pessoa }) => restrito('pessoa_listar', { pessoa: '[restrito]' }, () => ({ texto: pessoaListar(pessoa).join('\n') || 'Nenhuma nota.' })),
+  );
+
+  mcp.tool(
+    'pessoa_ler',
+    'Lê uma nota da área restrita (pessoas/). Use só quando a tarefa exige (1:1, PDI, preparação) e nunca poste o conteúdo em canal compartilhado',
+    { caminho: z.string().describe('Caminho dentro de pessoas/') },
+    ({ caminho }) => restrito('pessoa_ler', { caminho: '[restrito]' }, () => ({ texto: pessoaLer(caminho), caminho })),
+  );
+
   // Fase 1 — conquistas (RF-27): nota em inbox/, nível `sozinho`
   mcp.tool(
     'conquista_registrar',
@@ -255,8 +305,8 @@ export function createMcpServer(db: Database, deps: Omit<BoardsDeps, 'db'> = {})
   // Conversa com o Paulo no Discord (#planejamento): só as mensagens dele são lidas
   mcp.tool(
     'discord_ler_novas',
-    'Lê as mensagens novas do Paulo no canal de conversa #planejamento (de outras pessoas e de bots, nada). Depois de tratar, chame discord_marcar_lido com ateId',
-    { canal: z.enum(['planejamento']).default('planejamento') },
+    'Lê as mensagens novas do Paulo num canal de conversa (#planejamento, #insights, #pessoas ou #cobrancas); mensagens de outras pessoas e de bots são ignoradas. Depois de tratar, chame discord_marcar_lido com ateId',
+    { canal: z.enum(CANAIS_CONVERSA).default('planejamento') },
     ({ canal }) =>
       audited(db, 'discord_ler_novas', { canal }, async () => {
         const ownerId = process.env.DISCORD_OWNER_ID;
@@ -272,7 +322,7 @@ export function createMcpServer(db: Database, deps: Omit<BoardsDeps, 'db'> = {})
   mcp.tool(
     'discord_marcar_lido',
     'Marca as mensagens do canal de conversa como tratadas, até o id informado (ateId, devolvido por discord_ler_novas)',
-    { canal: z.enum(['planejamento']).default('planejamento'), ateId: z.string().regex(/^\d+$/) },
+    { canal: z.enum(CANAIS_CONVERSA).default('planejamento'), ateId: z.string().regex(/^\d+$/) },
     ({ canal, ateId }) => audited(db, 'discord_marcar_lido', { canal, ateId }, () => { discordMarcarLido(db, canal, ateId); return 'ok'; }),
   );
 

@@ -23,8 +23,8 @@ const dataBr = (d: string) => d.split('-').reverse().join('/');
 
 function linha(t: Tarefa): string {
   const titulo = t.titulo.length > 90 ? `${t.titulo.slice(0, 89)}…` : t.titulo;
-  const resto = [t.prazo ? `prazo ${dataBr(t.prazo)}` : '', t.origem ? `fonte: ${t.origem.slice(0, 60)}` : ''].filter(Boolean).join(' · ');
-  const base = `\`#${t.id}\` ${ICONE[t.prioridade]} ${titulo}${resto ? ` (${resto})` : ''}`;
+  const resto = [t.cobrarDe ? `cobrar de ${t.cobrarDe}` : '', t.lembrarEm ? `lembrar ${dataBr(t.lembrarEm)}` : '', t.prazo ? `prazo ${dataBr(t.prazo)}` : '', t.origem ? `fonte: ${t.origem.slice(0, 60)}` : ''].filter(Boolean).join(' · ');
+  const base = `\`#${t.id}\` ${t.cobrarDe ? '🔔' : ICONE[t.prioridade]} ${titulo}${resto ? ` (${resto})` : ''}`;
   return t.estado === 'feita' ? `~~${base}~~ ✅` : base;
 }
 

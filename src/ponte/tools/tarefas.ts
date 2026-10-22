@@ -17,13 +17,20 @@ export interface Tarefa {
   estado: 'aberta' | 'feita';
   criadaEm: string;
   concluidaEm?: string;
+  /** Cobrança: quem deve algo ao Paulo, e quando ele quer ser lembrado. */
+  cobrarDe?: string;
+  lembrarEm?: string;
 }
 
 const PESO: Record<Prioridade, number> = { alta: 0, media: 1, baixa: 2 };
 
-export function tarefaCriar(db: Database, t: { titulo: string; prioridade?: Prioridade; origem?: string; prazo?: string }): number {
-  if (t.prazo && !/^\d{4}-\d{2}-\d{2}$/.test(t.prazo)) throw new Error('Prazo deve estar no formato AAAA-MM-DD');
-  db.run('INSERT INTO tarefas (titulo, prioridade, origem, prazo) VALUES (?,?,?,?)', [t.titulo, t.prioridade ?? 'media', t.origem ?? null, t.prazo ?? null]);
+const DATA = /^\d{4}-\d{2}-\d{2}$/;
+
+export function tarefaCriar(db: Database, t: { titulo: string; prioridade?: Prioridade; origem?: string; prazo?: string; cobrarDe?: string; lembrarEm?: string }): number {
+  if (t.prazo && !DATA.test(t.prazo)) throw new Error('Prazo deve estar no formato AAAA-MM-DD');
+  if (t.lembrarEm && !DATA.test(t.lembrarEm)) throw new Error('A data do lembrete deve estar no formato AAAA-MM-DD');
+  db.run('INSERT INTO tarefas (titulo, prioridade, origem, prazo, cobrar_de, lembrar_em) VALUES (?,?,?,?,?,?)',
+    [t.titulo, t.prioridade ?? 'media', t.origem ?? null, t.prazo ?? null, t.cobrarDe?.trim() || null, t.lembrarEm ?? null]);
   const id = db.exec('SELECT last_insert_rowid()')[0].values[0][0] as number;
   persist(db);
   return id;
@@ -42,21 +49,29 @@ function linha(v: unknown[]): Tarefa {
   return {
     id: v[0] as number, titulo: v[1] as string, prioridade: v[2] as Prioridade, origem: (v[3] as string) ?? undefined,
     prazo: (v[4] as string) ?? undefined, estado: v[5] as 'aberta' | 'feita', criadaEm: v[6] as string, concluidaEm: (v[7] as string) ?? undefined,
+    cobrarDe: (v[8] as string) ?? undefined, lembrarEm: (v[9] as string) ?? undefined,
   };
 }
-const COLS = 'id, titulo, prioridade, origem, prazo, estado, criada_em, concluida_em';
+const COLS = 'id, titulo, prioridade, origem, prazo, estado, criada_em, concluida_em, cobrar_de, lembrar_em';
 
 function obter(db: Database, id: number): Tarefa | undefined {
   const v = db.exec(`SELECT ${COLS} FROM tarefas WHERE id = ?`, [id])[0]?.values[0];
   return v ? linha(v) : undefined;
 }
 
-/** Open tasks by priority, then due date (undated last), then creation. */
-export function tarefaListar(db: Database, opts: { incluirFeitas?: boolean } = {}): Tarefa[] {
+/**
+ * Open tasks by priority, then date (the reminder date of a cobrança or the due date; undated last), then creation.
+ * `soCobrancas` keeps the tasks of chasing someone; `lembrarAte` keeps those whose reminder or due date is up to that day.
+ */
+export function tarefaListar(db: Database, opts: { incluirFeitas?: boolean; soCobrancas?: boolean; lembrarAte?: string } = {}): Tarefa[] {
+  const data = (t: Tarefa) => t.lembrarEm ?? t.prazo;
   const r = db.exec(`SELECT ${COLS} FROM tarefas ${opts.incluirFeitas ? '' : "WHERE estado = 'aberta'"}`)[0]?.values ?? [];
-  return r.map(linha).sort((a, b) =>
-    (a.estado === b.estado ? 0 : a.estado === 'aberta' ? -1 : 1) ||
-    PESO[a.prioridade] - PESO[b.prioridade] ||
-    (a.prazo ?? '9999').localeCompare(b.prazo ?? '9999') ||
-    a.id - b.id);
+  return r.map(linha)
+    .filter((t) => !opts.soCobrancas || t.cobrarDe)
+    .filter((t) => !opts.lembrarAte || (data(t) !== undefined && data(t)! <= opts.lembrarAte))
+    .sort((a, b) =>
+      (a.estado === b.estado ? 0 : a.estado === 'aberta' ? -1 : 1) ||
+      PESO[a.prioridade] - PESO[b.prioridade] ||
+      (data(a) ?? '9999').localeCompare(data(b) ?? '9999') ||
+      a.id - b.id);
 }

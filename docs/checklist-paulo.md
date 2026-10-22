@@ -10,7 +10,7 @@ O que só você pode fazer, porque depende das suas contas ou da sua máquina. M
 - [ ] **Transcrição do Meet:** verificar se a transcrição de reuniões está ativa no Workspace da empresa.
 - [ ] **Discord:**
   - [ ] Criar um servidor privado só seu, com verificação em duas etapas na sua conta.
-  - [ ] Criar os canais: `#briefing`, `#alertas`, `#aprovacoes`, `#reunioes`, `#pessoas`, `#cto` e `#planejamento` (onde você conversa com o Copiloto para definir marcos, regras e tarefas).
+  - [ ] Criar os canais: `#briefing`, `#alertas`, `#aprovacoes`, `#reunioes`, `#pessoas`, `#cto` e `#planejamento`, `#insights` e `#cobrancas` (entrada: você escreve e o Copiloto registra). `#pessoas` também é de entrada, em sigilo.
   - [ ] Criar a aplicação e o bot no Discord Developer Portal, copiar o token (guardar fora do Git) e convidar o bot para o servidor.
   - [ ] Anotar o seu ID de usuário no Discord (único autorizado a aprovar).
 - [ ] **Vault:**
@@ -33,11 +33,12 @@ O que só você pode fazer, porque depende das suas contas ou da sua máquina. M
   - [x] Respondido: lead de Backlog a Concluído; cycle de Fazendo Análise a Pronto pra release (Resolved); Ideias e UX fora; Fiscal sem Release candidate; throughput só em Concluído.
   - [ ] Depois da primeira sincronização, conferir `fonte.colunasDesconhecidas` em `boards_saude`: se aparecer algum nome, é coluna que o código não reconheceu (a comparação ignora maiúsculas, acentos e espaços, então seria outra grafia ou outra coluna). Me diga o nome exato.
   - [ ] Campo de pontos: usei `StoryPoints` e, na falta, `Effort`.
-- [ ] **Canal `#planejamento` (registro de marcos por conversa):**
-  - [ ] Criar o canal no servidor privado e pôr o ID em `DISCORD_CANAL_PLANEJAMENTO` no `.env`.
-  - [ ] No Discord Developer Portal → seu bot → Bot → ligar **Message Content Intent** (sem isso o Discord entrega as mensagens vazias, a não ser que você mencione o bot com @). Dê ao bot as permissões Ver canal, Ler histórico de mensagens e Enviar mensagens nesse canal.
-  - [ ] Cadastrar a rotina `grok/rotinas/planejamento.md` no Grok Bot (a cada 15 minutos, dias úteis). O intervalo mínimo depende do seu plano; para resposta na hora, converse no app do Grok Bot, que usa as mesmas ferramentas.
-  - [ ] Testar: escreva no canal "regras do próximo marco do fiscal: confiança 95, janela de 8 semanas, escopo fechado" e depois "a tag é <tag>, entrega em <data>". O Copiloto deve responder o que registrou.
+- [ ] **Configurar o bot do Discord:** siga `docs/discord-configuracao.md` (intents, escopos `bot` e `applications.commands`, permissões Ver canais, Enviar mensagens e Ver histórico de mensagens, URL de convite).
+- [ ] **Canais de entrada** (`#planejamento`, `#insights`, `#cobrancas`, `#pessoas`): criar, pôr os IDs no `.env` (`DISCORD_CANAL_PLANEJAMENTO`, `_INSIGHTS`, `_COBRANCAS`, `_PESSOAS`) e reiniciar a ponte.
+- [ ] **Tópico dos canais:** copiar de `docs/discord-canais.md` o texto de cada canal para o campo Tópico (até 1024 caracteres, todos cabem).
+- [ ] **Cadastrar as rotinas no Grok Bot:** siga `grok/rotinas/README.md` (tabela com horários, conectores e ordem). Planejamento e Captura rodam 6x ao dia (8h, 10h, 12h, 14h, 16h, 18h).
+- [ ] **Testar os comandos `/`:** `/tarefa` e `/marcos` em `#planejamento`, `/insight` em `#insights`, `/cobrar` em `#cobrancas`, `/pessoa` em `#pessoas`. Respondem na hora, sem rotina.
+- [ ] **Testar a conversa:** escreva em `#planejamento` "regras do próximo marco do fiscal: confiança 95, janela de 8 semanas, escopo fechado" e depois "a tag é <tag>, entrega em <data>"; na próxima execução o Copiloto responde o que registrou.
 - [ ] **Regras dos marcos:** hoje as regras são confiança (percentil), janela de histórico, tipos, escopo fechado e uma observação em texto livre. Diga se há outras regras que você define a cada marco (por exemplo limite de WIP, itens que não podem entrar, dia de congelamento) para virarem regras de verdade.
 - [ ] **DORA (T1.12):** frequência de deploy e lead time de mudanças precisam dos pipelines do Azure DevOps. Diga qual pipeline (ou ambiente) representa produção em cada time e, ao criar o PAT, inclua **Build (Read)** e **Release (Read)**.
 - [ ] **Limites de alerta:** padrões atuais: envelhecimento 7 dias, bloqueio 2 dias úteis, WIP 3 por pessoa, bug rate 10%, commit parado 3 dias úteis. Anote os diferentes e eles viram variáveis no `.env`.

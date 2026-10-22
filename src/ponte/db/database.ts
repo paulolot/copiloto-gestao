@@ -167,7 +167,9 @@ function initSchema(db: Database): void {
       prazo TEXT,
       estado TEXT NOT NULL DEFAULT 'aberta' CHECK(estado IN ('aberta','feita')),
       criada_em TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
-      concluida_em TEXT
+      concluida_em TEXT,
+      cobrar_de TEXT,      -- quem deve algo ao Paulo (tarefa de cobrança)
+      lembrar_em TEXT      -- AAAA-MM-DD em que o Paulo quer ser lembrado de cobrar
     );
   `);
 }
@@ -176,6 +178,9 @@ function initSchema(db: Database): void {
 function migrate(db: Database): void {
   const cols = (db.exec('PRAGMA table_info(work_items)')[0]?.values ?? []).map((v) => v[1] as string);
   if (!cols.includes('paralisado')) db.run('ALTER TABLE work_items ADD COLUMN paralisado INTEGER NOT NULL DEFAULT 0');
+  const colsTarefas = (db.exec('PRAGMA table_info(tarefas)')[0]?.values ?? []).map((v) => v[1] as string);
+  if (!colsTarefas.includes('cobrar_de')) db.run('ALTER TABLE tarefas ADD COLUMN cobrar_de TEXT');
+  if (!colsTarefas.includes('lembrar_em')) db.run('ALTER TABLE tarefas ADD COLUMN lembrar_em TEXT');
   if (!cols.includes('coluna')) db.run('ALTER TABLE work_items ADD COLUMN coluna TEXT');
   for (const c of ['backlog_em', 'pronto_em', 'marcos_em']) if (!cols.includes(c)) db.run(`ALTER TABLE work_items ADD COLUMN ${c} TEXT`);
   if (!cols.includes('analise_em')) db.run('ALTER TABLE work_items ADD COLUMN analise_em TEXT');

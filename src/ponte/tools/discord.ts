@@ -13,7 +13,9 @@ export type DiscordCanal =
   | 'reunioes'
   | 'pessoas'
   | 'cto'
-  | 'planejamento';
+  | 'planejamento'
+  | 'insights'
+  | 'cobrancas';
 
 const CANAL_ENV_MAP: Record<DiscordCanal, string> = {
   briefing: 'DISCORD_CANAL_BRIEFING',
@@ -23,6 +25,8 @@ const CANAL_ENV_MAP: Record<DiscordCanal, string> = {
   pessoas: 'DISCORD_CANAL_PESSOAS',
   cto: 'DISCORD_CANAL_CTO',
   planejamento: 'DISCORD_CANAL_PLANEJAMENTO',
+  insights: 'DISCORD_CANAL_INSIGHTS',
+  cobrancas: 'DISCORD_CANAL_COBRANCAS',
 };
 
 function getCanalId(canal: DiscordCanal): string {
@@ -72,7 +76,8 @@ export function buildApprovalMessage(queueId: number, tool: string, action: stri
 }
 
 /** Channels where Paulo talks to the Copiloto; only his messages are read from them. */
-export type CanalConversa = 'planejamento';
+export type CanalConversa = 'planejamento' | 'insights' | 'pessoas' | 'cobrancas';
+export const CANAIS_CONVERSA: [CanalConversa, ...CanalConversa[]] = ['planejamento', 'insights', 'pessoas', 'cobrancas'];
 
 export interface MensagemDiscord {
   id: string;

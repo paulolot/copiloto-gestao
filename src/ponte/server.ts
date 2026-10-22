@@ -6,6 +6,7 @@ import { getDb } from './db/database.js';
 import { createApp } from './app.js';
 import { executeApproved, type ExecutionHandler } from './middleware/executor.js';
 import { startBot } from './discord/bot.js';
+import { mapaCanais } from './discord/comandos.js';
 import { AzdoClient } from './azure/client.js';
 import { iniciarAgendador } from './agendador.js';
 import { discordPostar } from './tools/discord.js';
@@ -34,6 +35,8 @@ async function main() {
         ownerId: DISCORD_OWNER_ID,
         token: DISCORD_BOT_TOKEN,
         canalAprovacoesId: DISCORD_CANAL_APROVACOES,
+        guildId: process.env.DISCORD_GUILD_ID,
+        canais: mapaCanais(),
         onDecision: runExecutor,
       });
       console.log('Bot do Discord conectado (fila de aprovações em #aprovacoes)');
