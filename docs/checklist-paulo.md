@@ -26,8 +26,8 @@ O que só você pode fazer, porque depende das suas contas ou da sua máquina. M
 - [X] **Confirmar a estrutura do Azure DevOps.** Só User Story e Bug entram nas métricas (Feature, Épico e Atendimento ficam de fora); o nome exato do tipo é `User Story`, ou ajuste `AZDO_TIPOS`. Já respondido em 21/10/2026: área `Metanet\Squad Desktop`, bloqueio = campo Paralisado, bug de produção = campo Tipo Bug "Bug Externo". Falta:
   - [x] Nome técnico do campo Tipo Bug: `Custom.TipoBug` (confirmado em 21/10/2026).
   - [x] Respondido: lead de Backlog a Concluído; cycle de Fazendo Análise a Pronto pra release (Resolved); Ideias e UX fora; Fiscal sem Release candidate; throughput só em Concluído.
-  - [ ] Depois da primeira sincronização, conferir `fonte.colunasDesconhecidas` em `boards_saude`: se aparecer algum nome, é coluna que o código não reconheceu (a comparação ignora maiúsculas, acentos e espaços, então seria outra grafia ou outra coluna). Me diga o nome exato.
-  - [ ] Campo de pontos: usei `StoryPoints` e, na falta, `Effort`.
+  - [x] Depois da primeira sincronização, conferir `fonte.colunasDesconhecidas` em `boards_saude`: se aparecer algum nome, é coluna que o código não reconheceu (a comparação ignora maiúsculas, acentos e espaços, então seria outra grafia ou outra coluna). Me diga o nome exato.
+  - [x] Campo de pontos: usei `StoryPoints` e, na falta, `Effort`.
 - [X] **Configurar o bot do Discord:** siga `docs/discord-configuracao.md` (intents, escopos `bot` e `applications.commands`, permissões Ver canais, Enviar mensagens e Ver histórico de mensagens, URL de convite).
 - [X] **Canais de entrada** (`#planejamento`, `#insights`, `#cobrancas`, `#pessoas`): criar, pôr os IDs no `.env` (`DISCORD_CANAL_PLANEJAMENTO`, `_INSIGHTS`, `_COBRANCAS`, `_PESSOAS`) e reiniciar a ponte.
 - [X] **Tópico dos canais:** copiar de `docs/discord-canais.md` o texto de cada canal para o campo Tópico (até 1024 caracteres, todos cabem).
@@ -38,7 +38,7 @@ O que só você pode fazer, porque depende das suas contas ou da sua máquina. M
 - [ ] **DORA (T1.12):** frequência de deploy e lead time de mudanças precisam dos pipelines do Azure DevOps. Diga qual pipeline (ou ambiente) representa produção em cada time e, ao criar o PAT, inclua **Build (Read)** e **Release (Read)**.
 - [X] **Limites de alerta:** padrões atuais: envelhecimento 7 dias, bloqueio 2 dias úteis, WIP 3 por pessoa, bug rate 10%, commit parado 3 dias úteis. Anote os diferentes e eles viram variáveis no `.env`.
 - [ ] **Limites de alerta:** revisar a lista de métricas em `docs/plano.md` e anotar limites diferentes dos padrões, se houver.
-- [ ] **Ligar o Azure DevOps na ponte** (passo 8 de `docs/conectar.md`) e comparar `boards_saude` com o board real.
+- [x] **Ligar o Azure DevOps na ponte** (passo 8 de `docs/conectar.md`) e comparar `boards_saude` com o board real.
 - [ ] **Cadastrar as rotinas** de `grok/rotinas/` no Grok Bot: briefing diário (7h30), resumo semanal (sexta, 16h), observador (opcional).
 - [ ] **Gate:** durante 2 semanas, anotar todo dia se o briefing foi útil (meta: 4 de 5 dias).
 - [ ] **Testar o botão de tarefas no Discord:** peça ao Grok Bot para chamar `tarefas_postar`, clique em "✔ #id" e confirme que a tarefa fica riscada. Precisa do bot do Discord ligado (mesma configuração da fila de aprovações).
