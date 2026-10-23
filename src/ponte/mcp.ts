@@ -10,6 +10,7 @@ import type { Database } from 'sql.js';
 import { logAudit } from './db/audit.js';
 import { enforcePolicy } from './middleware/autonomy.js';
 import type { IndiceVault, ResultadoSemantico } from './vault/indice.js';
+import { umAUmPendentes } from './tools/um-a-um.js';
 import { papelLer } from './tools/papeis.js';
 import { pessoaPerfil } from './tools/pessoa-perfil.js';
 import { vaultListar, vaultLer, vaultBuscar, vaultCriarNota, pessoaRegistrar, pessoaListar, pessoaLer, TIPOS_REGISTRO_PESSOA } from './tools/vault.js';
@@ -350,6 +351,13 @@ export function createMcpServer(db: Database, deps: McpDeps = {}): McpServer {
         return text(`Erro: ${(e as Error).message}`, true);
       }
     },
+  );
+
+  mcp.tool(
+    'um_a_um_pendentes',
+    'Por pessoa: data do último 1:1, cadência esperada e dias de atraso; e revisões de PDI vencidas. Só nomes e números, em ordem alfabética, sem conteúdo de notas. Use no briefing (bloco "1:1 e PDI atrasados") e nunca para comparar pessoas',
+    {},
+    () => restrito('um_a_um_pendentes', {}, () => ({ texto: JSON.stringify(umAUmPendentes(), null, 2) })),
   );
 
   mcp.tool(

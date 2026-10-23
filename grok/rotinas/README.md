@@ -19,7 +19,7 @@ Este é o roteiro único para cadastrar no Grok Bot. Cada rotina tem um arquivo 
 
 | Rotina | Ferramentas |
 | --- | --- |
-| Briefing diário | `boards_sincronizar`, `boards_saude`, `boards_itens_problema`, `tarefa_listar`, `tarefa_criar`, `tarefas_postar`, `vault_ler`, `discord_postar` |
+| Briefing diário | `boards_sincronizar`, `boards_saude`, `boards_itens_problema`, `um_a_um_pendentes`, `tarefa_listar`, `tarefa_criar`, `tarefas_postar`, `vault_ler`, `discord_postar` |
 | Planejamento | `discord_ler_novas`, `discord_marcar_lido`, `discord_postar`, `marco_definir`, `boards_marcos`, `boards_tags`, `tarefa_criar`, `tarefa_concluir`, `vault_criar_nota` |
 | Captura | `discord_ler_novas`, `discord_marcar_lido`, `discord_postar`, `vault_criar_nota`, `vault_buscar`, `pessoa_registrar`, `tarefa_criar`, `tarefa_listar`, `tarefa_concluir` |
 | Resumo semanal | `boards_sincronizar`, `metricas_time`, `boards_alertas`, `boards_itens_problema`, `boards_marcos`, `vault_buscar`, `conquista_registrar`, `tarefa_listar`, `discord_postar` |

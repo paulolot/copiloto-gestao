@@ -60,9 +60,10 @@ Legenda: **[código]** pode ser feito numa sessão na nuvem · **[Paulo]** depen
   - Skill do Coach (T2.10) monta o rascunho de PDI a partir do plano do papel; nasce `revisado: false`.
   - Pronto quando: testes cobrem criação, atualização, atraso e a fila de aprovação ao compartilhar.
 
-- [ ] **T2.5 Lembretes de 1:1 e PDI atrasados** [código] (RF-24) — depende de T2.2
+- [x] **T2.5 Lembretes de 1:1 e PDI atrasados** [código] (RF-24) — depende de T2.2
   - Ferramenta restrita `um_a_um_pendentes()`: por pessoa, data do último 1:1 (das notas `1x1/`), cadência esperada e dias de atraso; revisões de PDI vencidas. Só nomes e números.
   - O briefing diário ganha o bloco "1:1 e PDI atrasados" (só nome e dias, sem conteúdo). Sinais datados (`1x1:<pessoa>`) para o Porta-voz usar.
+  - Entregue (23/10/2026): `um_a_um_pendentes` (cadência do `perfil.md`, padrão mensal; último 1:1 pelas notas `1x1/` sem contar `-pauta`; revisão de PDI por `proxima_revisao` do `pdi.md`). Os sinais `1x1:<pessoa>` e `pdi:<pessoa>` são criados no ciclo de hora em hora sob o time `1x1`, que **nunca é anunciado** em canal. Briefing com o bloco 2b.
   - Pronto quando: testes com relógio simulado cobrem atraso, cadência por pessoa e pessoa sem 1:1 registrado.
 
 - [ ] **T2.6 Pauta de 1:1** [código] (RF-22) — depende de T2.4 e T2.5

@@ -8,6 +8,7 @@ import type { AzdoClient } from './azure/client.js';
 import { timesAtivos, type TimeEscopo } from './azure/escopo.js';
 import { sincronizarTime } from './azure/sync.js';
 import { sinaisDeMarcos } from './azure/marcos.js';
+import { sinaisDeUmAUm, TIME_SINAIS_1X1 } from './tools/um-a-um.js';
 import {
   atualizarSinais, avaliarTime, itensDoSinal, marcarAvisado, marcarResolucaoAvisada, sinaisNaoAvisados, sinaisResolvidosNaoAvisados,
   type ItemAviso, type SinalRegistrado, type SinalResolvido,
@@ -105,6 +106,15 @@ export async function executarCiclo(deps: CicloDeps): Promise<CicloResultado> {
     atualizarSinais(db, 'marcos', sinaisDeMarcos(db, agora), agora);
   } catch (e) {
     logAudit(db, { tool: 'marcos_sinais', origin: 'agendador', result: 'error', error_msg: (e as Error).message });
+  }
+
+  // Overdue 1:1s and PDI reviews also become dated signals, under a pseudo team that is never announced in a channel
+  if (process.env.VAULT_PATH) {
+    try {
+      atualizarSinais(db, TIME_SINAIS_1X1, sinaisDeUmAUm(agora), agora);
+    } catch (e) {
+      logAudit(db, { tool: 'um_a_um_sinais', origin: 'agendador', result: 'error', error_msg: (e as Error).message });
+    }
   }
 
   const nomes = new Map<string, string>([...times.map((t): [string, string] => [t.id, t.nome]), ['marcos', 'Marcos de entrega']]);
