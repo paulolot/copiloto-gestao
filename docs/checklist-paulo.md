@@ -49,7 +49,7 @@ O que só você pode fazer, porque depende das suas contas ou da sua máquina. M
 Detalhes em `docs/backlog-fase-2.md` (T2.0, T2.3, T2.12). Pode adiantar enquanto a fase 1 roda.
 
 - [x] **Embeddings da busca por significado:** respondido em 22/10/2026: **local**. (pergunta original: modelo **local** na sua máquina (nada sai dela; recomendado por causa de PDI e 1:1) ou **API** (mais simples; o texto das notas vai ao provedor)?)
-- [ ] **Reunião dispensável ou delegável:** quais critérios valem (sem pauta, sem decisão nas últimas ocorrências, você não é o decisor, só informativa…).
+- [~] **Reunião dispensável ou delegável:** respondido em 23/10/2026: não há critérios para dispensar ou delegar; a ideia é **convidar** (sugerir quem deve estar na reunião). As dailies o Paulo gosta de acompanhar; quando não for, o plano é ler a transcrição e agir depois (fase 3). Falta confirmar o sentido de "convidar". (pergunta original: quais critérios valem (sem pauta, sem decisão nas últimas ocorrências, você não é o decisor, só informativa…)
 - [x] **Como o Copiloto reconhece na agenda:** respondido em 22/10/2026: 1:1 aparece como "Feedback 1:1 - [Colaborador]"; reunião com o CTO pode conter "Saulo/Paulo" no título, mas costuma ser desmarcada e sem novos eventos (o Paulo também pode agendar). (pergunta original: um 1:1 (título com "1:1"? só dois participantes?), a reunião com o CTO (título? e-mail do CTO?) e em que semanas ela cai.)
 - [x] **Cadência de 1:1 por pessoa:** 1:1 **mensal** (22/10/2026); revisão do PDI **a cada 6 meses** (23/10/2026). (pergunta original: (semanal, quinzenal…) e a cada quanto tempo revisar o PDI.)
 - [x] **Tech Lead:** `papel_ler` conferido pelo Paulo em 23/10/2026 (`avisos` vazio). Falta conferir o Scrum Master.
@@ -67,6 +67,7 @@ Detalhes em `docs/backlog-fase-2.md` (T2.0, T2.3, T2.12). Pode adiantar enquanto
 - Pasta de colaboradores: local, markdown separado em pastas.
 - Planos por papel: Tech Lead e Scrum Master primeiro.
 - CTO: reunião quinzenal; evoluções primeiro, decisões e pontos de atenção levados cedo.
+- Domínio de e-mail da empresa: imex.com.br (23/10/2026); participante de outro domínio é externo.
 - PDI: revisão a cada 6 meses (23/10/2026).
 - Embeddings: modelo local (22/10/2026).
 - 1:1: cadência mensal; título na agenda "Feedback 1:1 - [Colaborador]" (22/10/2026).

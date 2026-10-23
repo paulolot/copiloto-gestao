@@ -27,7 +27,7 @@ Legenda: **[código]** pode ser feito numa sessão na nuvem · **[Paulo]** depen
 ## Tarefas
 
 - [~] **T2.0 Decisões do Paulo** [Paulo] — destrava as demais
-  - **Respondido em 22/10/2026:** embeddings **local**; 1:1 **mensal** com título "Feedback 1:1 - [Colaborador]"; CTO sem depender da agenda (ver T2.9). PDI revisado a cada **6 meses** (23/10/2026). Planos por papel: v1 montada (23/10/2026). Falta: critérios de reunião dispensável (proposta do Claude em validação).
+  - **Respondido em 22/10/2026:** embeddings **local**; 1:1 **mensal** com título "Feedback 1:1 - [Colaborador]"; CTO sem depender da agenda (ver T2.9). PDI revisado a cada **6 meses** (23/10/2026). Planos por papel: v1 montada (23/10/2026). Reunião: **sem critérios de dispensar ou delegar**; o foco é sugerir quem convidar, e as dailies o Paulo acompanha (T2.8 será redesenhada, ver abaixo). Domínio da empresa: `imex.com.br`.
   - **Embeddings (T2.1):** modelo **local** na máquina do Paulo (nenhum texto sai da máquina; mais lento e precisa baixar o modelo uma vez) ou **API** (mais simples e rápido; o texto das notas vai ao provedor, o que o plano permite só com autorização expressa). Recomendação: local, por causa de PDI e 1:1.
   - **Reunião dispensável ou delegável (T2.8):** quais critérios valem (sem pauta, sem decisão nas últimas ocorrências, o Paulo não é o decisor, só informativa, pode ser resumo em texto…).
   - **Identificar reuniões na agenda (T2.6, T2.7, T2.9):** como o Copiloto reconhece um 1:1 (título com "1:1"? só dois participantes?), a reunião com o CTO (título? e-mail do CTO?) e a quinzena em que ela cai.
@@ -77,7 +77,7 @@ Legenda: **[código]** pode ser feito numa sessão na nuvem · **[Paulo]** depen
   - Rotina `grok/rotinas/preparador-reuniao.md` (a cada 30 min, 7h às 19h): lê a agenda, prepara as reuniões da próxima hora, grava a nota em `reunioes/` (`tipo: preparacao`, `revisado: false`) e posta no `#reunioes` com pauta sugerida e pendências. 1:1 vai pelo fluxo do T2.6, nunca por aqui.
   - Pronto quando: testes do contexto e do controle de duplicidade; texto da rotina pronto para colar.
 
-- [ ] **T2.8 Reuniões delegáveis ou dispensáveis** [código] (RF-12) — depende de T2.0 e T2.7
+- [ ] **T2.8 Reuniões: quem convidar** [código] (RF-12) — **redesenhada em 23/10/2026**: o Paulo não quer critérios para dispensar ou delegar (acompanha as dailies; quando não for, lê a transcrição, fase 3). O texto abaixo é o desenho antigo e será reescrito quando o Paulo confirmar o sentido de "convidar" — depende de T2.0 e T2.7
   - Ferramenta `reuniao_historico(titulo)`: ocorrências anteriores com nota, quantas geraram decisão ou tarefa, última vez que o Paulo falou ou decidiu.
   - A rotina do briefing aplica os critérios definidos em T2.0 e lista, com o **motivo**, as reuniões do dia que podem ser delegadas ou dispensadas. Só sugere; nunca recusa nem aceita convite (isso pede OK).
   - Pronto quando: testes do histórico; critérios escritos no prompt do briefing.
