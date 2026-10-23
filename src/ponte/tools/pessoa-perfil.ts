@@ -58,16 +58,9 @@ export function pessoaPerfil(db: Database | undefined, pessoa: string, agora = n
 
   let board: unknown = null;
   if (db) {
-    // The board knows the person by its own identifier (display name or e-mail), which may differ from how Paulo
-    // calls them and from the company e-mail. Try, in order: azure_devops_id, e-mail, the name asked, the profile name.
-    const campo = (k: string) => { const v = perfil ? texto(perfil.campos[k]) : undefined; return v && !v.startsWith('[') ? v : undefined; };
-    const candidatos = [...new Set([campo('azure_devops_id'), campo('email'), pessoa.trim(), campo('pessoa')].filter((x): x is string => !!x))];
-    for (const c of candidatos) {
-      try { board = JSON.parse(metricasColaborador(db, { pessoa: c, time })); break; } catch { /* try the next identifier */ }
-    }
-    if (board === null) {
-      avisos.push(`Board indisponível: nenhum responsável no Azure DevOps casou com o azure_devops_id, o e-mail ou o nome do perfil (ou o time ainda não foi sincronizado). Confira o campo azure_devops_id: use o nome ou o e-mail exatamente como aparece no card`);
-    }
+    const r = boardDaPessoa(db, pessoa, perfil?.campos, time);
+    board = r.board;
+    if (r.aviso) avisos.push(r.aviso);
   }
 
   const conquistas = time ? conquistasDoTime(time) : [];
@@ -86,7 +79,7 @@ export function pessoaPerfil(db: Database | undefined, pessoa: string, agora = n
 }
 
 /** Reviewed achievements credited to the person's team (credit goes to teams, not individuals). */
-function conquistasDoTime(time: string): { caminho: string; titulo?: string }[] {
+export function conquistasDoTime(time: string, desde?: string): { caminho: string; titulo?: string }[] {
   let arquivos: string[];
   try { arquivos = vaultListar('conquistas').filter((f) => f.endsWith('.md') && !f.startsWith('_')); } catch { return []; }
   const r: { caminho: string; titulo?: string }[] = [];
@@ -94,7 +87,25 @@ function conquistasDoTime(time: string): { caminho: string; titulo?: string }[] 
     const caminho = `conquistas/${f}`;
     const { campos } = lerFrontmatter(vaultLer(caminho));
     const times = Array.isArray(campos.times) ? campos.times : [];
+    if (desde && (texto(campos.data) ?? '') < desde) continue;
     if (texto(campos.revisado) === 'true' && times.some((t) => t.toLowerCase() === time.toLowerCase())) r.push({ caminho, titulo: texto(campos.titulo) });
   }
   return r.slice(0, 10);
+}
+
+/**
+ * Board metrics of one person. The board knows people by its own identifier (display name or e-mail), which may
+ * differ from how Paulo calls them and from the company e-mail. Tries, in order: azure_devops_id, e-mail, the name
+ * asked, the profile name; placeholders like [AJUSTAR] are ignored.
+ */
+export function boardDaPessoa(db: Database, pessoa: string, campos: Record<string, ValorFrontmatter> | undefined, time?: string): { board: unknown; aviso?: string } {
+  const campo = (k: string) => { const v = campos ? texto(campos[k]) : undefined; return v && !v.startsWith('[') ? v : undefined; };
+  const candidatos = [...new Set([campo('azure_devops_id'), campo('email'), pessoa.trim(), campo('pessoa')].filter((x): x is string => !!x))];
+  for (const c of candidatos) {
+    try { return { board: JSON.parse(metricasColaborador(db, { pessoa: c, time })) }; } catch { /* try the next identifier */ }
+  }
+  return {
+    board: null,
+    aviso: 'Board indisponível: nenhum responsável no Azure DevOps casou com o azure_devops_id, o e-mail ou o nome do perfil (ou o time ainda não foi sincronizado). Confira o campo azure_devops_id: use o nome ou o e-mail exatamente como aparece no card',
+  };
 }

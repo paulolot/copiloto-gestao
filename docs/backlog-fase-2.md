@@ -68,9 +68,11 @@ Legenda: **[código]** pode ser feito numa sessão na nuvem · **[Paulo]** depen
   - Entregue (23/10/2026): `um_a_um_pendentes` (cadência do `perfil.md`, padrão mensal; último 1:1 pelas notas `1x1/` sem contar `-pauta`; revisão de PDI por `proxima_revisao` do `pdi.md`). Os sinais `1x1:<pessoa>` e `pdi:<pessoa>` são criados no ciclo de hora em hora sob o time `1x1`, que **nunca é anunciado** em canal. Briefing com o bloco 2b.
   - Pronto quando: testes com relógio simulado cobrem atraso, cadência por pessoa e pessoa sem 1:1 registrado.
 
-- [ ] **T2.6 Pauta de 1:1** [código] (RF-22) — depende de T2.4 e T2.5
+- [~] **T2.6 Pauta de 1:1** [código] (RF-22) — depende de T2.4 e T2.5
   - Ferramenta restrita `um_a_um_preparar(pessoa)`: andamento do PDI, combinados abertos do último 1:1, sinais do board da pessoa, registros desde o último 1:1, conquistas e temas sugeridos (a partir de padrões: item parado há muito tempo, WIP alto, bug sem dono).
   - A pauta é escrita pelo Coach no tom do Paulo e salva em `pessoas/<nome>/1x1/AAAA-MM-DD-pauta.md` (restrito, `revisado: false`). O Discord recebe apenas "Pauta de 1:1 pronta em <caminho>" no `#pessoas`.
+  - Entregue (23/10/2026): `um_a_um_preparar` (PDI com ações vencidas, combinados do último 1:1, board da pessoa, registros e conquistas desde o último 1:1, temas sugeridos como fatos com fonte) e `um_a_um_salvar_pauta` (grava `AAAA-MM-DD-pauta.md`, restrito, `revisado: false`, exige fontes, nunca sobrescreve; o `#pessoas` recebe só o caminho; se o Discord falhar a pauta fica salva e a resposta avisa). Uma pauta gerada não conta como 1:1 realizado.
+  - Falta: o Coach que escreve a pauta no tom do Paulo (T2.10, depende da persona).
   - Pronto quando: testes provam o conteúdo agregado, a gravação restrita e a ausência de texto no Discord e no log.
 
 - [ ] **T2.7 Preparador de reunião** [código] (RF-13) — depende de T2.1

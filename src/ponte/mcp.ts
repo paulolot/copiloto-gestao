@@ -11,12 +11,13 @@ import { logAudit } from './db/audit.js';
 import { enforcePolicy } from './middleware/autonomy.js';
 import type { IndiceVault, ResultadoSemantico } from './vault/indice.js';
 import { umAUmPendentes } from './tools/um-a-um.js';
+import { umAUmPreparar, umAUmSalvarPauta } from './tools/pauta-1x1.js';
 import { pdiAtualizar, pdiAtrasados, pdiCompartilhar, pdiLer, STATUS_ACAO } from './tools/pdi.js';
 import { CANAIS_MENSAGEM as CANAIS_PDI } from './tools/mensagens.js';
 import { papelLer } from './tools/papeis.js';
 import { pessoaPerfil } from './tools/pessoa-perfil.js';
 import { vaultListar, vaultLer, vaultBuscar, vaultCriarNota, pessoaRegistrar, pessoaListar, pessoaLer, TIPOS_REGISTRO_PESSOA } from './tools/vault.js';
-import { CANAIS_CONVERSA, discordLerNovas, discordMarcarLido, discordPostar } from './tools/discord.js';
+import { CANAIS_CONVERSA, discordLerNovas, discordMarcarLido, discordPostar, type DiscordCanal } from './tools/discord.js';
 import { boardsMarcoDefinir, boardsMarcos, boardsTags, metricasColaborador, boardsAlertas, boardsItensProblema, boardsSaude, boardsSincronizar, metricasTime, type BoardsDeps } from './tools/boards.js';
 import { tarefaConcluir, tarefaCriar, tarefaListar } from './tools/tarefas.js';
 import { mensagemTarefasAbertas } from './discord/tarefas.js';
@@ -47,7 +48,7 @@ async function audited(
   }
 }
 
-export type McpDeps = Omit<BoardsDeps, 'db'> & { indice?: IndiceVault };
+export type McpDeps = Omit<BoardsDeps, 'db'> & { indice?: IndiceVault; postar?: (canal: DiscordCanal, texto: string) => Promise<unknown> };
 
 const formatarSemantico = (r: ResultadoSemantico[]) =>
   r.map((x) => `**${x.caminho}** (${x.pontuacao}${x.data ? `, ${x.data}` : ''})\n${x.trecho}`).join('\n\n---\n\n') || 'Nenhum resultado.';
@@ -408,6 +409,38 @@ export function createMcpServer(db: Database, deps: McpDeps = {}): McpServer {
         const id = pdiCompartilhar(db, pessoa, canal);
         return `Item #${id} na fila de aprovações. Nada foi enviado: aguarde o OK do Paulo em #aprovacoes (aprovacao_consultar com id ${id}).`;
       }),
+  );
+
+  mcp.tool(
+    'um_a_um_preparar',
+    'Reúne, para a pauta do próximo 1:1 com uma pessoa: andamento do PDI, combinados do último 1:1, sinais do board, registros desde o último 1:1, conquistas do time e temas sugeridos (fatos com fonte, sem opinião). Área restrita: não repita o conteúdo em canal do Discord. Depois escreva a pauta no tom do Paulo (skill de persona) e grave com um_a_um_salvar_pauta',
+    { pessoa: z.string().min(2).max(100) },
+    ({ pessoa }) => restrito('um_a_um_preparar', { pessoa: '[restrito]' }, () => ({ texto: JSON.stringify(umAUmPreparar(db, pessoa), null, 2) })),
+  );
+
+  mcp.tool(
+    'um_a_um_salvar_pauta',
+    'Grava a pauta de 1:1 que você escreveu em pessoas/<nome>/1x1/AAAA-MM-DD-pauta.md (área restrita, revisado: false) e avisa no #pessoas apenas "Pauta de 1:1 pronta em <caminho>". Nunca poste o texto da pauta no Discord. Cite as fontes',
+    {
+      pessoa: z.string().min(2).max(100),
+      texto: z.string().min(1).max(20000).describe('A pauta, em português, no tom do Paulo'),
+      fontes: z.array(z.string().max(300)).min(1).describe('Caminhos de notas, work items e sinais usados'),
+      data: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().describe('Data do 1:1; padrão hoje'),
+    },
+    async ({ pessoa, texto: t, fontes, data }) => {
+      const inicio = Date.now();
+      try {
+        const caminho = umAUmSalvarPauta(pessoa, { texto: t, fontes, data });
+        let aviso = '';
+        try { await (deps.postar ?? discordPostar)('pessoas', `Pauta de 1:1 pronta em ${caminho}`); }
+        catch (e) { aviso = ` O aviso no #pessoas não foi enviado (${(e as Error).message}).`; }
+        logAudit(db, { tool: 'um_a_um_salvar_pauta', params: { pessoa: '[restrito]' }, origin: 'mcp', result: 'ok', duration_ms: Date.now() - inicio, restricted_path: caminho });
+        return text(`Pauta salva em ${caminho}.${aviso || ' Avisei no #pessoas só o caminho.'}`);
+      } catch (e) {
+        logAudit(db, { tool: 'um_a_um_salvar_pauta', params: { pessoa: '[restrito]' }, origin: 'mcp', result: 'error', error_msg: (e as Error).message, duration_ms: Date.now() - inicio });
+        return text(`Erro: ${(e as Error).message}`, true);
+      }
+    },
   );
 
   mcp.tool(
