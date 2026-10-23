@@ -88,7 +88,7 @@ Um requisito só é dado como pronto quando o Paulo o usa no dia a dia por uma s
 
 | ID | Tema | Requisito |
 | --- | --- | --- |
-| RNF-01 | Disponibilidade | No ar nos dias úteis, 7h às 19h; falhas avisadas no Discord |
+| RNF-01 | Disponibilidade | No ar nos dias úteis, 7h às 17h (a máquina da ponte só fica ligada nesse horário); falhas avisadas no Discord |
 | RNF-02 | Prazo do briefing | Pronto até as 8h |
 | RNF-03 | Latência ao vivo | Consulta na call com tempo medido na fase 3; teleprompter (fase 5) em até 3 s |
 | RNF-04 | Segurança | Segredos fora do código; tokens com escopo mínimo, só leitura até a fase 4; Discord privado com verificação em duas etapas; ponte só acessível por túnel autenticado |

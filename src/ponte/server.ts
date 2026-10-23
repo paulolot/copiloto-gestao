@@ -63,7 +63,7 @@ async function main() {
         db, azdo, postar: (canal, texto) => discordPostar(canal, texto),
         org: process.env.AZDO_ORG, comResponsavel: !['0', 'false', 'nao', 'não'].includes((process.env.ALERTAS_COM_RESPONSAVEL ?? '').toLowerCase()),
       });
-      console.log('Sincronização do Azure DevOps agendada (dias úteis, 7h às 19h, de hora em hora)');
+      console.log('Sincronização do Azure DevOps agendada (dias úteis, 7h às 17h, de hora em hora)');
     }
   } else {
     console.warn('Azure DevOps desativado: defina AZDO_ORG e AZDO_PAT (veja docs/conectar.md)');

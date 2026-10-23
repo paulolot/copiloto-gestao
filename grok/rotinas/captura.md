@@ -1,6 +1,6 @@
 # Rotina: Captura de insights, impressões sobre pessoas e cobranças
 
-Cole este prompt numa rotina agendada do Grok Bot: **6 vezes por dia, de 2 em 2 horas, dias úteis: 8h, 10h, 12h, 14h, 16h e 18h** (fuso de São Paulo). É o mesmo horário da rotina `planejamento.md`.
+Cole este prompt numa rotina agendada do Grok Bot: **5 vezes por dia, de 2 em 2 horas, dias úteis: 8h, 10h, 12h, 14h e 16h** (fuso de São Paulo). É o mesmo horário da rotina `planejamento.md`.
 
 Ela lê o que você escreveu em **#insights**, **#pessoas** e **#cobrancas** em texto livre. Os comandos `/insight`, `/pessoa` e `/cobrar` gravam na hora e **não passam por esta rotina**; ela existe para o texto livre (celular, pressa, mensagem de voz transcrita).
 

@@ -1,6 +1,6 @@
 # Rotina: Planejamento por conversa no #planejamento (marcos, regras e tarefas)
 
-Cole este prompt numa rotina agendada do Grok Bot **6 vezes por dia, de 2 em 2 horas, dias úteis: 8h, 10h, 12h, 14h, 16h e 18h** (fuso de São Paulo). Para registrar na hora, use os comandos `/tarefa`, `/tarefas` e `/marcos` no `#planejamento`, ou converse direto no app do Grok Bot: as mesmas ferramentas valem lá.
+Cole este prompt numa rotina agendada do Grok Bot **5 vezes por dia, de 2 em 2 horas, dias úteis: 8h, 10h, 12h, 14h e 16h** (fuso de São Paulo). Para registrar na hora, use os comandos `/tarefa`, `/tarefas` e `/marcos` no `#planejamento`, ou converse direto no app do Grok Bot: as mesmas ferramentas valem lá.
 
 Pré-requisitos: canal `#planejamento` criado, `DISCORD_CANAL_PLANEJAMENTO` no `.env`, e o **Message Content Intent** do bot ligado no Discord Developer Portal (ou mencione o bot com @ nas mensagens). Ver `docs/checklist-paulo.md`.
 

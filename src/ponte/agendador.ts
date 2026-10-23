@@ -1,5 +1,5 @@
 /**
- * T1.6 — Hourly board sync, business days 7h–19h (RNF-01)
+ * T1.6 — Hourly board sync, business days 7h–17h (RNF-01)
  * Each cycle syncs the active teams, evaluates the signals and posts only the new ones to #alertas.
  * A failed sync is also reported, once per distinct error, so a long outage does not flood the channel.
  */
@@ -20,12 +20,12 @@ export type Postar = (canal: DiscordCanal, texto: string) => Promise<unknown>;
 
 const FUSO = 'America/Sao_Paulo';
 
-/** Monday to Friday, 7h to 19h (19h itself is out) in São Paulo time. */
+/** Monday to Friday, 7h to 17h (17h itself is out; the bridge machine is on only 7h–17h) in São Paulo time. */
 export function dentroDaJanela(d: Date): boolean {
   const p = new Intl.DateTimeFormat('en-US', { timeZone: FUSO, weekday: 'short', hour: 'numeric', hourCycle: 'h23' }).formatToParts(d);
   const dia = p.find((x) => x.type === 'weekday')!.value;
   const hora = Number(p.find((x) => x.type === 'hour')!.value);
-  return !['Sat', 'Sun'].includes(dia) && hora >= 7 && hora < 19;
+  return !['Sat', 'Sun'].includes(dia) && hora >= 7 && hora < 17;
 }
 
 const dataBr = (iso: string) => new Intl.DateTimeFormat('pt-BR', { timeZone: FUSO, day: '2-digit', month: '2-digit' }).format(new Date(iso));

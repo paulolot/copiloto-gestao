@@ -37,7 +37,7 @@ Premissas: o Azure DevOps é acessado só por leitura com PAT; Squad Fiscal prim
   - Pronto quando: cliente MCP de teste chama cada uma e o log registra.
 
 - [x] **T1.6 Sincronização agendada e alertas no Discord** [código] — depende de T1.4 (RNF-01)
-  - A cada hora, dias úteis, 7h às 19h; sinal novo vai para `#alertas`; falha de sincronização também avisa.
+  - A cada hora, dias úteis, 7h às 17h; sinal novo vai para `#alertas`; falha de sincronização também avisa.
   - Pronto quando: teste do agendador (relógio simulado) e da postagem só de sinais novos.
 
 - [x] **T1.7 Tarefas do Paulo** [código] (RF-08)

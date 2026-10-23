@@ -65,7 +65,7 @@ Organização `metanetsistema` no Azure DevOps. Começa pelo Squad Fiscal; os ou
 | Escriba | Rotina + skill | Fim de cada reunião | Nota no vault e rascunhos para aprovar |
 | Coach de pessoas | Skill | Antes e depois de cada 1:1 | Pauta e registro de 1:1, PDI |
 | Porta-voz | Rotina + skill | Dois dias antes da reunião quinzenal com o CTO | Pauta quinzenal e pacotes de decisão |
-| Curador da memória | Rotina | Toda noite | Vault organizado, índice atualizado |
+| Curador da memória | Rotina | Todo dia útil, 7h10 (a ponte só fica ligada de 7h às 17h) | Vault organizado, índice atualizado |
 
 ## Política de autonomia
 

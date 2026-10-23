@@ -9,10 +9,10 @@ Este é o roteiro único para cadastrar no Grok Bot. Cada rotina tem um arquivo 
 | # | Rotina | Arquivo | Quando | Conectores além do MCP | Onde escreve |
 | --- | --- | --- | --- | --- | --- |
 | 1 | **Briefing diário** | `briefing-diario.md` | 7h30 (`30 7 * * 1-5`) | Calendar, Gmail, Drive | `#briefing`, e `#alertas` se algo grave |
-| 2 | **Planejamento** (marcos, regras, tarefas, decisões) | `planejamento.md` | 6x ao dia, de 2 em 2 horas: 8h, 10h, 12h, 14h, 16h, 18h (`0 8,10,12,14,16,18 * * 1-5`) | nenhum | `#planejamento` |
-| 3 | **Captura** (insights, pessoas, cobranças em texto livre) | `captura.md` | 6x ao dia, mesmos horários da rotina 2 | nenhum | `#insights`, `#pessoas`, `#cobrancas` |
+| 2 | **Planejamento** (marcos, regras, tarefas, decisões) | `planejamento.md` | 5x ao dia, de 2 em 2 horas: 8h, 10h, 12h, 14h, 16h (`0 8,10,12,14,16 * * 1-5`) | nenhum | `#planejamento` |
+| 3 | **Captura** (insights, pessoas, cobranças em texto livre) | `captura.md` | 5x ao dia, mesmos horários da rotina 2 | nenhum | `#insights`, `#pessoas`, `#cobrancas` |
 | 4 | **Resumo semanal** | `resumo-semanal.md` | sexta, 16h (`0 16 * * 5`) | Calendar | `#briefing` |
-| 5 | **Observador de boards** (opcional) | `observador-boards.md` | de hora em hora, 8h às 18h (`0 8-18 * * 1-5`) | nenhum | `#alertas` |
+| 5 | **Observador de boards** (opcional) | `observador-boards.md` | de hora em hora, 8h às 16h (`0 8-16 * * 1-5`) | nenhum | `#alertas` |
 | 6 | **Teste de fundação** | `teste-fundacao.md` | manual, uma vez (gate da fase 0, já passou); só repita se mudar a conexão | Calendar | `#briefing` |
 
 ### Ferramentas da ponte que cada rotina usa
@@ -35,12 +35,12 @@ Este é o roteiro único para cadastrar no Grok Bot. Cada rotina tem um arquivo 
 
 | Rotina ou skill | Fase | Quando vai rodar | O que faz |
 | --- | --- | --- | --- |
-| **Preparador de reunião** | 2 | a cada 30 min, 7h às 19h (`*/30 7-19 * * 1-5`), olhando as próximas reuniões | Nota de preparação com pauta, pendências e documentos; posta em `#reunioes` |
+| **Preparador de reunião** | 2 | a cada 30 min, 7h às 16h30 (`*/30 7-16 * * 1-5`), olhando as próximas reuniões | Nota de preparação com pauta, pendências e documentos; posta em `#reunioes` |
 | **Coach de pessoas** (skill) | 2 | antes e depois de cada 1:1, sob demanda | Pauta e registro de 1:1, PDI; usa `pessoa_ler` na área restrita |
 | **Porta-voz** (pauta do CTO) | 2 | todo dia 9h, agindo só quando a reunião quinzenal for em 2 dias | Pauta: evoluções e conquistas, decisões, pontos de atenção; posta em `#cto` |
-| **Curador da memória** | 5 | toda noite, 22h (`0 22 * * 1-5`) | Organiza o vault, revisa a inbox, atualiza o índice |
+| **Curador da memória** | 5 | 7h10, dias úteis (`10 7 * * 1-5`), pois a ponte só fica ligada de 7h às 17h | Organiza o vault, revisa a inbox, atualiza o índice |
 | **Copiloto de reunião** (skill) | 3 | sob demanda, durante a call | Responde com a transcrição ao vivo |
-| **Escriba** | 4 | a cada 15 min, 8h às 19h, detectando reuniões que acabaram | Nota pós-reunião e rascunhos de ações para aprovar |
+| **Escriba** | 4 | a cada 15 min, 8h às 17h, detectando reuniões que acabaram | Nota pós-reunião e rascunhos de ações para aprovar |
 
 ## 4. Ordem de cadastro recomendada
 

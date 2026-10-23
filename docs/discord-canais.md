@@ -53,7 +53,7 @@ Comandos: /tarefa, /tarefas, /marcos e /ajuda · 545 de 1024 caracteres
 
 ```text
 🗓️ ENTRADA. Converse aqui com o Copiloto para planejar: marcos de entrega, regras do próximo marco de cada time, tarefas e decisões. Ele responde dizendo o que registrou, para você corrigir.
-Texto livre (lido a cada 2h, 8h–18h): "regras do próximo marco do fiscal: confiança 95, janela 8 semanas" · "marco NFC-e: tag entrega-x7, data 15/12".
+Texto livre (lido a cada 2h, 8h–16h): "regras do próximo marco do fiscal: confiança 95, janela 8 semanas" · "marco NFC-e: tag entrega-x7, data 15/12".
 Instantâneo: /tarefa · /tarefas · /marcos · /ajuda
 Regras de marco: confiança (percentil), janela de histórico, tipos, escopo fechado e observações. A tag do marco é a que o time escolheu nos work items.
 ```

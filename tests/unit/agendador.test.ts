@@ -23,11 +23,11 @@ beforeEach(async () => {
 });
 
 describe('dentroDaJanela', () => {
-  it('is true on weekdays between 7h and 19h in São Paulo', () => {
+  it('is true on weekdays between 7h and 17h in São Paulo', () => {
     expect(dentroDaJanela(new Date('2026-10-21T10:00:00Z'))).toBe(true);  // Wed 07:00
     expect(dentroDaJanela(new Date('2026-10-21T09:59:00Z'))).toBe(false); // Wed 06:59
-    expect(dentroDaJanela(new Date('2026-10-21T21:59:00Z'))).toBe(true);  // Wed 18:59
-    expect(dentroDaJanela(new Date('2026-10-21T22:00:00Z'))).toBe(false); // Wed 19:00
+    expect(dentroDaJanela(new Date('2026-10-21T19:59:00Z'))).toBe(true);  // Wed 16:59
+    expect(dentroDaJanela(new Date('2026-10-21T20:00:00Z'))).toBe(false); // Wed 17:00
     expect(dentroDaJanela(new Date('2026-10-24T15:00:00Z'))).toBe(false); // Sat
   });
 });

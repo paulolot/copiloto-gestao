@@ -31,7 +31,7 @@ O que só você pode fazer, porque depende das suas contas ou da sua máquina. M
 - [X] **Configurar o bot do Discord:** siga `docs/discord-configuracao.md` (intents, escopos `bot` e `applications.commands`, permissões Ver canais, Enviar mensagens e Ver histórico de mensagens, URL de convite).
 - [X] **Canais de entrada** (`#planejamento`, `#insights`, `#cobrancas`, `#pessoas`): criar, pôr os IDs no `.env` (`DISCORD_CANAL_PLANEJAMENTO`, `_INSIGHTS`, `_COBRANCAS`, `_PESSOAS`) e reiniciar a ponte.
 - [X] **Tópico dos canais:** copiar de `docs/discord-canais.md` o texto de cada canal para o campo Tópico (até 1024 caracteres, todos cabem).
-- [ ] **Cadastrar as rotinas no Grok Bot:** siga `grok/rotinas/README.md` (tabela com horários, conectores e ordem). Planejamento e Captura rodam 6x ao dia (8h, 10h, 12h, 14h, 16h, 18h).
+- [ ] **Cadastrar as rotinas no Grok Bot:** siga `grok/rotinas/README.md` (tabela com horários, conectores e ordem). Planejamento e Captura rodam 5x ao dia (8h, 10h, 12h, 14h, 16h).
 - [ ] **Testar os comandos `/`:** `/tarefa` e `/marcos` em `#planejamento`, `/insight` em `#insights`, `/cobrar` em `#cobrancas`, `/pessoa` em `#pessoas`. Respondem na hora, sem rotina.
 - [ ] **Testar a conversa:** escreva em `#planejamento` "regras do próximo marco do fiscal: confiança 95, janela de 8 semanas, escopo fechado" e depois "a tag é <tag>, entrega em <data>"; na próxima execução o Copiloto responde o que registrou.
 - [ ] **Regras dos marcos:** hoje as regras são confiança (percentil), janela de histórico, tipos, escopo fechado e uma observação em texto livre. Diga se há outras regras que você define a cada marco (por exemplo limite de WIP, itens que não podem entrar, dia de congelamento) para virarem regras de verdade.

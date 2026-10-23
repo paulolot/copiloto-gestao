@@ -1,8 +1,8 @@
 # Rotina: Observador de boards (RF-01, RF-04, RF-05)
 
-Cole este prompt numa rotina agendada do Grok Bot: **de hora em hora, dias úteis, 8h às 18h**.
+Cole este prompt numa rotina agendada do Grok Bot: **de hora em hora, dias úteis, 8h às 16h**.
 
-A ponte já sincroniza e posta os sinais novos em `#alertas` sozinha (a cada hora, 7h às 19h). Esta rotina é a camada de interpretação: ela lê os sinais e só fala quando há algo que o Paulo precisa saber **agora**. Se você preferir só os alertas automáticos da ponte, não cadastre esta rotina.
+A ponte já sincroniza e posta os sinais novos em `#alertas` sozinha (a cada hora, 7h às 17h). Esta rotina é a camada de interpretação: ela lê os sinais e só fala quando há algo que o Paulo precisa saber **agora**. Se você preferir só os alertas automáticos da ponte, não cadastre esta rotina.
 
 ---
 
