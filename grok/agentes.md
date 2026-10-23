@@ -4,6 +4,8 @@
 >
 > As **rotinas agendadas** (`grok/rotinas/`) continuam como estão; os agentes abaixo são para você **conversar** com o Copiloto sob demanda.
 
+> **Para criar os cinco de uma vez:** cole no Grok Bot o prompt de `criar-agentes.md`.
+
 ## Qual agente abrir
 
 | Quero… | Agente | Comandos `/` do Discord relacionados |
