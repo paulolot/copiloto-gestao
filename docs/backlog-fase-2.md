@@ -109,11 +109,11 @@ Legenda: **[código]** pode ser feito numa sessão na nuvem · **[Paulo]** depen
 - [ ] **T2.13 Validação com uso real** [Paulo + máquina] — depende de todas
   - Embeddings reais funcionando na máquina; rotinas cadastradas; uma preparação de reunião por dia útil, uma pauta de 1:1 por 1:1 e uma pauta do CTO no ciclo.
   - Registrar, a cada uso, "útil / não útil" e o que faltou ou sobrou (em `#planejamento` ou no checklist). Gate: úteis na maioria dos casos em 2 semanas.
-- [x] **T2.14 Pauta da reunião de pares (segunda, 11h)** [código] — depende só de ferramentas da fase 1; pedido do Paulo em 23/10/2026
-  - Reunião recorrente de segunda, 11h, com os pares Fábio Vendramin e Mateus Bahis: processos dos boards, times, troca de informação e decisões. Rotina `grok/rotinas/pauta-pares.md` (segunda, 9h): pendências da última reunião, processos de boards comuns a mais de um time, situação dos times e marcos, informações a compartilhar (notas com tema "pares", decisões, e-mails da semana) e decisões a tomar. Máximo de 6 itens, cada um 📣/💬/✅ com fonte. Grava `pauta-pares` na inbox (modelo `vault-template/reunioes/_modelo-pauta-pares.md`) e posta no `#reunioes`.
-  - Sem ferramenta nova: usa as da fase 1 (`boards_*`, `metricas_time`, `vault_*`, `tarefa_*`). Nada de `pessoas/` entra na pauta; envio aos pares só pela fila de aprovações. Assuntos entram durante a semana por `/insight tema:pares`.
-  - Pronto quando: texto pronto para colar e README das rotinas atualizado; o uso real entra no gate da T2.13.
-- [ ] **T2.14b Ferramenta `pares_pauta_dados`** (opcional, depois de 2 semanas de uso): se a rotina gastar execução demais ou errar ao cruzar times, mover a agregação (sinais repetidos em mais de um time, pendências das últimas reuniões) para a ponte.
+- [x] **T2.14 Reuniões recorrentes: pares e projeto Web** [código] — depende só de ferramentas da fase 1; pedido do Paulo em 23/10/2026
+  - Rotina única `grok/rotinas/reunioes-recorrentes.md` (nome no Grok Bot: `reunioes_recorrentes`; segunda e sexta, 9h) que acha a reunião do dia pelo título no Calendar e **sempre posta no `#reunioes`**. Segunda, 11h, "Reunião gerentes - IMEX" (pares Fábio Vendramin e Mateus Bahis: processos dos boards, times, informações, decisões). Sexta, 11h, "[IMEX] Projeto Web" (evolução do Web, impedimentos, questões, marco "Versão clássica" de 30/11/2026 e a planilha de acompanhamento lida pelo conector do Drive).
+  - Máximo de 6 itens, cada um 📣/💬/✅ com fonte; grava `pauta-pares` ou `pauta-web` na inbox (modelos `_modelo-pauta-pares.md` e `_modelo-pauta-web.md`); a pauta do Web guarda o resumo da planilha para comparar na semana seguinte. Sem ferramenta nova; nada de `pessoas/`; envio só pela fila de aprovações. Assuntos entram por `/insight tema:pares` e `/insight tema:web`.
+  - Pronto quando: texto pronto para colar e README atualizado; o uso real entra no gate da T2.13.
+- [ ] **T2.14b Ferramenta `pares_pauta_dados`** (opcional, depois de 2 semanas de uso): se a rotina gastar execução demais ou errar ao cruzar times, mover a agregação (sinais repetidos em mais de um time, pendências das últimas reuniões, diferença da planilha do Web) para a ponte.
 
 ## Ordem sugerida
 

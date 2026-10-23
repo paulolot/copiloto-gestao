@@ -36,7 +36,7 @@ Este é o roteiro único para cadastrar no Grok Bot. Cada rotina tem um arquivo 
 | Rotina ou skill | Fase | Quando vai rodar | O que faz |
 | --- | --- | --- | --- |
 | **Preparador de reunião** | 2 | a cada 30 min, 7h às 16h30 (`*/30 7-16 * * 1-5`), olhando as próximas reuniões | Nota de preparação com pauta, pendências e documentos; posta em `#reunioes` |
-| **Pauta dos pares** | 2 | segunda, 9h (`0 9 * * 1`), para a reunião das 11h com Fábio Vendramin e Mateus Bahis | Pendências, processos dos boards, times, informações e decisões; posta em `#reunioes` e grava `pauta-pares` (arquivo `pauta-pares.md`) |
+| **Reuniões recorrentes** (`reunioes_recorrentes`) | 2 | segunda e sexta, 9h (`0 9 * * 1,5`): pares ("Reunião gerentes - IMEX", 11h) e projeto Web ("[IMEX] Projeto Web", 11h) | Pendências, boards, times, marco "Versão clássica" (30/11), planilha do Web, decisões; posta sempre em `#reunioes` e grava `pauta-pares` ou `pauta-web` (arquivo `reunioes-recorrentes.md`); conectores Calendar, Gmail e Drive |
 | **Coach de pessoas** (skill) | 2 | antes e depois de cada 1:1, sob demanda | Pauta e registro de 1:1, PDI; usa `pessoa_ler` na área restrita |
 | **Porta-voz** (pauta do CTO) | 2 | todo dia 9h, agindo só quando a reunião quinzenal for em 2 dias | Pauta: evoluções e conquistas, decisões, pontos de atenção; posta em `#cto` |
 | **Curador da memória** | 5 | 7h10, dias úteis (`10 7 * * 1-5`), pois a ponte só fica ligada de 7h às 17h | Organiza o vault, revisa a inbox, atualiza o índice |
