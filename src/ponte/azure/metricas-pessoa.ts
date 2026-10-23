@@ -40,6 +40,15 @@ export interface RespostaColaboradores {
 export const AVISO_USO =
   'Dado individual e restrito, para o Paulo usar em 1:1, PDI e acompanhamento. Não ranquear nem comparar pessoas. Entregas contam para o dono atual do item.';
 
+const semAcento = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+/** A search matches the e-mail (uniqueName) or the display name; every word of the search must appear, in any order. */
+function casaComBusca(i: { dono?: string; donoNome?: string }, busca: string): boolean {
+  const alvo = semAcento(`${i.dono ?? ''} ${i.donoNome ?? ''}`);
+  const b = semAcento(busca).trim();
+  return alvo.includes(b) || b.split(/\s+/).every((p) => alvo.includes(p));
+}
+
 const ms = (s?: string) => (s ? new Date(s).getTime() : NaN);
 const validos = (v: number[]) => v.filter((n) => Number.isFinite(n) && n >= 0);
 
@@ -49,13 +58,13 @@ export function metricasColaboradores(
 ): RespostaColaboradores {
   const agora = opts.agora ?? new Date();
   const lim = opts.limites ?? limitesDoAmbiente();
-  const busca = opts.pessoa?.trim().toLowerCase();
+  const busca = opts.pessoa?.trim();
 
   const porPessoa = new Map<string, { itens: ItemBoard[]; times: Set<string> }>();
   for (const t of opts.timeIds) {
     for (const i of carregarItens(db, t)) {
       if (!i.dono) continue;
-      if (busca && !i.dono.toLowerCase().includes(busca)) continue;
+      if (busca && !casaComBusca(i, busca)) continue;
       const e = porPessoa.get(i.dono) ?? { itens: [], times: new Set<string>() };
       e.itens.push(i);
       e.times.add(t);

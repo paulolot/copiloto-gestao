@@ -58,7 +58,10 @@ export function pessoaPerfil(db: Database | undefined, pessoa: string, agora = n
 
   let board: unknown = null;
   if (db) {
-    try { board = JSON.parse(metricasColaborador(db, { pessoa, time })); }
+    // The board knows the person by the Azure DevOps name, which may differ from how Paulo calls them
+    const idAzdo = perfil ? texto(perfil.campos.azure_devops_id) : undefined;
+    const nomeNoBoard = idAzdo && !idAzdo.startsWith('[') ? idAzdo : pessoa;
+    try { board = JSON.parse(metricasColaborador(db, { pessoa: nomeNoBoard, time })); }
     catch (e) { avisos.push(`Board indisponível: ${(e as Error).message}`); }
   }
 

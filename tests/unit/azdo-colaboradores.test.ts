@@ -9,6 +9,10 @@ import { sincronizarTime } from '../../src/ponte/azure/sync.js';
 import { metricasColaboradores } from '../../src/ponte/azure/metricas-pessoa.js';
 import { metricasColaborador } from '../../src/ponte/tools/boards.js';
 import { AGORA, fakeFetch } from '../fixtures/azdo/respostas.js';
+import { pessoaPerfil } from '../../src/ponte/tools/pessoa-perfil.js';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
 import { makeTestDb } from './helpers.js';
 
 let db: Database;
@@ -31,6 +35,14 @@ describe('metricasColaboradores', () => {
     expect(ana.itensAbertos[0].id).toBe(1); // oldest in state first
   });
 
+  it('finds a person by display name, in any accent/case and with extra middle names', () => {
+    for (const q of ['Ana Souza', 'ana souza', 'ANA', 'Souza Ana', 'Ana Maria Souza']) {
+      const n = metricasColaboradores(db, { timeIds: ['fiscal'], pessoa: q, agora: AGORA }).colaboradores.length;
+      expect([q, n]).toEqual([q, q === 'Ana Maria Souza' ? 0 : 1]); // every word must appear: "Maria" does not
+    }
+    expect(metricasColaboradores(db, { timeIds: ['fiscal'], pessoa: 'Souza Silva', agora: AGORA }).colaboradores).toHaveLength(0);
+  });
+
   it('excludes items without owner and ignores people who do not match', () => {
     expect(metricasColaboradores(db, { timeIds: ['fiscal'], pessoa: 'joao', agora: AGORA }).colaboradores).toHaveLength(0);
     expect(metricasColaboradores(db, { timeIds: ['fiscal'], agora: AGORA }).colaboradores.map((c) => c.colaborador)).toEqual(['ana@empresa.com']);
@@ -44,5 +56,19 @@ describe('metricasColaboradores', () => {
 
   it('the tool errors when nobody matches', () => {
     expect(() => metricasColaborador(db, { pessoa: 'ninguem' }, AGORA)).toThrow('Nenhum colaborador');
+  });
+});
+
+describe('pessoa_perfil board signals', () => {
+  it('uses the azure_devops_id of the profile, so the name Paulo uses does not have to match the board', () => {
+    const raiz = mkdtempSync(join(tmpdir(), 'vault-board-'));
+    process.env.VAULT_PATH = raiz;
+    mkdirSync(join(raiz, 'pessoas/aninha'), { recursive: true });
+    writeFileSync(join(raiz, 'pessoas/aninha/perfil.md'), '---\ntipo: perfil\npessoa: "Aninha"\ntime: "Squad Fiscal"\nazure_devops_id: "Ana Souza"\n---\n');
+    try {
+      const p = pessoaPerfil(db, 'Aninha', AGORA);
+      expect((p.board as { colaboradores: { abertos: number }[] }).colaboradores[0].abertos).toBe(3);
+      expect(p.avisos.join(' ')).not.toContain('Board indisponível');
+    } finally { rmSync(raiz, { recursive: true, force: true }); }
   });
 });
