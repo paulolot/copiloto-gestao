@@ -53,10 +53,10 @@ Este é o roteiro único para cadastrar no Grok Bot. Cada rotina tem um arquivo 
 
 ## 5. Quantas execuções por dia
 
-Rotinas 1 a 5 somam por dia útil: 1 (briefing) + 6 (planejamento) + 6 (captura) + 11 (observador) = **24 execuções**, mais 1 por semana do resumo. Se o seu plano do Grok Bot limitar rotinas ou execuções:
+Rotinas 1 a 5 somam por dia útil: 1 (briefing) + 5 (planejamento) + 5 (captura) + 9 (observador) = **20 execuções**, mais 1 por semana do resumo. Se o seu plano do Grok Bot limitar rotinas ou execuções:
 
 - **Una Planejamento e Captura em uma rotina só** ("Conversas"), colando o prompt de `captura.md` depois do de `planejamento.md` no mesmo cadastro. Cai para 6 execuções por dia.
-- **Dispense o Observador de boards**: a ponte já sincroniza de hora em hora e posta sinais novos em `#alertas` sozinha. Cai para 13 execuções por dia.
+- **Dispense o Observador de boards**: a ponte já sincroniza de hora em hora e posta sinais novos em `#alertas` sozinha. Cai para 11 execuções por dia.
 - Os comandos `/tarefa`, `/insight`, `/pessoa`, `/cobrar`, `/marcos` e `/tarefas` não gastam execução: respondem na hora, direto pela ponte.
 
 ## 6. Como conferir que cada rotina está viva
