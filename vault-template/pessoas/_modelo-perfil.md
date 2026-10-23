@@ -17,6 +17,8 @@ restrito: true
 
 ## Perfil
 
+> Cadência de 1:1: `semanal`, `quinzenal`, `mensal`, `"45 dias"`… Use `nenhuma` para quem você só interage, sem 1:1 nem PDI: a pessoa sai dos lembretes.
+
 Breve descrição, experiência, pontos fortes.
 
 ## Objetivos

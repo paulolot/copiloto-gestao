@@ -12,6 +12,9 @@ import { getVaultRoot, pessoaLer } from './vault.js';
 const FUSO = 'America/Sao_Paulo';
 const DIA = 86_400_000;
 export const CADENCIA_PADRAO = 'mensal';
+/** `cadencia_1x1` values for people Paulo only interacts with: no 1:1 and no PDI reminders. */
+const SEM_CADENCIA = ['nenhuma', 'nenhum', 'nao', 'sem', 'nunca', 'nao se aplica', 'n/a'];
+export const semAcompanhamento = (cadencia?: string) => !!cadencia && SEM_CADENCIA.includes(cadencia.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase());
 const CADENCIAS: Record<string, number> = { semanal: 7, quinzenal: 14, mensal: 30, bimestral: 60, trimestral: 90, semestral: 180 };
 
 /** Pseudo team that holds the 1:1 and PDI signals; the scheduler never announces it in a channel. */
@@ -76,7 +79,7 @@ export function umAUmPendentes(agora = new Date()): RelatorioUmAUm {
     if (!perfilTxt && !datas.length) { ignoradas++; continue; }
 
     const perfil = perfilTxt ? lerFrontmatter(perfilTxt).campos : {};
-    if (texto(perfil.ativo) === 'false') continue;
+    if (texto(perfil.ativo) === 'false' || semAcompanhamento(texto(perfil.cadencia_1x1))) continue;
     const nome = texto(perfil.pessoa) ?? pasta.name;
     let cadencia = texto(perfil.cadencia_1x1) ?? CADENCIA_PADRAO;
     let dias = cadenciaEmDias(cadencia);

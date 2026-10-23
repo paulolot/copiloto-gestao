@@ -94,6 +94,16 @@ describe('umAUmPendentes', () => {
     expect(umAUmPendentes(HOJE).pdi_vencidos).toEqual([{ pessoa: 'Ana Souza', proxima_revisao: '2026-10-13', dias_atraso: 10 }]);
   });
 
+  it('skips people marked with no 1:1 cadence (only interaction), including their PDI and signals', () => {
+    grava('pessoas/arq/perfil.md', perfil('Arquiteto Só Interação', 'nenhuma'));
+    grava('pessoas/arq/pdi.md', '---\ntipo: pdi\nproxima_revisao: 2026-01-01\n---\n');
+    grava('pessoas/ana/perfil.md', perfil('Ana Souza'));
+    const r = umAUmPendentes(HOJE);
+    expect(r.um_a_um.map((p) => p.pessoa)).toEqual(['Ana Souza']);
+    expect(r.pdi_vencidos).toEqual([]);
+    expect(sinaisDeUmAUm(HOJE).map((x) => x.chave)).not.toContain('1x1:arquiteto-so-interacao');
+  });
+
   it('never returns note content', () => {
     grava('pessoas/ana/perfil.md', perfil('Ana Souza'));
     grava('pessoas/ana/1x1/2026-09-01-1x1.md', umaUm('2026-09-01'));
