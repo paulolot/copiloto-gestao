@@ -153,6 +153,30 @@ export function slugify(titulo: string): string {
   return slug || 'nota';
 }
 
+/**
+ * Folder (inside pessoas/) of a person. "Luiz", "Luiz Fernando" and "Luiz Fernando Rodrigues Pereira" all reach
+ * `pessoas/luiz-fernando/`: an exact folder wins; otherwise one folder whose name starts the query, or that the
+ * query starts, or that matches the `pessoa` field of its perfil.md. Two candidates is an error (never a guess).
+ * With no match the plain slug is returned, so new people still get their own folder.
+ */
+export function pastaPessoa(pessoa: string): string {
+  const alvo = slugify(pessoa);
+  const base = join(getVaultRoot(), 'pessoas');
+  if (!existsSync(base)) return alvo;
+  const pastas = readdirSync(base, { withFileTypes: true }).filter((e) => e.isDirectory() && !e.name.startsWith('.') && !e.name.startsWith('_')).map((e) => e.name);
+  if (pastas.includes(alvo)) return alvo;
+  const casa = (a: string, b: string) => a === b || a.startsWith(`${b}-`) || b.startsWith(`${a}-`);
+  const achadas = pastas.filter((p) => {
+    if (casa(alvo, p)) return true;
+    try {
+      const nome = /^pessoa:\s*["']?([^"'\r\n]+)/m.exec(readFileSync(join(base, p, 'perfil.md'), 'utf8'))?.[1];
+      return !!nome && casa(alvo, slugify(nome));
+    } catch { return false; }
+  });
+  if (achadas.length > 1) throw new Error(`"${pessoa}" corresponde a mais de uma pessoa (${achadas.join(', ')}). Use o nome completo`);
+  return achadas[0] ?? alvo;
+}
+
 /** Notes created by the Copiloto always go to inbox/ and never overwrite an existing note. */
 export function vaultCriarNota(nota: NovaNota): string {
   const root = getVaultRoot();
@@ -212,7 +236,8 @@ export function pessoaRegistrar(r: RegistroPessoa): string {
   if (!r.texto.trim()) throw new Error('Informe o texto do registro');
   if (!TIPOS_REGISTRO_PESSOA.includes(r.tipo)) throw new Error(`Tipo inválido. Use: ${TIPOS_REGISTRO_PESSOA.join(', ')}`);
   const root = getVaultRoot();
-  const dir = safePath(root, `pessoas/${slugify(r.pessoa)}`, true);
+  const pasta = pastaPessoa(r.pessoa);
+  const dir = safePath(root, `pessoas/${pasta}`, true);
   mkdirSync(dir, { recursive: true });
   const data = new Date().toISOString().slice(0, 10);
   const content = `---
@@ -242,11 +267,12 @@ ${r.texto.trim()}
 /** Notes about one person, newest first (paths only). Restricted-area tool. */
 export function pessoaListar(pessoa: string): string[] {
   const root = getVaultRoot();
-  const dir = safePath(root, `pessoas/${slugify(pessoa)}`, true);
+  const pasta = pastaPessoa(pessoa);
+  const dir = safePath(root, `pessoas/${pasta}`, true);
   if (!existsSync(dir)) return [];
   // newest first: by date, then by the sequence number of the day ("...-2.md" comes after "....md")
   const chave = (f: string) => { const m = /^(\d{4}-\d{2}-\d{2})-.*?(?:-(\d+))?\.md$/.exec(f); return `${m?.[1] ?? ''}|${String(m?.[2] ?? 1).padStart(4, '0')}`; };
-  return readdirSync(dir).filter((f) => f.endsWith('.md')).sort((x, y) => chave(y).localeCompare(chave(x))).map((f) => `pessoas/${slugify(pessoa)}/${f}`);
+  return readdirSync(dir).filter((f) => f.endsWith('.md')).sort((x, y) => chave(y).localeCompare(chave(x))).map((f) => `pessoas/${pasta}/${f}`);
 }
 
 /** Reads a note of the restricted area; refuses any path outside pessoas/. */

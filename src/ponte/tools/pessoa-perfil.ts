@@ -6,7 +6,7 @@
 import { existsSync, readdirSync } from 'fs';
 import { join } from 'path';
 import type { Database } from 'sql.js';
-import { getVaultRoot, pessoaLer, pessoaListar, slugify, vaultListar, vaultLer } from './vault.js';
+import { getVaultRoot, pastaPessoa, pessoaLer, pessoaListar, vaultListar, vaultLer } from './vault.js';
 import { lerFrontmatter, texto, type ValorFrontmatter } from './frontmatter.js';
 import { metricasColaborador } from './boards.js';
 
@@ -26,7 +26,7 @@ export interface PessoaPerfil {
   avisos: string[];
 }
 
-const dir = (pessoa: string) => `pessoas/${slugify(pessoa)}`;
+const dir = (pessoa: string) => `pessoas/${pastaPessoa(pessoa)}`;
 const lerOpcional = (c: string) => { try { return pessoaLer(c); } catch { return undefined; } };
 
 export function pessoaPerfil(db: Database | undefined, pessoa: string, agora = new Date()): PessoaPerfil {

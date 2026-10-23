@@ -11,7 +11,7 @@ import { enforcePolicy } from '../middleware/autonomy.js';
 import { lerFrontmatter, texto, type ValorFrontmatter } from './frontmatter.js';
 import { competenciasDoPlano, papelLer } from './papeis.js';
 import { hojeSp, umAUmPendentes, type PendenciaPdi } from './um-a-um.js';
-import { getVaultRoot, pessoaLer, slugify } from './vault.js';
+import { getVaultRoot, pastaPessoa, pessoaLer } from './vault.js';
 import { CANAIS_MENSAGEM, type CanalMensagem } from './mensagens.js';
 
 export const STATUS_ACAO = ['aberta', 'em andamento', 'concluída', 'cancelada'] as const;
@@ -38,7 +38,7 @@ export interface PdiLido {
 }
 
 const sem = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
-const caminhoPdi = (pessoa: string) => `pessoas/${slugify(pessoa)}/pdi.md`;
+const caminhoPdi = (pessoa: string) => `pessoas/${pastaPessoa(pessoa)}/pdi.md`;
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
 
 export function normalizarStatus(s: string): StatusAcao {
@@ -131,7 +131,7 @@ function setCampo(conteudo: string, chave: string, valor: string): string {
 
 function gravar(pessoa: string, conteudo: string, exclusivo = false): string {
   const caminho = caminhoPdi(pessoa);
-  const dir = join(getVaultRoot(), 'pessoas', slugify(pessoa));
+  const dir = join(getVaultRoot(), 'pessoas', pastaPessoa(pessoa));
   mkdirSync(dir, { recursive: true });
   writeFileSync(join(getVaultRoot(), caminho), setCampo(conteudo, 'revisado', 'false'), { encoding: 'utf8', flag: exclusivo ? 'wx' : 'w' });
   return caminho;
@@ -157,7 +157,7 @@ export function pdiAtualizar(pessoa: string, op: OperacaoPdi, agora = new Date()
     let papel = '';
     let nome = pessoa.trim();
     try {
-      const perfil = lerFrontmatter(pessoaLer(`pessoas/${slugify(pessoa)}/perfil.md`)).campos;
+      const perfil = lerFrontmatter(pessoaLer(`pessoas/${pastaPessoa(pessoa)}/perfil.md`)).campos;
       papel = texto(perfil.papel) ?? '';
       nome = texto(perfil.pessoa) ?? nome;
     } catch { /* no profile yet: the PDI is created without role and pdi_ler warns */ }
