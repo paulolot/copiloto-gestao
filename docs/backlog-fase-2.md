@@ -27,7 +27,7 @@ Legenda: **[código]** pode ser feito numa sessão na nuvem · **[Paulo]** depen
 ## Tarefas
 
 - [~] **T2.0 Decisões do Paulo** [Paulo] — destrava as demais
-  - **Respondido em 22/10/2026:** embeddings **local**; 1:1 **mensal** com título "Feedback 1:1 - [Colaborador]"; CTO sem depender da agenda (ver T2.9). Faltam: critérios de reunião dispensável, revisão do PDI e planos por papel.
+  - **Respondido em 22/10/2026:** embeddings **local**; 1:1 **mensal** com título "Feedback 1:1 - [Colaborador]"; CTO sem depender da agenda (ver T2.9). PDI revisado a cada **6 meses** (23/10/2026). Planos por papel: v1 montada (23/10/2026). Falta: critérios de reunião dispensável (proposta do Claude em validação).
   - **Embeddings (T2.1):** modelo **local** na máquina do Paulo (nenhum texto sai da máquina; mais lento e precisa baixar o modelo uma vez) ou **API** (mais simples e rápido; o texto das notas vai ao provedor, o que o plano permite só com autorização expressa). Recomendação: local, por causa de PDI e 1:1.
   - **Reunião dispensável ou delegável (T2.8):** quais critérios valem (sem pauta, sem decisão nas últimas ocorrências, o Paulo não é o decisor, só informativa, pode ser resumo em texto…).
   - **Identificar reuniões na agenda (T2.6, T2.7, T2.9):** como o Copiloto reconhece um 1:1 (título com "1:1"? só dois participantes?), a reunião com o CTO (título? e-mail do CTO?) e a quinzena em que ela cai.
