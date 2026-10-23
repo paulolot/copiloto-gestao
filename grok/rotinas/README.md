@@ -13,6 +13,7 @@ Este é o roteiro único para cadastrar no Grok Bot. Cada rotina tem um arquivo 
 | 3 | **Captura** (insights, pessoas, cobranças em texto livre) | `captura.md` | 5x ao dia, mesmos horários da rotina 2 | nenhum | `#insights`, `#pessoas`, `#cobrancas` |
 | 4 | **Resumo semanal** | `resumo-semanal.md` | sexta, 16h (`0 16 * * 5`) | Calendar | `#briefing` |
 | 5 | **Observador de boards** (opcional) | `observador-boards.md` | de hora em hora, 8h às 16h (`0 8-16 * * 1-5`) | nenhum | `#alertas` |
+| 7 | **Porta-voz do CTO** | `porta-voz-cto.md` | dias úteis, 9h (`0 9 * * 1-5`); só age quando a pauta está devida (a cada 15 dias), há evento "Saulo/Paulo" em até 2 dias ou o Paulo pedir | Calendar | `#cto`, e a fila `#aprovacoes` se houver aviso grave |
 | 6 | **Teste de fundação** | `teste-fundacao.md` | manual, uma vez (gate da fase 0, já passou); só repita se mudar a conexão | Calendar | `#briefing` |
 
 ### Ferramentas da ponte que cada rotina usa
@@ -24,6 +25,7 @@ Este é o roteiro único para cadastrar no Grok Bot. Cada rotina tem um arquivo 
 | Captura | `discord_ler_novas`, `discord_marcar_lido`, `discord_postar`, `vault_criar_nota`, `vault_buscar`, `pessoa_registrar`, `tarefa_criar`, `tarefa_listar`, `tarefa_concluir` |
 | Resumo semanal | `boards_sincronizar`, `metricas_time`, `boards_alertas`, `boards_itens_problema`, `boards_marcos`, `vault_buscar`, `conquista_registrar`, `tarefa_listar`, `discord_postar` |
 | Observador de boards | `boards_alertas`, `boards_itens_problema`, `discord_postar` |
+| Porta-voz do CTO | `cto_pauta_dados`, `cto_pauta_salvar`, `ponto_atencao_listar`, `ponto_atencao_candidatos`, `decisao_cto_listar`, `boards_marcos`, `metricas_time`, `vault_ler`, `mensagem_propor`, `aprovacao_consultar`, `discord_postar` |
 
 ## 2. Skill já pronta
 

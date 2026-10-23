@@ -11,6 +11,7 @@ import { logAudit } from './db/audit.js';
 import { enforcePolicy } from './middleware/autonomy.js';
 import type { IndiceVault, ResultadoSemantico } from './vault/indice.js';
 import { umAUmPendentes } from './tools/um-a-um.js';
+import { ctoPautaDados, ctoPautaSalvar, decisaoCtoAtualizar, decisaoCtoListar, decisaoCtoRegistrar, pontoAtencaoAtualizar, pontoAtencaoCandidatos, pontoAtencaoListar, pontoAtencaoRegistrar, STATUS_ITEM } from './tools/cto.js';
 import { umAUmPreparar, umAUmRegistrar, umAUmSalvarPauta } from './tools/pauta-1x1.js';
 import { pdiAtualizar, pdiAtrasados, pdiCompartilhar, pdiLer, STATUS_ACAO } from './tools/pdi.js';
 import { CANAIS_MENSAGEM as CANAIS_PDI } from './tools/mensagens.js';
@@ -112,6 +113,93 @@ export function createMcpServer(db: Database, deps: McpDeps = {}): McpServer {
     'Lê o plano de um papel (Tech Lead, Scrum Master…): competências, expectativas por nível, trilha de crescimento e sinais de que a pessoa está pronta. Avisa se o plano não foi revisado ou está incompleto',
     { papel: z.string().min(2).max(80) },
     ({ papel }) => audited(db, 'papel_ler', { papel }, () => JSON.stringify(papelLer(papel), null, 2)),
+  );
+
+  // CTO meeting (T2.9): open area (cto/), level sozinho; nothing here is sent to the CTO
+  const status = z.enum(STATUS_ITEM as [string, ...string[]]);
+  const dataIso = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+  const json = (v: unknown) => JSON.stringify(v, null, 2);
+
+  mcp.tool(
+    'ponto_atencao_registrar',
+    'Registra um ponto de atenção para a reunião com o CTO (o que vi, desde quando, o que já fiz, o que pode acontecer, o que preciso). "Desde quando" vem de um sinal datado (campo sinal, formato time:chave de ponto_atencao_candidatos) ou de uma data. Nenhum ponto vai à pauta sem "o que já fiz"',
+    {
+      titulo: z.string().min(3).max(200), o_que_vi: z.string().min(3).max(4000),
+      desde: dataIso.optional(), sinal: z.string().max(200).optional(),
+      ja_fiz: z.string().max(4000).optional(), pode_acontecer: z.string().max(4000).optional(), preciso: z.string().max(4000).optional(),
+      fontes: z.array(z.string().max(300)).optional(),
+    },
+    (a) => audited(db, 'ponto_atencao_registrar', { titulo: a.titulo, sinal: a.sinal }, () => json(pontoAtencaoRegistrar(db, a))),
+  );
+
+  mcp.tool(
+    'ponto_atencao_atualizar',
+    'Atualiza um ponto de atenção (id vem de ponto_atencao_listar): campos, status (aberto, resolvido, descartado) e resolução',
+    {
+      id: z.string().min(3).max(200), status: status.optional(), titulo: z.string().max(200).optional(), resolucao: z.string().max(4000).optional(), desde: dataIso.optional(),
+      o_que_vi: z.string().max(4000).optional(), ja_fiz: z.string().max(4000).optional(), pode_acontecer: z.string().max(4000).optional(), preciso: z.string().max(4000).optional(),
+    },
+    ({ id, status: st, titulo, resolucao, desde, ...campos }) =>
+      audited(db, 'ponto_atencao_atualizar', { id, status: st }, () => json(pontoAtencaoAtualizar({ id, status: st as never, titulo, resolucao, desde, campos }))),
+  );
+
+  mcp.tool(
+    'ponto_atencao_listar',
+    'Lista os pontos de atenção (padrão: abertos), dizendo quais estão prontos para a pauta e o que falta nos demais',
+    { status: status.optional() },
+    ({ status: st }) => audited(db, 'ponto_atencao_listar', { status: st }, () => json(pontoAtencaoListar(st as never))),
+  );
+
+  mcp.tool(
+    'ponto_atencao_candidatos',
+    'Sinais datados que podem virar ponto de atenção (o Paulo decide): amarelo há mais de 3 dias úteis, marco em risco, sinal vermelho, 1:1 atrasado e revisão de PDI vencida. Não registra nada',
+    {},
+    () => audited(db, 'ponto_atencao_candidatos', {}, () => json(pontoAtencaoCandidatos(db))),
+  );
+
+  mcp.tool(
+    'decisao_cto_registrar',
+    'Registra uma decisão que o Paulo precisa do CTO: problema, opções, recomendação e o que acontece se nada for decidido. Só vai à pauta completa',
+    {
+      titulo: z.string().min(3).max(200), problema: z.string().min(3).max(4000), opcoes: z.array(z.string().max(1000)).optional(),
+      recomendacao: z.string().max(4000).optional(), se_nada: z.string().max(4000).optional(), fontes: z.array(z.string().max(300)).optional(),
+    },
+    (a) => audited(db, 'decisao_cto_registrar', { titulo: a.titulo }, () => json(decisaoCtoRegistrar(a))),
+  );
+
+  mcp.tool(
+    'decisao_cto_atualizar',
+    'Atualiza uma decisão pendente para o CTO (id vem de decisao_cto_listar): campos, status e resolução',
+    {
+      id: z.string().min(3).max(200), status: status.optional(), titulo: z.string().max(200).optional(), resolucao: z.string().max(4000).optional(),
+      problema: z.string().max(4000).optional(), opcoes: z.string().max(4000).optional(), recomendacao: z.string().max(4000).optional(), se_nada: z.string().max(4000).optional(),
+    },
+    ({ id, status: st, titulo, resolucao, ...campos }) =>
+      audited(db, 'decisao_cto_atualizar', { id, status: st }, () => json(decisaoCtoAtualizar({ id, status: st as never, titulo, resolucao, campos }))),
+  );
+
+  mcp.tool(
+    'decisao_cto_listar',
+    'Lista as decisões pendentes para o CTO (padrão: abertas), com o que falta em cada uma',
+    { status: status.optional() },
+    ({ status: st }) => audited(db, 'decisao_cto_listar', { status: st }, () => json(decisaoCtoListar(st as never))),
+  );
+
+  mcp.tool(
+    'cto_pauta_dados',
+    'Reúne os dados da pauta quinzenal do CTO: se a pauta está devida (a cada 15 dias), conquistas revisadas desde a última pauta (crédito ao time), decisões pendentes, pontos de atenção prontos (com "o que já fiz"), candidatos, sinais com data, marcos e percentis por time. Conquistas primeiro na pauta',
+    { desde: dataIso.optional().describe('Padrão: data da última pauta, ou 15 dias atrás') },
+    ({ desde }) => audited(db, 'cto_pauta_dados', { desde }, () => json(ctoPautaDados(db, { desde }))),
+  );
+
+  mcp.tool(
+    'cto_pauta_salvar',
+    'Grava a pauta do CTO em cto/AAAA-MM-DD-pauta.md (revisado: false). Informe os ids dos pontos e decisões que entraram: um ponto sem "o que já fiz" é recusado. Não envia nada ao CTO: relatório ou aviso só pela fila (mensagem_propor)',
+    {
+      texto: z.string().min(1).max(30000), fontes: z.array(z.string().max(300)).min(1),
+      pontos_incluidos: z.array(z.string().max(200)), decisoes_incluidas: z.array(z.string().max(200)).optional(),
+    },
+    (a) => audited(db, 'cto_pauta_salvar', { pontos: a.pontos_incluidos, decisoes: a.decisoes_incluidas }, () => `Pauta salva em ${ctoPautaSalvar(a)}. Poste no #cto e avise o Paulo; nada foi enviado ao CTO.`),
   );
 
   mcp.tool(

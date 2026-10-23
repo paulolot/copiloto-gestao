@@ -86,11 +86,12 @@ Legenda: **[código]** pode ser feito numa sessão na nuvem · **[Paulo]** depen
   - A rotina do briefing aplica os critérios definidos em T2.0 e lista, com o **motivo**, as reuniões do dia que podem ser delegadas ou dispensadas. Só sugere; nunca recusa nem aceita convite (isso pede OK).
   - Pronto quando: testes do histórico; critérios escritos no prompt do briefing.
 
-- [ ] **T2.9 Pontos de atenção e pauta do CTO** [código] (RF-25, RF-37) — depende de T2.2, T2.5 e T1 (sinais e marcos)
+- [x] **T2.9 Pontos de atenção e pauta do CTO** [código] (RF-25, RF-37) — depende de T2.2, T2.5 e T1 (sinais e marcos)
   - **Registro de pontos de atenção** (`cto/pontos-de-atencao/`): o que vi, desde quando, o que já fiz, o que pode acontecer, o que preciso do CTO. Ferramentas `ponto_atencao_registrar`, `ponto_atencao_atualizar`, `ponto_atencao_listar`. Ligado a um sinal datado quando houver (o "desde quando" vem do sinal). **Nenhum ponto vai à pauta sem "o que já fiz"**: a ferramenta avisa quando falta.
   - **Sugestão automática:** sinal amarelo com mais de N dias úteis, marco em risco e `1x1:<pessoa>` atrasado viram *candidatos* a ponto de atenção (o Paulo decide).
   - Ferramenta `cto_pauta_dados(desde)`: conquistas revisadas desde a última reunião (com crédito ao time), decisões pendentes (problema, opções, recomendação, o que acontece se nada for decidido), pontos de atenção abertos, marcos e percentis por time.
   - Rotina `grok/rotinas/porta-voz-cto.md` (todo dia 9h; **por cadência, não por evento**: a reunião costuma ser desmarcada e sem eventos novos, então a pauta é remontada a cada 15 dias, e antes disso se houver evento com "Saulo/Paulo" no título nos próximos 2 dias ou se o Paulo pedir): monta a pauta no modelo `cto/_modelo-pauta.md` (**conquistas primeiro**), grava em `cto/AAAA-MM-DD-pauta.md` (`revisado: false`) e posta no `#cto` para o Paulo. Algo grave gera **sugestão** de aviso curto ao CTO na hora. Relatório ou aviso ao CTO só sai pela fila de aprovações e não sobe de nível.
+  - Entregue (23/10/2026): `ponto_atencao_registrar/atualizar/listar/candidatos`, `decisao_cto_registrar/atualizar/listar` (a decisão pendente tem registro próprio em `cto/decisoes-pendentes/`), `cto_pauta_dados` (cadência de 15 dias, conquistas revisadas desde a última pauta, pontos prontos e sem ação já tomada, candidatos, sinais, graves, marcos e percentis por time) e `cto_pauta_salvar` (recusa ponto sem "o que já fiz"). Rotina `grok/rotinas/porta-voz-cto.md`. Nenhuma ferramenta envia algo ao CTO.
   - Pronto quando: testes cobrem o registro, a regra "sem ação já tomada", a agregação e a ausência de envio sem aprovação.
 
 - [~] **T2.10 Skills e rotinas do Grok Bot** [código] — depende de T2.4 a T2.9 e da persona v1
