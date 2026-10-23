@@ -58,11 +58,16 @@ export function pessoaPerfil(db: Database | undefined, pessoa: string, agora = n
 
   let board: unknown = null;
   if (db) {
-    // The board knows the person by the Azure DevOps name, which may differ from how Paulo calls them
-    const idAzdo = perfil ? texto(perfil.campos.azure_devops_id) : undefined;
-    const nomeNoBoard = idAzdo && !idAzdo.startsWith('[') ? idAzdo : pessoa;
-    try { board = JSON.parse(metricasColaborador(db, { pessoa: nomeNoBoard, time })); }
-    catch (e) { avisos.push(`Board indisponível: ${(e as Error).message}`); }
+    // The board knows the person by its own identifier (display name or e-mail), which may differ from how Paulo
+    // calls them and from the company e-mail. Try, in order: azure_devops_id, e-mail, the name asked, the profile name.
+    const campo = (k: string) => { const v = perfil ? texto(perfil.campos[k]) : undefined; return v && !v.startsWith('[') ? v : undefined; };
+    const candidatos = [...new Set([campo('azure_devops_id'), campo('email'), pessoa.trim(), campo('pessoa')].filter((x): x is string => !!x))];
+    for (const c of candidatos) {
+      try { board = JSON.parse(metricasColaborador(db, { pessoa: c, time })); break; } catch { /* try the next identifier */ }
+    }
+    if (board === null) {
+      avisos.push(`Board indisponível: nenhum responsável no Azure DevOps casou com o azure_devops_id, o e-mail ou o nome do perfil (ou o time ainda não foi sincronizado). Confira o campo azure_devops_id: use o nome ou o e-mail exatamente como aparece no card`);
+    }
   }
 
   const conquistas = time ? conquistasDoTime(time) : [];

@@ -60,6 +60,28 @@ describe('metricasColaboradores', () => {
 });
 
 describe('pessoa_perfil board signals', () => {
+  const comPerfil = (campos: string, fn: () => void) => {
+    const raiz = mkdtempSync(join(tmpdir(), 'vault-board-'));
+    process.env.VAULT_PATH = raiz;
+    mkdirSync(join(raiz, 'pessoas/aninha'), { recursive: true });
+    writeFileSync(join(raiz, 'pessoas/aninha/perfil.md'), `---\ntipo: perfil\npessoa: "Aninha"\ntime: "Squad Fiscal"\n${campos}---\n`);
+    try { fn(); } finally { rmSync(raiz, { recursive: true, force: true }); }
+  };
+  const abertos = (p: ReturnType<typeof pessoaPerfil>) => (p.board as { colaboradores: { abertos: number }[] } | null)?.colaboradores[0].abertos;
+
+  it('falls back to the e-mail when azure_devops_id does not match, and ignores [AJUSTAR] placeholders', () => {
+    comPerfil('azure_devops_id: "nome que nao existe"\nemail: "ana@empresa.com"\n', () => expect(abertos(pessoaPerfil(db, 'Aninha', AGORA))).toBe(3));
+    comPerfil('azure_devops_id: "[AJUSTAR]"\nemail: "ana@empresa.com"\n', () => expect(abertos(pessoaPerfil(db, 'Aninha', AGORA))).toBe(3));
+  });
+
+  it('says what to fix when no identifier matches', () => {
+    comPerfil('email: "outra@imex.com.br"\n', () => {
+      const p = pessoaPerfil(db, 'Aninha', AGORA);
+      expect(p.board).toBeNull();
+      expect(p.avisos.join(' ')).toContain('azure_devops_id');
+    });
+  });
+
   it('uses the azure_devops_id of the profile, so the name Paulo uses does not have to match the board', () => {
     const raiz = mkdtempSync(join(tmpdir(), 'vault-board-'));
     process.env.VAULT_PATH = raiz;
