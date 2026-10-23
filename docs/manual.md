@@ -303,6 +303,8 @@ A skill **Coach de pessoas** (fase 2) e a **Copiloto de reunião** (fase 3) aind
 
 ## 8. Rotinas do Grok Bot
 
+> Para conversar com o Copiloto sob demanda, `grok/agentes.md` organiza os assuntos em 5 agentes (Boards, Planejamento, Pessoas, Comunicação, Memória), com instruções prontas para colar e a lista de ferramentas e comandos de cada um.
+
 ### Ferramentas que cada rotina usa
 
 | Rotina | Ferramentas |
