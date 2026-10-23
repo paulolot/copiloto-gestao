@@ -1,6 +1,6 @@
 # Rotina: Planejamento por conversa no #planejamento (marcos, regras e tarefas)
 
-Cole este prompt numa rotina agendada do Grok Bot **5 vezes por dia, de 2 em 2 horas, dias úteis: 8h, 10h, 12h, 14h e 16h** (fuso de São Paulo). Para registrar na hora, use os comandos `/tarefa`, `/tarefas` e `/marcos` no `#planejamento`, ou converse direto no app do Grok Bot: as mesmas ferramentas valem lá.
+Esta rotina também lê o `#reunioes` para cadastrar reuniões recorrentes (seção abaixo; o `DISCORD_CANAL_REUNIOES` precisa estar no `.env` e o bot precisa de "Ver histórico" nesse canal). Cole este prompt numa rotina agendada do Grok Bot **5 vezes por dia, de 2 em 2 horas, dias úteis: 8h, 10h, 12h, 14h e 16h** (fuso de São Paulo). Para registrar na hora, use os comandos `/tarefa`, `/tarefas` e `/marcos` no `#planejamento`, ou converse direto no app do Grok Bot: as mesmas ferramentas valem lá.
 
 Pré-requisitos: canal `#planejamento` criado, `DISCORD_CANAL_PLANEJAMENTO` no `.env`, e o **Message Content Intent** do bot ligado no Discord Developer Portal (ou mencione o bot com @ nas mensagens). Ver `docs/checklist-paulo.md`.
 
@@ -35,6 +35,14 @@ Use `boards_tags` quando ele não lembrar a tag: mostre as tags dos itens aberto
 
 ## Decisões e anotações
 Se ele registrar uma decisão ("decidimos que..."), crie uma nota com `vault_criar_nota` (tipo `decisao`, com o porquê e a fonte "conversa no #planejamento de <data>"). Se faltar o porquê, pergunte.
+
+## Reuniões recorrentes (canal #reunioes)
+Além do #planejamento, chame `discord_ler_novas` com canal `reunioes`: é onde o Paulo cadastra reuniões recorrentes em texto livre ("toda terça 15h, Revisão de arquitetura, com o time fiscal"; "a daily do web é toda manhã às 9h"). Para cada mensagem:
+- Pedido de nova reunião → `reuniao_recorrente_cadastrar`. O `titulo` é o do evento no Google Calendar: se o Paulo não disse o título exato, procure o evento no Calendar pelo dia e hora e confirme com ele; na dúvida, pergunte. Preencha só o que ele disse (participantes, times, marco, fontes com os links, instruções de como quer a pauta); nunca invente.
+- Mudar ou tirar uma reunião → `reuniao_recorrente_listar` para achar o número, depois `reuniao_recorrente_ajustar` ou `reuniao_recorrente_remover` (só se ele pedir claramente para remover).
+- Responda no #reunioes com `discord_postar` dizendo exatamente o que ficou cadastrado (título, dia, hora, frequência, assunto) e que a pauta chega ali na manhã do dia.
+- Se a reunião cadastrada cai hoje, avise que a pauta de hoje só sai se ele pedir ("prepara a de hoje"); nesse caso siga a rotina `reunioes_recorrentes` para essa reunião.
+- Depois de tratar, `discord_marcar_lido` do canal `reunioes`. Se uma ferramenta falhar, diga o erro e não marque como lido.
 
 ## Limites
 - Não envie mensagem, e-mail ou convite a ninguém; isso exige aprovação na fila.

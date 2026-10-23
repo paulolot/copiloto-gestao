@@ -73,7 +73,7 @@ describe('ajuda dos canais e documentação', () => {
 
   it('a topic mentions exactly the commands that work in that channel, and only existing ones', () => {
     for (const c of Object.keys(NOMES_CANAIS) as CanalId[]) {
-      const citados = new Set([...TOPICOS[c].matchAll(/\/([a-z]+)/g)].map((m) => m[1]).filter((n) => COMANDOS.some((x) => x.nome === n)));
+      const citados = new Set([...TOPICOS[c].matchAll(/\/([a-z_]+)/g)].map((m) => m[1]).filter((n) => COMANDOS.some((x) => x.nome === n)));
       const devem = COMANDOS.filter((x) => x.canais === 'todos' || x.canais.includes(c)).map((x) => x.nome);
       expect([...citados].sort()).toEqual(devem.sort());
     }

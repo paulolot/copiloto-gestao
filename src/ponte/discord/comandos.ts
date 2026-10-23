@@ -1,7 +1,7 @@
 /**
  * Slash commands of the Copiloto server (only the owner, each in its own channels).
  * They write straight to the bridge, so they answer at once, with no routine in between:
- * /tarefa /tarefas /marcos /cobrar /insight /pessoa /ajuda.
+ * /tarefa /tarefas /marcos /cobrar /insight /pessoa /reuniao_nova /reuniao_lista /reuniao_ajustar /reuniao_remover /ajuda.
  */
 import { SlashCommandBuilder } from 'discord.js';
 import type { Database } from 'sql.js';
@@ -10,6 +10,7 @@ import { marcoListar, statusDoMarco } from '../azure/marcos.js';
 import { acharTime } from '../azure/escopo.js';
 import { pessoaRegistrar, TIPOS_REGISTRO_PESSOA, vaultCriarNota } from '../tools/vault.js';
 import { tarefaCriar, type Prioridade } from '../tools/tarefas.js';
+import { reuniaoRecorrenteAjustar, reuniaoRecorrenteCadastrar, reuniaoRecorrenteListar, reuniaoRecorrenteRemover, resumoReuniao } from '../tools/reunioes-recorrentes.js';
 import { ajudaDoCanal, COMANDOS, NOMES_CANAIS, type CanalId, type ComandoDef } from './ajuda.js';
 import { mensagemTarefasAbertas, type MensagemTarefas } from './tarefas.js';
 
@@ -156,6 +157,37 @@ export async function tratarComando(deps: ComandosDeps, i: ComandoLike): Promise
         const caminho = vaultCriarNota({ tipo: 'insight', titulo: tema, conteudo: texto, fontes: [`/insight em #insights, ${agora.toISOString().slice(0, 10)}`] });
         audit('ok', { tema });
         return void (await i.reply({ content: `💡 Anotado em \`${caminho}\` (para você revisar).` }));
+      }
+      case 'reuniao_nova': {
+        const r = reuniaoRecorrenteCadastrar(deps.db, {
+          titulo: str('titulo')!, dia: str('dia')!, hora: str('hora')!, assunto: str('assunto')!, frequencia: str('frequencia'),
+          participantes: str('participantes'), times: str('times'), marco: str('marco'), fontes: str('fontes'), instrucoes: str('instrucoes'),
+          inicio: str('inicio') ? parseData(str('inicio')!, agora) : undefined,
+        }, agora);
+        audit('ok', { id: r.id, titulo: r.titulo });
+        return void (await i.reply({ content: `📅 Reunião cadastrada:\n${resumoReuniao(r)}\nA pauta chega aqui na manhã de cada ocorrência.` }));
+      }
+      case 'reuniao_lista': {
+        const rs = reuniaoRecorrenteListar(deps.db);
+        audit('ok');
+        if (!rs.length) return void (await i.reply({ content: 'Nenhuma reunião recorrente cadastrada. Use /reuniao_nova.', ephemeral: true }));
+        return void (await i.reply({ content: `📅 **Reuniões recorrentes**\n${rs.map(resumoReuniao).join('\n')}` }));
+      }
+      case 'reuniao_ajustar': {
+        const id = Number(str('id'));
+        if (!Number.isInteger(id) || id < 1) throw new Error('O id deve ser o número da reunião (veja em /reuniao_lista)');
+        // an empty value clears an optional field; Discord does not accept an empty option, so "-" means empty
+        const valor = i.options.getString('valor') ?? '';
+        const r = reuniaoRecorrenteAjustar(deps.db, id, str('campo')!, valor.trim() === '-' ? '' : valor);
+        audit('ok', { id, campo: str('campo') });
+        return void (await i.reply({ content: `📅 Atualizada:\n${resumoReuniao(r)}` }));
+      }
+      case 'reuniao_remover': {
+        const id = Number(str('id'));
+        if (!Number.isInteger(id) || id < 1) throw new Error('O id deve ser o número da reunião (veja em /reuniao_lista)');
+        const r = reuniaoRecorrenteRemover(deps.db, id);
+        audit('ok', { id });
+        return void (await i.reply({ content: `🗑️ Reunião removida: **${r.titulo}**` }));
       }
       case 'pessoa': {
         const tipo = str('tipo') as (typeof TIPOS_REGISTRO_PESSOA)[number];

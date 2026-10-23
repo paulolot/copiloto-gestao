@@ -82,8 +82,8 @@ export function buildApprovalMessage(queueId: number, tool: string, action: stri
 }
 
 /** Channels where Paulo talks to the Copiloto; only his messages are read from them. */
-export type CanalConversa = 'planejamento' | 'insights' | 'pessoas' | 'cobrancas';
-export const CANAIS_CONVERSA: [CanalConversa, ...CanalConversa[]] = ['planejamento', 'insights', 'pessoas', 'cobrancas'];
+export type CanalConversa = 'planejamento' | 'insights' | 'pessoas' | 'cobrancas' | 'reunioes';
+export const CANAIS_CONVERSA: [CanalConversa, ...CanalConversa[]] = ['planejamento', 'insights', 'pessoas', 'cobrancas', 'reunioes'];
 
 export interface MensagemDiscord {
   id: string;

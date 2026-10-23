@@ -174,6 +174,24 @@ function initSchema(db: Database): void {
       cobrar_de TEXT,      -- quem deve algo ao Paulo (tarefa de cobrança)
       lembrar_em TEXT      -- AAAA-MM-DD em que o Paulo quer ser lembrado de cobrar
     );
+
+    -- Reuniões recorrentes que o Paulo cadastra no Discord e que o Copiloto prepara antes de acontecerem
+    CREATE TABLE IF NOT EXISTS reunioes_recorrentes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      titulo TEXT NOT NULL,           -- título do evento no Google Calendar
+      dia_semana INTEGER NOT NULL CHECK(dia_semana BETWEEN 0 AND 6), -- 0 domingo ... 6 sábado
+      hora TEXT NOT NULL,             -- HH:MM
+      frequencia TEXT NOT NULL DEFAULT 'semanal' CHECK(frequencia IN ('semanal','quinzenal')),
+      inicio TEXT NOT NULL,           -- AAAA-MM-DD de uma ocorrência (referência da quinzena)
+      assunto TEXT NOT NULL,          -- para que serve a reunião
+      participantes TEXT,
+      times TEXT,
+      marco TEXT,
+      fontes TEXT,                    -- planilhas, documentos, links que acompanham a reunião
+      instrucoes TEXT,                -- como o Paulo quer a pauta
+      preparada_em TEXT,              -- AAAA-MM-DD da última ocorrência já preparada
+      criada_em TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+    );
   `);
 }
 

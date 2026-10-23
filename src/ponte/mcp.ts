@@ -21,6 +21,7 @@ import { CANAIS_CONVERSA, discordLerNovas, discordMarcarLido, discordPostar, typ
 import { boardsMarcoDefinir, boardsMarcos, boardsTags, metricasColaborador, boardsAlertas, boardsItensProblema, boardsSaude, boardsSincronizar, metricasTime, type BoardsDeps } from './tools/boards.js';
 import { tarefaConcluir, tarefaCriar, tarefaListar } from './tools/tarefas.js';
 import { mensagemTarefasAbertas } from './discord/tarefas.js';
+import { CAMPOS_REUNIAO, DIAS_SEMANA, FREQUENCIAS, reuniaoRecorrenteAjustar, reuniaoRecorrenteCadastrar, reuniaoRecorrenteHoje, reuniaoRecorrenteListar, reuniaoRecorrenteMarcarPreparada, reuniaoRecorrenteRemover } from './tools/reunioes-recorrentes.js';
 import { conquistaRegistrar } from './tools/conquistas.js';
 import { CANAIS_MENSAGEM, MAX_TEXTO, aprovacaoConsultar, mensagemPropor } from './tools/mensagens.js';
 import { TIPOS_PROBLEMA } from './azure/alertas.js';
@@ -276,6 +277,64 @@ export function createMcpServer(db: Database, deps: McpDeps = {}): McpServer {
     ({ id }) => audited(db, 'tarefa_concluir', { id }, () => `Tarefa #${tarefaConcluir(db, id).id} concluída`),
   );
 
+  // Reuniões recorrentes (cadastro pelo Discord, #reunioes): lista interna, nível `sozinho`
+  mcp.tool(
+    'reuniao_recorrente_cadastrar',
+    'Cadastra uma reunião recorrente do Paulo para o Copiloto preparar a pauta antes de cada ocorrência. O titulo é o do evento no Google Calendar',
+    {
+      titulo: z.string().min(1).max(200).describe('Título do evento no Google Calendar, exatamente como aparece'),
+      dia: z.string().min(1).max(20).describe(`Dia da semana: ${DIAS_SEMANA.join(', ')}`),
+      hora: z.string().min(1).max(10).describe('11:00, 11h ou 11h30'),
+      assunto: z.string().min(1).max(500).describe('Para que serve a reunião e o que se discute nela'),
+      frequencia: z.enum(FREQUENCIAS).default('semanal'),
+      inicio: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().describe('AAAA-MM-DD de uma ocorrência; define as semanas de uma reunião quinzenal (padrão: a próxima)'),
+      participantes: z.string().max(500).optional(),
+      times: z.string().max(300).optional().describe('Times dos boards envolvidos (fiscal, desktop, retaguarda...)'),
+      marco: z.string().max(300).optional().describe('Marco de entrega que a reunião acompanha, com a data'),
+      fontes: z.string().max(1500).optional().describe('Planilhas, documentos e links que acompanham a reunião'),
+      instrucoes: z.string().max(1500).optional().describe('Como o Paulo quer a pauta: o que priorizar ou evitar'),
+    },
+    (r) => audited(db, 'reuniao_recorrente_cadastrar', { titulo: r.titulo, dia: r.dia, hora: r.hora, frequencia: r.frequencia }, () => JSON.stringify(reuniaoRecorrenteCadastrar(db, r), null, 2)),
+  );
+
+  mcp.tool(
+    'reuniao_recorrente_listar',
+    'Lista as reuniões recorrentes cadastradas pelo Paulo, por dia e hora',
+    {},
+    () => audited(db, 'reuniao_recorrente_listar', {}, () => JSON.stringify(reuniaoRecorrenteListar(db), null, 2)),
+  );
+
+  mcp.tool(
+    'reuniao_recorrente_hoje',
+    'Reuniões recorrentes que acontecem hoje (ou na data informada) e ainda não foram preparadas. Com incluirPreparadas devolve também as já preparadas. Prepare cada uma e chame reuniao_recorrente_marcar_preparada',
+    {
+      data: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().describe('AAAA-MM-DD (padrão: hoje, horário de São Paulo)'),
+      incluirPreparadas: z.boolean().default(false),
+    },
+    ({ data, incluirPreparadas }) => audited(db, 'reuniao_recorrente_hoje', { data, incluirPreparadas }, () => JSON.stringify(reuniaoRecorrenteHoje(db, { data, incluirPreparadas }), null, 2)),
+  );
+
+  mcp.tool(
+    'reuniao_recorrente_ajustar',
+    `Muda um campo de uma reunião recorrente (${CAMPOS_REUNIAO.join(', ')}). Para limpar um campo opcional, mande valor vazio (no Discord o comando usa "-")`,
+    { id: z.number().int().positive(), campo: z.enum(CAMPOS_REUNIAO), valor: z.string().max(1500) },
+    ({ id, campo, valor }) => audited(db, 'reuniao_recorrente_ajustar', { id, campo }, () => JSON.stringify(reuniaoRecorrenteAjustar(db, id, campo, valor), null, 2)),
+  );
+
+  mcp.tool(
+    'reuniao_recorrente_remover',
+    'Remove uma reunião recorrente do cadastro (só quando o Paulo pedir)',
+    { id: z.number().int().positive() },
+    ({ id }) => audited(db, 'reuniao_recorrente_remover', { id }, () => `Reunião #${id} removida: ${reuniaoRecorrenteRemover(db, id).titulo}`),
+  );
+
+  mcp.tool(
+    'reuniao_recorrente_marcar_preparada',
+    'Marca a reunião como preparada na data (padrão: hoje), para não ser preparada duas vezes. Chame só depois de postar a pauta',
+    { id: z.number().int().positive(), data: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional() },
+    ({ id, data }) => audited(db, 'reuniao_recorrente_marcar_preparada', { id, data }, () => { const r = reuniaoRecorrenteMarcarPreparada(db, id, data); return `Reunião #${r.id} preparada em ${r.preparadaEm}`; }),
+  );
+
   mcp.tool(
     'tarefas_postar',
     'Posta no Discord a lista de tarefas abertas com um botão "feita" por tarefa (só o Paulo consegue clicar)',
@@ -467,7 +526,7 @@ export function createMcpServer(db: Database, deps: McpDeps = {}): McpServer {
   // Conversa com o Paulo no Discord (#planejamento): só as mensagens dele são lidas
   mcp.tool(
     'discord_ler_novas',
-    'Lê as mensagens novas do Paulo num canal de conversa (#planejamento, #insights, #pessoas ou #cobrancas); mensagens de outras pessoas e de bots são ignoradas. Depois de tratar, chame discord_marcar_lido com ateId',
+    'Lê as mensagens novas do Paulo num canal de conversa (#planejamento, #insights, #pessoas, #cobrancas ou #reunioes); mensagens de outras pessoas e de bots são ignoradas. Depois de tratar, chame discord_marcar_lido com ateId',
     { canal: z.enum(CANAIS_CONVERSA).default('planejamento') },
     ({ canal }) =>
       audited(db, 'discord_ler_novas', { canal }, async () => {

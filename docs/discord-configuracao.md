@@ -61,14 +61,14 @@ Troque `SEU_CLIENT_ID` pelo **Application ID** (aba General Information). Se o b
 
 ## 4. No servidor (permissões por canal)
 
-O servidor deve ser **privado, só seu**, com **verificação em duas etapas** na sua conta. O cargo do bot (criado no convite) precisa de **Ver canais** e **Enviar mensagens** em todos os 9 canais. **Ver histórico de mensagens** só é necessário nos 4 canais de entrada. Para ficar o mais restrito possível, desmarque essa permissão no cargo e ligue-a só nesses canais (Editar canal → Permissões → cargo do bot):
+O servidor deve ser **privado, só seu**, com **verificação em duas etapas** na sua conta. O cargo do bot (criado no convite) precisa de **Ver canais** e **Enviar mensagens** em todos os 9 canais. **Ver histórico de mensagens** só é necessário nos 5 canais de entrada. Para ficar o mais restrito possível, desmarque essa permissão no cargo e ligue-a só nesses canais (Editar canal → Permissões → cargo do bot):
 
 | Canal | Tipo | Ver canais | Enviar mensagens | Ver histórico |
 | --- | --- | --- | --- | --- |
 | `#briefing` | saída | sim | sim | não precisa |
 | `#alertas` | saída | sim | sim | não precisa |
 | `#aprovacoes` | saída com botões | sim | sim | não precisa |
-| `#reunioes` | saída (fase 2) | sim | sim | não precisa |
+| `#reunioes` | **saída e entrada** (cadastro de reuniões) | sim | sim | **sim** |
 | `#cto` | saída (fase 2) | sim | sim | não precisa |
 | `#planejamento` | **entrada** | sim | sim | **sim** |
 | `#insights` | **entrada** | sim | sim | **sim** |

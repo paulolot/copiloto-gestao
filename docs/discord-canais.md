@@ -94,14 +94,16 @@ Serve de base para 1:1, PDI e feedback.
 Comandos: /pessoa · /ajuda
 ```
 
-### #reunioes (saída: só o Copiloto escreve)
+### #reunioes (entrada: você escreve)
 
-Comandos: nenhum específico e /ajuda · 362 de 1024 caracteres
+Comandos: /reuniao_nova, /reuniao_lista, /reuniao_ajustar, /reuniao_remover e /ajuda · 810 de 1024 caracteres
 
 ```text
-📅 SAÍDA do Copiloto (a partir da fase 2). Preparação das próximas reuniões (pauta, pendências, documentos do Drive) e, depois delas, o resumo com decisões e próximos passos. Aqui também chegarão os rascunhos de ações para aprovar.
-Só o Copiloto escreve aqui. Notas de pessoas e de 1:1 nunca aparecem neste canal: ficam na área restrita do vault.
-Comandos: /ajuda
+📅 ENTRADA e SAÍDA. Aqui você cadastra as reuniões recorrentes e o Copiloto entrega a pauta de cada uma na manhã do dia (pendências da última, boards, marco, planilhas, e-mails, decisões), depois dos resumos e rascunhos de ações para aprovar.
+Cadastrar: /reuniao_nova titulo:... dia:... hora:... assunto:... (o título é o do evento no Google Calendar; dá para informar participantes, times, marco, fontes e instrucoes) ou escreva em texto livre (lido a cada 2h): "toda terça 15h, Revisão de arquitetura, com o time fiscal".
+Ver e mudar: /reuniao_lista · /reuniao_ajustar · /reuniao_remover
+Notas de pessoas e de 1:1 nunca aparecem aqui: ficam na área restrita do vault. Nada é enviado a ninguém sem o seu OK em #aprovacoes.
+Comandos: /reuniao_nova · /reuniao_lista · /reuniao_ajustar · /reuniao_remover · /ajuda
 ```
 
 ### #cto (saída: só o Copiloto escreve)
@@ -170,6 +172,50 @@ Anota uma ideia ou observação do seu dia. Funciona em: #insights.
   - `tema` (opcional): Título curto (padrão: o começo do texto)
 
 Exemplo: `/insight texto:O time trava sempre na revisão de segunda tema:fila de revisão`
+
+### /reuniao_nova
+
+Cadastra uma reunião recorrente para o Copiloto preparar a pauta. Funciona em: #reunioes.
+
+  - `titulo` (obrigatória): Título do evento no Google Calendar, igual ao da agenda
+  - `dia` (obrigatória): Dia da semana
+  - `hora` (obrigatória): Hora de início: 11:00, 11h ou 11h30
+  - `assunto` (obrigatória): Para que serve a reunião e o que se discute
+  - `frequencia` (opcional): semanal (padrão) ou quinzenal
+  - `participantes` (opcional): Quem participa
+  - `times` (opcional): Times dos boards envolvidos (fiscal, desktop...)
+  - `marco` (opcional): Marco de entrega acompanhado, com a data
+  - `fontes` (opcional): Links de planilhas e documentos que acompanham a reunião
+  - `instrucoes` (opcional): Como você quer a pauta: o que priorizar ou evitar
+  - `inicio` (opcional): Data de uma ocorrência (define as semanas da quinzenal)
+
+Exemplo: `/reuniao_nova titulo:[IMEX] Projeto Web dia:sexta hora:11h assunto:Impedimentos e marco Versão clássica marco:Versão clássica 30/11 fontes:https://docs.google.com/spreadsheets/d/...`
+
+### /reuniao_lista
+
+Mostra as reuniões recorrentes cadastradas. Funciona em: #reunioes.
+
+  - sem opções
+
+Exemplo: `/reuniao_lista`
+
+### /reuniao_ajustar
+
+Muda um campo de uma reunião recorrente cadastrada. Funciona em: #reunioes.
+
+  - `id` (obrigatória): Número da reunião (veja em /reuniao_lista)
+  - `campo` (obrigatória): O que mudar
+  - `valor` (obrigatória): Novo valor (use - para limpar um campo opcional)
+
+Exemplo: `/reuniao_ajustar id:2 campo:hora valor:14h`
+
+### /reuniao_remover
+
+Remove uma reunião recorrente do cadastro. Funciona em: #reunioes.
+
+  - `id` (obrigatória): Número da reunião (veja em /reuniao_lista)
+
+Exemplo: `/reuniao_remover id:3`
 
 ### /pessoa
 

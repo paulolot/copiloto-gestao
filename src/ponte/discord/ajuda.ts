@@ -78,6 +78,50 @@ export const COMANDOS: ComandoDef[] = [
     exemplo: '/insight texto:O time trava sempre na revisão de segunda tema:fila de revisão',
   },
   {
+    nome: 'reuniao_nova',
+    descricao: 'Cadastra uma reunião recorrente para o Copiloto preparar a pauta',
+    canais: ['reunioes'],
+    opcoes: [
+      { nome: 'titulo', descricao: 'Título do evento no Google Calendar, igual ao da agenda', obrigatoria: true },
+      { nome: 'dia', descricao: 'Dia da semana', obrigatoria: true, escolhas: ['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'] },
+      { nome: 'hora', descricao: 'Hora de início: 11:00, 11h ou 11h30', obrigatoria: true },
+      { nome: 'assunto', descricao: 'Para que serve a reunião e o que se discute', obrigatoria: true },
+      { nome: 'frequencia', descricao: 'semanal (padrão) ou quinzenal', obrigatoria: false, escolhas: ['semanal', 'quinzenal'] },
+      { nome: 'participantes', descricao: 'Quem participa', obrigatoria: false },
+      { nome: 'times', descricao: 'Times dos boards envolvidos (fiscal, desktop...)', obrigatoria: false },
+      { nome: 'marco', descricao: 'Marco de entrega acompanhado, com a data', obrigatoria: false },
+      { nome: 'fontes', descricao: 'Links de planilhas e documentos que acompanham a reunião', obrigatoria: false },
+      { nome: 'instrucoes', descricao: 'Como você quer a pauta: o que priorizar ou evitar', obrigatoria: false },
+      { nome: 'inicio', descricao: 'Data de uma ocorrência (define as semanas da quinzenal)', obrigatoria: false },
+    ],
+    exemplo: '/reuniao_nova titulo:[IMEX] Projeto Web dia:sexta hora:11h assunto:Impedimentos e marco Versão clássica marco:Versão clássica 30/11 fontes:https://docs.google.com/spreadsheets/d/...',
+  },
+  {
+    nome: 'reuniao_lista',
+    descricao: 'Mostra as reuniões recorrentes cadastradas',
+    canais: ['reunioes'],
+    opcoes: [],
+    exemplo: '/reuniao_lista',
+  },
+  {
+    nome: 'reuniao_ajustar',
+    descricao: 'Muda um campo de uma reunião recorrente cadastrada',
+    canais: ['reunioes'],
+    opcoes: [
+      { nome: 'id', descricao: 'Número da reunião (veja em /reuniao_lista)', obrigatoria: true },
+      { nome: 'campo', descricao: 'O que mudar', obrigatoria: true, escolhas: ['titulo', 'dia', 'hora', 'frequencia', 'inicio', 'assunto', 'participantes', 'times', 'marco', 'fontes', 'instrucoes'] },
+      { nome: 'valor', descricao: 'Novo valor (use - para limpar um campo opcional)', obrigatoria: true },
+    ],
+    exemplo: '/reuniao_ajustar id:2 campo:hora valor:14h',
+  },
+  {
+    nome: 'reuniao_remover',
+    descricao: 'Remove uma reunião recorrente do cadastro',
+    canais: ['reunioes'],
+    opcoes: [{ nome: 'id', descricao: 'Número da reunião (veja em /reuniao_lista)', obrigatoria: true }],
+    exemplo: '/reuniao_remover id:3',
+  },
+  {
     nome: 'pessoa',
     descricao: 'Registra, em sigilo, algo sobre uma pessoa (área restrita)',
     canais: ['pessoas'],
@@ -96,7 +140,7 @@ export const NOMES_CANAIS: Record<CanalId, string> = {
 };
 
 /** Whether the channel takes input from Paulo (the Copiloto reads it) or is output only. */
-export const CANAIS_ENTRADA: CanalId[] = ['planejamento', 'insights', 'pessoas', 'cobrancas'];
+export const CANAIS_ENTRADA: CanalId[] = ['planejamento', 'insights', 'pessoas', 'cobrancas', 'reunioes'];
 
 export const TOPICOS: Record<CanalId, string> = {
   briefing: `📋 SAÍDA do Copiloto. Seu briefing diário (7h30, dias úteis) e o resumo da semana (sexta, 16h): agenda, alertas dos boards por time, e-mails que pedem ação, tarefas e marcos de entrega. Tudo com a fonte citada.
@@ -116,9 +160,11 @@ Como usar: em cada item, clique em Aprovar (executa), Editar (ajusta o texto e a
 Itens sem resposta ficam pendentes; nada expira sozinho.
 Comandos: /ajuda`,
 
-  reunioes: `📅 SAÍDA do Copiloto (a partir da fase 2). Preparação das próximas reuniões (pauta, pendências, documentos do Drive) e, depois delas, o resumo com decisões e próximos passos. Aqui também chegarão os rascunhos de ações para aprovar.
-Só o Copiloto escreve aqui. Notas de pessoas e de 1:1 nunca aparecem neste canal: ficam na área restrita do vault.
-Comandos: /ajuda`,
+  reunioes: `📅 ENTRADA e SAÍDA. Aqui você cadastra as reuniões recorrentes e o Copiloto entrega a pauta de cada uma na manhã do dia (pendências da última, boards, marco, planilhas, e-mails, decisões), depois dos resumos e rascunhos de ações para aprovar.
+Cadastrar: /reuniao_nova titulo:... dia:... hora:... assunto:... (o título é o do evento no Google Calendar; dá para informar participantes, times, marco, fontes e instrucoes) ou escreva em texto livre (lido a cada 2h): "toda terça 15h, Revisão de arquitetura, com o time fiscal".
+Ver e mudar: /reuniao_lista · /reuniao_ajustar · /reuniao_remover
+Notas de pessoas e de 1:1 nunca aparecem aqui: ficam na área restrita do vault. Nada é enviado a ninguém sem o seu OK em #aprovacoes.
+Comandos: /reuniao_nova · /reuniao_lista · /reuniao_ajustar · /reuniao_remover · /ajuda`,
 
   pessoas: `🔒 ENTRADA, em sigilo. Escreva aqui o que você quer guardar sobre uma pessoa: uma impressão, uma conversa privada, um feedback dado ou um combinado. Vai para a área restrita do vault (pessoas/), nunca para canais compartilhados.
 Como usar: /pessoa nome:Ana tipo:impressao texto:... (tipos: impressao, conversa, feedback, combinado). A resposta só mostra onde foi gravado, nunca o conteúdo.
