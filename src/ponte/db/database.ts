@@ -128,6 +128,7 @@ function initSchema(db: Database): void {
       ultimo_visto TEXT NOT NULL,
       ativo INTEGER NOT NULL DEFAULT 1,
       avisado INTEGER NOT NULL DEFAULT 0,
+      avisado_dia TEXT,                           -- AAAA-MM-DD (São Paulo) do último aviso; um sinal ainda ativo é avisado de novo no dia seguinte
       resolvido_em TEXT,                          -- quando o sinal deixou de valer (só se ele tinha sido avisado)
       resolucao_avisada INTEGER NOT NULL DEFAULT 0,
       PRIMARY KEY (time_id, chave)
@@ -210,6 +211,11 @@ function migrate(db: Database): void {
   if (colsSinais.length && !colsSinais.includes('resolvido_em')) {
     db.run('ALTER TABLE sinais ADD COLUMN resolvido_em TEXT');
     db.run('ALTER TABLE sinais ADD COLUMN resolucao_avisada INTEGER NOT NULL DEFAULT 0');
+  }
+  if (colsSinais.length && !colsSinais.includes('avisado_dia')) {
+    db.run('ALTER TABLE sinais ADD COLUMN avisado_dia TEXT');
+    // What was announced before this column existed counts as announced today: the first repeat comes tomorrow, not all at once.
+    db.run("UPDATE sinais SET avisado_dia = strftime('%Y-%m-%d', 'now', '-3 hours') WHERE avisado = 1");
   }
   if (!cols.includes('dono_nome')) {
     db.run('ALTER TABLE work_items ADD COLUMN dono_nome TEXT');

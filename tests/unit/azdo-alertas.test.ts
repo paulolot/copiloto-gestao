@@ -100,6 +100,34 @@ describe('sinais com data', () => {
   });
 });
 
+describe('sinais ainda ativos são avisados de novo no dia seguinte', () => {
+  const s = [{ chave: 'bloqueio', severidade: 'vermelho' as const, descricao: 'x' }];
+  const manha = new Date('2026-10-21T11:00:00Z'); // Wed 08:00 in São Paulo
+
+  it('does not repeat on the same day, repeats on the next, and stays quiet again after that notice', async () => {
+    const db = await makeTestDb();
+    atualizarSinais(db, 't', s, manha);
+    expect(sinaisNaoAvisados(db, manha)).toHaveLength(1);
+    marcarAvisado(db, 't', 'bloqueio', manha);
+    expect(sinaisNaoAvisados(db, new Date('2026-10-21T19:00:00Z'))).toHaveLength(0); // Wed 16:00
+    // São Paulo midnight, not UTC: 02:30 UTC on the 22nd is still the 21st in São Paulo
+    expect(sinaisNaoAvisados(db, new Date('2026-10-22T02:30:00Z'))).toHaveLength(0);
+    const quinta = new Date('2026-10-22T11:00:00Z');
+    atualizarSinais(db, 't', s, quinta);
+    expect(sinaisNaoAvisados(db, quinta)).toEqual([expect.objectContaining({ chave: 'bloqueio', desde: manha.toISOString() })]);
+    marcarAvisado(db, 't', 'bloqueio', quinta);
+    expect(sinaisNaoAvisados(db, new Date('2026-10-22T18:00:00Z'))).toHaveLength(0);
+  });
+
+  it('a resolved signal is not repeated', async () => {
+    const db = await makeTestDb();
+    atualizarSinais(db, 't', s, manha);
+    marcarAvisado(db, 't', 'bloqueio', manha);
+    atualizarSinais(db, 't', [], new Date('2026-10-22T11:00:00Z'));
+    expect(sinaisNaoAvisados(db, new Date('2026-10-22T11:00:00Z'))).toHaveLength(0);
+  });
+});
+
 describe('sinais resolvidos', () => {
   const sinal = [{ chave: 'bloqueio', severidade: 'vermelho' as const, descricao: 'x' }];
   const d1 = new Date('2026-10-19T08:00:00Z');

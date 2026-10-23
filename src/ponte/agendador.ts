@@ -119,14 +119,14 @@ export async function executarCiclo(deps: CicloDeps): Promise<CicloResultado> {
 
   const nomes = new Map<string, string>([...times.map((t): [string, string] => [t.id, t.nome]), ['marcos', 'Marcos de entrega']]);
   const projetos = new Map(times.map((t) => [t.id, t.projeto]));
-  for (const s of sinaisNaoAvisados(db)) {
+  for (const s of sinaisNaoAvisados(db, agora)) {
     if (!nomes.has(s.time)) continue;
     try {
       const projeto = projetos.get(s.time);
       const detalhe: DetalheAviso = projeto ? { ...itensDoSinal(db, s.time, s.chave, agora, !!deps.comResponsavel) } : {};
       if (projeto && deps.org) detalhe.link = (id) => `https://dev.azure.com/${encodeURIComponent(deps.org!)}/${encodeURIComponent(projeto)}/_workitems/edit/${id}`;
       await postar('alertas', formatarSinal(nomes.get(s.time)!, s, detalhe));
-      marcarAvisado(db, s.time, s.chave);
+      marcarAvisado(db, s.time, s.chave, agora);
       res.alertasPostados++;
     } catch {
       // Discord unavailable: leave it unannounced, the next cycle tries again.

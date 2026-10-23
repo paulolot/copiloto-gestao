@@ -46,6 +46,18 @@ describe('executarCiclo', () => {
     expect(posts).toHaveLength(0);
   });
 
+  it('announces a signal that is still active again on the next day, once', async () => {
+    await executarCiclo({ db, azdo: client(), postar, times: [TIMES[0]], agora: AGORA });
+    posts.length = 0;
+    const amanha = new Date(AGORA.getTime() + 86_400_000);
+    const r2 = await executarCiclo({ db, azdo: client(), postar, times: [TIMES[0]], agora: amanha });
+    expect(r2.alertasPostados).toBeGreaterThan(0);
+    expect(posts.every((p) => p.canal === 'alertas')).toBe(true);
+    posts.length = 0;
+    const r3 = await executarCiclo({ db, azdo: client(), postar, times: [TIMES[0]], agora: new Date(amanha.getTime() + 3_600_000) });
+    expect(r3.alertasPostados).toBe(0);
+  });
+
   it('keeps a signal unannounced when Discord fails, and retries next cycle', async () => {
     const falha = async () => { throw new Error('discord fora'); };
     const r1 = await executarCiclo({ db, azdo: client(), postar: falha, times: [TIMES[0]], agora: AGORA });

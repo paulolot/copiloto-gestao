@@ -155,8 +155,21 @@ export function sinaisAtivos(db: Database, time?: string): SinalRegistrado[] {
   return (r[0]?.values ?? []).map((v) => ({ time: v[0] as string, chave: v[1] as string, descricao: v[2] as string, severidade: v[3] as Severidade, desde: v[4] as string }));
 }
 
-export function sinaisNaoAvisados(db: Database): SinalRegistrado[] {
-  const r = db.exec(`SELECT time_id, chave, descricao, severidade, desde FROM sinais WHERE ativo = 1 AND avisado = 0 ORDER BY desde`);
+/** Day (YYYY-MM-DD) in São Paulo; the alert notices go by this calendar, not UTC. */
+export function diaSaoPaulo(agora: Date): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(agora);
+}
+
+/**
+ * Active signals to announce now: those never announced, and those last announced on an earlier day
+ * (a signal still unresolved is announced again once per day, never twice on the same day).
+ */
+export function sinaisNaoAvisados(db: Database, agora = new Date()): SinalRegistrado[] {
+  const r = db.exec(
+    `SELECT time_id, chave, descricao, severidade, desde FROM sinais
+     WHERE ativo = 1 AND (avisado = 0 OR avisado_dia IS NULL OR avisado_dia < ?) ORDER BY desde`,
+    [diaSaoPaulo(agora)],
+  );
   return (r[0]?.values ?? []).map((v) => ({ time: v[0] as string, chave: v[1] as string, descricao: v[2] as string, severidade: v[3] as Severidade, desde: v[4] as string }));
 }
 
@@ -176,8 +189,8 @@ export function marcarResolucaoAvisada(db: Database, time: string, chave: string
   persist(db);
 }
 
-export function marcarAvisado(db: Database, time: string, chave: string): void {
-  db.run('UPDATE sinais SET avisado = 1 WHERE time_id = ? AND chave = ?', [time, chave]);
+export function marcarAvisado(db: Database, time: string, chave: string, agora = new Date()): void {
+  db.run('UPDATE sinais SET avisado = 1, avisado_dia = ? WHERE time_id = ? AND chave = ?', [diaSaoPaulo(agora), time, chave]);
   persist(db);
 }
 

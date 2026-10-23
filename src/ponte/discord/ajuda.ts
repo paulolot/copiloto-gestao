@@ -151,7 +151,7 @@ Números são por time; cards e WIP trazem o nome de quem é o dono. Sem ranking
 
   alertas: `🚨 SAÍDA do Copiloto. Avisos que não esperam o briefing: sinal novo nos boards (item parado ou paralisado, bug sem dono, queda de ritmo, repositório sem commit), marco de entrega em risco e falha de sincronização.
 🔴 vermelho = agir hoje · 🟡 amarelo = ficar de olho. Cada aviso diz desde quando o sinal existe.
-Cada sinal aparece uma vez (o que não muda não se repete). Quando ele deixa de valer, sai um ✅ resolvido; se voltar, é um novo aviso.
+Cada sinal é avisado uma vez por dia: o que continua sem resolver volta no primeiro ciclo do dia útil seguinte, com a data de quando surgiu, e nunca se repete no mesmo dia. Quando ele deixa de valer, sai um ✅ resolvido; se voltar, é um novo aviso.
 Só o Copiloto escreve aqui. Para decidir o que fazer, converse em #planejamento.
 Comandos: /ajuda`,
 
