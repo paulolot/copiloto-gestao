@@ -11,7 +11,7 @@ import { logAudit } from './db/audit.js';
 import { enforcePolicy } from './middleware/autonomy.js';
 import type { IndiceVault, ResultadoSemantico } from './vault/indice.js';
 import { umAUmPendentes } from './tools/um-a-um.js';
-import { umAUmPreparar, umAUmSalvarPauta } from './tools/pauta-1x1.js';
+import { umAUmPreparar, umAUmRegistrar, umAUmSalvarPauta } from './tools/pauta-1x1.js';
 import { pdiAtualizar, pdiAtrasados, pdiCompartilhar, pdiLer, STATUS_ACAO } from './tools/pdi.js';
 import { CANAIS_MENSAGEM as CANAIS_PDI } from './tools/mensagens.js';
 import { papelLer } from './tools/papeis.js';
@@ -500,6 +500,22 @@ export function createMcpServer(db: Database, deps: McpDeps = {}): McpServer {
         return text(`Erro: ${(e as Error).message}`, true);
       }
     },
+  );
+
+  mcp.tool(
+    'um_a_um_registrar',
+    'Registra um 1:1 que ACONTECEU em pessoas/<nome>/1x1/AAAA-MM-DD-1x1.md (temas, combinados e próximos passos), o que atualiza os lembretes de 1:1. Nível sozinho, área restrita, revisado: false. Registre só o que o Paulo contou, sem interpretar. Não repita o conteúdo em canal do Discord',
+    {
+      pessoa: z.string().min(2).max(100),
+      temas: z.string().min(1).max(8000).describe('O que foi conversado, nas palavras do Paulo'),
+      combinados: z.array(z.string().max(500)).optional().describe('O que ficou acordado, com responsável e prazo quando houver'),
+      proximos_passos: z.array(z.string().max(500)).optional(),
+      data: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().describe('Data do 1:1; padrão hoje'),
+    },
+    (a) => restrito('um_a_um_registrar', { pessoa: '[restrito]' }, () => {
+      const caminho = umAUmRegistrar(a.pessoa, { temas: a.temas, combinados: a.combinados, proximos_passos: a.proximos_passos, data: a.data });
+      return { texto: `1:1 registrado em ${caminho}`, caminho };
+    }),
   );
 
   mcp.tool(

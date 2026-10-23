@@ -180,3 +180,61 @@ ${p.texto.trim()}
     }
   }
 }
+
+// ---- recording a 1:1 that happened ---------------------------------------------------------------
+
+export interface UmAUmFeito {
+  /** Date the 1:1 happened (AAAA-MM-DD); defaults to today. */
+  data?: string;
+  temas: string;
+  combinados?: string[];
+  proximos_passos?: string[];
+}
+
+/**
+ * Stores a 1:1 that happened at pessoas/<nome>/1x1/AAAA-MM-DD-1x1.md, which is what the reminders count as the
+ * last 1:1. Restricted, revisado: false, never overwrites. Returns the path only.
+ */
+export function umAUmRegistrar(pessoa: string, r: UmAUmFeito, agora = new Date()): string {
+  if (!pessoa.trim()) throw new Error('Informe a pessoa');
+  if (!r.temas.trim()) throw new Error('Informe o que foi conversado');
+  const data = r.data ?? hojeSp(agora);
+  if (!ISO.test(data)) throw new Error('A data deve estar no formato AAAA-MM-DD');
+  const pasta = pastaPessoa(pessoa);
+  let nome = pessoa.trim();
+  try { nome = texto(lerFrontmatter(pessoaLer(`pessoas/${pasta}/perfil.md`)).campos.pessoa) ?? nome; } catch { /* no profile: use the name given */ }
+  const lista = (l?: string[]) => (l?.map((x) => x.trim()).filter(Boolean).map((x) => `- ${x}`).join('\n')) || '- —';
+  const dir = join(getVaultRoot(), 'pessoas', pasta, '1x1');
+  mkdirSync(dir, { recursive: true });
+  const conteudo = `---
+tipo: 1x1
+titulo: ${JSON.stringify(`1:1 — ${nome}`)}
+pessoa: ${JSON.stringify(nome)}
+data: ${data}
+origem: copiloto
+restrito: true
+revisado: false
+---
+
+## Temas
+
+${r.temas.trim()}
+
+## Combinados
+
+${lista(r.combinados)}
+
+## Próximos passos
+
+${lista(r.proximos_passos)}
+`;
+  for (let n = 0; ; n++) {
+    const arq = `${data}-1x1${n === 0 ? '' : `-${n + 1}`}.md`;
+    try {
+      writeFileSync(join(dir, arq), conteudo, { encoding: 'utf8', flag: 'wx' });
+      return `pessoas/${pasta}/1x1/${arq}`;
+    } catch (e) {
+      if ((e as NodeJS.ErrnoException).code !== 'EEXIST') throw e;
+    }
+  }
+}

@@ -15,7 +15,8 @@ import { TIMES } from '../../src/ponte/azure/escopo.js';
 import { sincronizarTime } from '../../src/ponte/azure/sync.js';
 import { createApp } from '../../src/ponte/app.js';
 import { queryAudit } from '../../src/ponte/db/audit.js';
-import { combinadosDe, umAUmPreparar, umAUmSalvarPauta } from '../../src/ponte/tools/pauta-1x1.js';
+import { combinadosDe, umAUmPreparar, umAUmRegistrar, umAUmSalvarPauta } from '../../src/ponte/tools/pauta-1x1.js';
+import { umAUmPendentes } from '../../src/ponte/tools/um-a-um.js';
 import { AGORA, fakeFetch } from '../fixtures/azdo/respostas.js';
 import { makeTestDb } from './helpers.js';
 
@@ -105,6 +106,25 @@ describe('umAUmSalvarPauta', () => {
     expect(() => umAUmSalvarPauta('Ana', { texto: ' ', fontes: ['x'] })).toThrow('vazio');
     expect(() => umAUmSalvarPauta('Ana', { texto: 'x', fontes: [] })).toThrow('fontes');
     expect(() => umAUmSalvarPauta('Ana', { texto: 'x', fontes: ['x'], data: '5/11' })).toThrow('AAAA-MM-DD');
+  });
+});
+
+describe('umAUmRegistrar', () => {
+  it('stores the 1:1, updates the reminders and feeds the next agenda with the agreements', () => {
+    const c = umAUmRegistrar('Ana', { temas: 'Falamos da release.', combinados: ['Ana revisa o desenho (15 dias)'], proximos_passos: ['Marcar a retro'] }, AGORA);
+    expect(c).toBe(`pessoas/ana/1x1/${dia(0)}-1x1.md`);
+    const t = readFileSync(join(raiz, c), 'utf8');
+    expect(t).toMatch(/^restrito: true$/m);
+    expect(t).toMatch(/^revisado: false$/m);
+    expect(umAUmPendentes(AGORA).um_a_um[0]).toMatchObject({ ultimo_1x1: dia(0), situacao: 'em_dia' });
+    expect(umAUmPreparar(undefined, 'Ana', AGORA).ultimo_1x1.combinados).toEqual(['Ana revisa o desenho (15 dias)']);
+  });
+  it('never overwrites, and requires the topics and a valid date', () => {
+    const a = umAUmRegistrar('Ana', { temas: 'a', data: '2026-11-01' }, AGORA);
+    const b = umAUmRegistrar('Ana', { temas: 'b', data: '2026-11-01' }, AGORA);
+    expect([a, b]).toEqual(['pessoas/ana/1x1/2026-11-01-1x1.md', 'pessoas/ana/1x1/2026-11-01-1x1-2.md']);
+    expect(() => umAUmRegistrar('Ana', { temas: ' ' }, AGORA)).toThrow('conversado');
+    expect(() => umAUmRegistrar('Ana', { temas: 'x', data: '1/11' }, AGORA)).toThrow('AAAA-MM-DD');
   });
 });
 

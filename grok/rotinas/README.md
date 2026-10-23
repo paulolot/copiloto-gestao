@@ -29,6 +29,7 @@ Este é o roteiro único para cadastrar no Grok Bot. Cada rotina tem um arquivo 
 
 | Skill | Arquivo | Uso |
 | --- | --- | --- |
+| **Coach de pessoas** | `../skills/coach.md` | Pauta de 1:1 (`um_a_um_preparar`, `um_a_um_salvar_pauta`), registro do 1:1 (`um_a_um_registrar`) e PDI (`pdi_ler`, `pdi_atualizar`, `pdi_atrasados`, `pdi_compartilhar`), com sigilo e fonte. Cadastre como skill, sob demanda; usa `pessoa_perfil`, `papel_ler`, `aprovacao_consultar` e a skill Persona. Parte do CTO entra com a T2.9 |
 | **Persona** | `../skills/persona.md` | Princípios e tom do Paulo; texto para outra pessoa entra na fila com `mensagem_propor`. Todas as rotinas leem `persona/guia-de-estilo.md` antes de escrever em seu nome. Versão 1 de 22/10/2026; o texto integral fica no vault privado e as pendências estão em `../../docs/checklist-paulo.md`. |
 
 ## 3. O que ainda vai existir (textos escritos nas fases indicadas)
@@ -37,7 +38,6 @@ Este é o roteiro único para cadastrar no Grok Bot. Cada rotina tem um arquivo 
 | --- | --- | --- | --- |
 | **Preparador de reunião** | 2 | a cada 30 min, 7h às 16h30 (`*/30 7-16 * * 1-5`), olhando as próximas reuniões | Nota de preparação com pauta, pendências e documentos; posta em `#reunioes` |
 | **Reuniões recorrentes** (`reunioes_recorrentes`) | 2 | dias úteis, 8h (`0 8 * * 1-5`): prepara as reuniões que você cadastrou no `#reunioes` (`/reuniao_nova`) e que caem hoje | Pendências, fontes (planilhas e documentos do Drive), boards, marco, e-mails e decisões; posta sempre em `#reunioes`; conectores Calendar, Gmail e Drive; ferramentas `reuniao_recorrente_*`, `boards_*`, `metricas_time`, `vault_*`, `tarefa_*`, `discord_postar`. O texto livre do `#reunioes` é cadastrado pela rotina Planejamento |
-| **Coach de pessoas** (skill) | 2 | antes e depois de cada 1:1, sob demanda | Pauta e registro de 1:1, PDI; usa `pessoa_ler` na área restrita |
 | **Porta-voz** (pauta do CTO) | 2 | todo dia 9h, agindo só quando a reunião quinzenal for em 2 dias | Pauta: evoluções e conquistas, decisões, pontos de atenção; posta em `#cto` |
 | **Curador da memória** | 5 | 7h10, dias úteis (`10 7 * * 1-5`), pois a ponte só fica ligada de 7h às 17h | Organiza o vault, revisa a inbox, atualiza o índice |
 | **Copiloto de reunião** (skill) | 3 | sob demanda, durante a call | Responde com a transcrição ao vivo |

@@ -54,12 +54,12 @@ Legenda: **[código]** pode ser feito numa sessão na nuvem · **[Paulo]** depen
   - **v1 montada em 22/10/2026** a partir dos guias de execução e do insight enviados pelo Paulo: `vault-template/papeis/tech-lead.md` e `scrum-master.md` (copiar para `papeis/` do vault real, revisar e marcar `revisado: true`). O material não define níveis nem cargos: os três níveis (Em desenvolvimento, Consolidado, Referência) e a trilha são **proposta** do Claude, marcados no texto, e a carreira formal fica como `[a completar]`.
   - Pronto quando: os dois planos estão no vault real, revisados, e `papel_ler` os devolve.
 
-- [~] **T2.4 PDI** [código] (RF-21) — depende de T2.2 e T2.3
+- [x] **T2.4 PDI** [código] (RF-21) — depende de T2.2 e T2.3
   - Formato do PDI com ações estruturadas (descrição, competência do plano do papel, prazo, status). Ferramentas restritas `pdi_ler`, `pdi_atualizar` (sozinho, área restrita) e `pdi_atrasados` (ações vencidas e revisões de PDI vencidas).
   - Compartilhar o PDI com a pessoa **sempre** vira item da fila de aprovações (`pede_ok`, sem handler de envio por enquanto: o Paulo copia o texto aprovado).
   - Skill do Coach (T2.10) monta o rascunho de PDI a partir do plano do papel; nasce `revisado: false`.
   - Entregue (23/10/2026): `pdi_ler`, `pdi_atualizar` (criar, adicionar, atualizar, revisar), `pdi_atrasados` e `pdi_compartilhar` (sempre `pede_ok`, só se `revisado: true`, sem as "Notas internas"). Ações no formato `- [A1] **descrição** — competência: … — prazo: AAAA-MM-DD — status: aberta`; competência conferida contra o plano do papel; revisão a cada 6 meses (`PDI_REVISAO_MESES`). Toda edição do Copiloto volta o PDI para `revisado: false`. O texto aprovado aparece em `#aprovacoes` (servidor privado do Paulo).
-  - Falta: a parte do Coach que monta o rascunho (T2.10, depende da persona).
+  - Coach que monta o rascunho: `grok/skills/coach.md` (fluxo C), pronto em 23/10/2026.
   - Pronto quando: testes cobrem criação, atualização, atraso e a fila de aprovação ao compartilhar.
 
 - [x] **T2.5 Lembretes de 1:1 e PDI atrasados** [código] (RF-24) — depende de T2.2
@@ -68,11 +68,11 @@ Legenda: **[código]** pode ser feito numa sessão na nuvem · **[Paulo]** depen
   - Entregue (23/10/2026): `um_a_um_pendentes` (cadência do `perfil.md`, padrão mensal; último 1:1 pelas notas `1x1/` sem contar `-pauta`; revisão de PDI por `proxima_revisao` do `pdi.md`). Os sinais `1x1:<pessoa>` e `pdi:<pessoa>` são criados no ciclo de hora em hora sob o time `1x1`, que **nunca é anunciado** em canal. Briefing com o bloco 2b.
   - Pronto quando: testes com relógio simulado cobrem atraso, cadência por pessoa e pessoa sem 1:1 registrado.
 
-- [~] **T2.6 Pauta de 1:1** [código] (RF-22) — depende de T2.4 e T2.5
+- [x] **T2.6 Pauta de 1:1** [código] (RF-22) — depende de T2.4 e T2.5
   - Ferramenta restrita `um_a_um_preparar(pessoa)`: andamento do PDI, combinados abertos do último 1:1, sinais do board da pessoa, registros desde o último 1:1, conquistas e temas sugeridos (a partir de padrões: item parado há muito tempo, WIP alto, bug sem dono).
   - A pauta é escrita pelo Coach no tom do Paulo e salva em `pessoas/<nome>/1x1/AAAA-MM-DD-pauta.md` (restrito, `revisado: false`). O Discord recebe apenas "Pauta de 1:1 pronta em <caminho>" no `#pessoas`.
   - Entregue (23/10/2026): `um_a_um_preparar` (PDI com ações vencidas, combinados do último 1:1, board da pessoa, registros e conquistas desde o último 1:1, temas sugeridos como fatos com fonte) e `um_a_um_salvar_pauta` (grava `AAAA-MM-DD-pauta.md`, restrito, `revisado: false`, exige fontes, nunca sobrescreve; o `#pessoas` recebe só o caminho; se o Discord falhar a pauta fica salva e a resposta avisa). Uma pauta gerada não conta como 1:1 realizado.
-  - Falta: o Coach que escreve a pauta no tom do Paulo (T2.10, depende da persona).
+  - Coach que escreve a pauta no tom do Paulo: `grok/skills/coach.md` (fluxo A). `um_a_um_registrar` grava o 1:1 que aconteceu (fluxo B) e é o que zera o lembrete de atraso.
   - Pronto quando: testes provam o conteúdo agregado, a gravação restrita e a ausência de texto no Discord e no log.
 
 - [ ] **T2.7 Preparador de reunião** [código] (RF-13) — depende de T2.1
@@ -93,8 +93,8 @@ Legenda: **[código]** pode ser feito numa sessão na nuvem · **[Paulo]** depen
   - Rotina `grok/rotinas/porta-voz-cto.md` (todo dia 9h; **por cadência, não por evento**: a reunião costuma ser desmarcada e sem eventos novos, então a pauta é remontada a cada 15 dias, e antes disso se houver evento com "Saulo/Paulo" no título nos próximos 2 dias ou se o Paulo pedir): monta a pauta no modelo `cto/_modelo-pauta.md` (**conquistas primeiro**), grava em `cto/AAAA-MM-DD-pauta.md` (`revisado: false`) e posta no `#cto` para o Paulo. Algo grave gera **sugestão** de aviso curto ao CTO na hora. Relatório ou aviso ao CTO só sai pela fila de aprovações e não sobe de nível.
   - Pronto quando: testes cobrem o registro, a regra "sem ação já tomada", a agregação e a ausência de envio sem aprovação.
 
-- [ ] **T2.10 Skills e rotinas do Grok Bot** [código] — depende de T2.4 a T2.9 e da persona v1
-  - Skill `grok/skills/coach.md` (Tech Lead e Scrum Master primeiro): como conduzir a preparação do 1:1, montar e revisar o PDI a partir do plano do papel, sugerir temas, respeitar o sigilo, citar fontes.
+- [~] **T2.10 Skills e rotinas do Grok Bot** [código] — depende de T2.4 a T2.9 e da persona v1
+  - **Skill do Coach pronta (1:1 e PDI) em 23/10/2026**; faltam os trechos do CTO e das reuniões, com T2.7 a T2.9. Escopo original: skill `grok/skills/coach.md` (Tech Lead e Scrum Master primeiro): como conduzir a preparação do 1:1, montar e revisar o PDI a partir do plano do papel, sugerir temas, respeitar o sigilo, citar fontes.
   - Rotinas: `preparador-reuniao.md`, `porta-voz-cto.md`; ajustes em `briefing-diario.md` (1:1 e PDI atrasados, reuniões dispensáveis) e `resumo-semanal.md` (pontos de atenção abertos e conquistas para a pauta). Atualizar `grok/rotinas/README.md` (horários, conectores, ferramentas).
   - Pronto quando: textos prontos para colar e o README das rotinas atualizado.
 
