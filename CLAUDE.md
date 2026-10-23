@@ -13,6 +13,7 @@ Este repositório constrói o **Copiloto Gestão**: agentes de IA que executam o
 | `grok/rotinas/README.md` | Roteiro de todas as rotinas e skills a cadastrar no Grok Bot (horários, conectores, ferramentas); os prompts ficam na mesma pasta |
 | `docs/discord-configuracao.md` | Permissões, intents e convite do bot (inglês e português) |
 | `docs/discord-canais.md` | Tópico de cada canal e comandos `/` (gerado por `npm run docs:discord`) |
+| `docs/manual.md` | Manual de uso: comandos do Discord, ferramentas da ponte, skills, agendamentos, variáveis do `.env` (atualize ao criar ou mudar ferramenta, comando ou rotina) |
 | `docs/checklist-paulo.md` | O que só o Paulo pode fazer (contas, tokens, configuração do Grok Bot) |
 
 O plano completo e editável também existe como documento no claude.ai: https://claude.ai/artifact/CqqDCb6gjt4RmrCQFFxUDQ (privado do Paulo). Em caso de conflito, o documento no claude.ai vale mais que `docs/plano.md`.
