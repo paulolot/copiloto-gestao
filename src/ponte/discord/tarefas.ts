@@ -74,7 +74,7 @@ export async function handleTarefaButton(deps: { db: Database; ownerId: string }
 
   if (i.user.id !== deps.ownerId) {
     audit('error', 'Usuário não autorizado');
-    await i.reply({ content: 'Só o Paulo pode concluir tarefas.', ephemeral: true });
+    await i.reply({ content: `Só o Paulo pode concluir tarefas. (Seu ID no Discord é ${i.user.id}; se você é o Paulo, ele precisa ser o DISCORD_OWNER_ID do .env.)`, ephemeral: true });
     return;
   }
   try {

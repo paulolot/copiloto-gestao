@@ -35,7 +35,7 @@ async function main() {
     try {
       await startBot({
         db,
-        ownerId: DISCORD_OWNER_ID,
+        ownerId: DISCORD_OWNER_ID.trim().replace(/^["']|["']$/g, ''), // tolerate quotes and stray spaces from a hand-edited .env
         token: DISCORD_BOT_TOKEN,
         canalAprovacoesId: DISCORD_CANAL_APROVACOES,
         guildId: process.env.DISCORD_GUILD_ID,

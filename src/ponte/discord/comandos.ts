@@ -100,7 +100,7 @@ export async function tratarComando(deps: ComandosDeps, i: ComandoLike): Promise
   };
 
   if (!comando) return;
-  if (i.user.id !== deps.ownerId) return erro('Só o Paulo pode usar estes comandos.');
+  if (i.user.id !== deps.ownerId) return erro(`Só o Paulo pode usar estes comandos. (Seu ID no Discord é ${i.user.id}; se você é o Paulo, ele precisa ser o DISCORD_OWNER_ID do .env.)`);
 
   const canal = i.channelId ? deps.canais.get(i.channelId) : undefined;
   if (comando.canais !== 'todos' && (!canal || !comando.canais.includes(canal))) {

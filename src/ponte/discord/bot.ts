@@ -82,7 +82,7 @@ export async function handleApprovalButton(deps: ApprovalDeps, i: ButtonLike): P
 
   if (i.user.id !== deps.ownerId) {
     audit(deps, i.user.id, action, queueId, 'error', 'Usuário não autorizado');
-    await i.reply({ content: 'Só o Paulo pode decidir sobre itens da fila.', ephemeral: true });
+    await i.reply({ content: `Só o Paulo pode decidir sobre itens da fila. (Seu ID no Discord é ${i.user.id}; se você é o Paulo, ele precisa ser o DISCORD_OWNER_ID do .env.)`, ephemeral: true });
     return;
   }
 
@@ -126,7 +126,7 @@ export async function handleEditSubmit(deps: ApprovalDeps, i: ModalLike): Promis
 
   if (i.user.id !== deps.ownerId) {
     audit(deps, i.user.id, 'editar', queueId, 'error', 'Usuário não autorizado');
-    await i.reply({ content: 'Só o Paulo pode decidir sobre itens da fila.', ephemeral: true });
+    await i.reply({ content: `Só o Paulo pode decidir sobre itens da fila. (Seu ID no Discord é ${i.user.id}; se você é o Paulo, ele precisa ser o DISCORD_OWNER_ID do .env.)`, ephemeral: true });
     return;
   }
 
