@@ -11,6 +11,8 @@ import { logAudit } from './db/audit.js';
 import { enforcePolicy } from './middleware/autonomy.js';
 import type { IndiceVault, ResultadoSemantico } from './vault/indice.js';
 import { umAUmPendentes } from './tools/um-a-um.js';
+import { pdiAtualizar, pdiAtrasados, pdiCompartilhar, pdiLer, STATUS_ACAO } from './tools/pdi.js';
+import { CANAIS_MENSAGEM as CANAIS_PDI } from './tools/mensagens.js';
 import { papelLer } from './tools/papeis.js';
 import { pessoaPerfil } from './tools/pessoa-perfil.js';
 import { vaultListar, vaultLer, vaultBuscar, vaultCriarNota, pessoaRegistrar, pessoaListar, pessoaLer, TIPOS_REGISTRO_PESSOA } from './tools/vault.js';
@@ -358,6 +360,54 @@ export function createMcpServer(db: Database, deps: McpDeps = {}): McpServer {
     'Por pessoa: data do último 1:1, cadência esperada e dias de atraso; e revisões de PDI vencidas. Só nomes e números, em ordem alfabética, sem conteúdo de notas. Use no briefing (bloco "1:1 e PDI atrasados") e nunca para comparar pessoas',
     {},
     () => restrito('um_a_um_pendentes', {}, () => ({ texto: JSON.stringify(umAUmPendentes(), null, 2) })),
+  );
+
+  mcp.tool(
+    'pdi_ler',
+    'Lê o PDI de uma pessoa: objetivo, ações estruturadas (id, descrição, competência do plano do papel, prazo, status) e avisos (competência fora do plano, prazo vencido, revisão vencida, não revisado). Área restrita: não repita o conteúdo em canal do Discord',
+    { pessoa: z.string().min(2).max(100) },
+    ({ pessoa }) => restrito('pdi_ler', { pessoa: '[restrito]' }, () => { const p = pdiLer(pessoa); return { texto: JSON.stringify(p, null, 2), caminho: p.caminho }; }),
+  );
+
+  mcp.tool(
+    'pdi_atualizar',
+    'Cria o PDI de uma pessoa ou adiciona/atualiza uma ação, ou registra a revisão (próxima em 6 meses). Nível sozinho, área restrita. Tudo que você escreve fica revisado: false até o Paulo conferir. Nunca compartilha: para isso use pdi_compartilhar',
+    {
+      pessoa: z.string().min(2).max(100),
+      acao: z.enum(['criar', 'adicionar', 'atualizar', 'revisar']),
+      objetivo: z.string().max(2000).optional().describe('Só em criar'),
+      id: z.string().max(10).optional().describe('Só em atualizar: id da ação, ex.: A2'),
+      descricao: z.string().max(500).optional(),
+      competencia: z.string().max(120).optional().describe('Nome exato de uma competência do plano do papel (papel_ler)'),
+      prazo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+      status: z.enum(STATUS_ACAO).optional(),
+    },
+    (a) => restrito('pdi_atualizar', { pessoa: '[restrito]', acao: a.acao }, () => {
+      const op = a.acao === 'criar' ? { acao: 'criar' as const, objetivo: a.objetivo }
+        : a.acao === 'revisar' ? { acao: 'revisar' as const }
+        : a.acao === 'adicionar' ? { acao: 'adicionar' as const, descricao: a.descricao ?? '', competencia: a.competencia, prazo: a.prazo, status: a.status }
+        : { acao: 'atualizar' as const, id: a.id ?? '', descricao: a.descricao, competencia: a.competencia, prazo: a.prazo, status: a.status };
+      const t = pdiAtualizar(a.pessoa, op);
+      return { texto: t, caminho: /(pessoas\/\S+\.md)/.exec(t)?.[1] };
+    }),
+  );
+
+  mcp.tool(
+    'pdi_atrasados',
+    'Ações de PDI com prazo vencido (abertas ou em andamento) e revisões de PDI vencidas, por pessoa em ordem alfabética. Área restrita; use para o Coach e o 1:1, nunca para comparar pessoas',
+    {},
+    () => restrito('pdi_atrasados', {}, () => ({ texto: JSON.stringify(pdiAtrasados(), null, 2) })),
+  );
+
+  mcp.tool(
+    'pdi_compartilhar',
+    'Propõe compartilhar o PDI (objetivo e ações, sem as notas internas) com a própria pessoa. SEMPRE vai para a fila de aprovações: nada é enviado, o Paulo decide em #aprovacoes e copia o texto aprovado. Exige PDI com revisado: true',
+    { pessoa: z.string().min(2).max(100), canal: z.enum(CANAIS_PDI).describe('Por onde o Paulo vai enviar') },
+    ({ pessoa, canal }) =>
+      audited(db, 'pdi_compartilhar_pedido', { pessoa: '[restrito]', canal }, () => {
+        const id = pdiCompartilhar(db, pessoa, canal);
+        return `Item #${id} na fila de aprovações. Nada foi enviado: aguarde o OK do Paulo em #aprovacoes (aprovacao_consultar com id ${id}).`;
+      }),
   );
 
   mcp.tool(

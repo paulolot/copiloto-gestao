@@ -53,3 +53,9 @@ export function papelLer(papel: string): PlanoPapel {
   if (!revisado) avisos.unshift('Plano ainda não revisado pelo Paulo (revisado: false): use como rascunho e diga isso na resposta');
   return { caminho, papel: texto(campos.papel), revisado, campos, corpo: corpo.trim(), avisos };
 }
+
+/** Names of the competencies in a role plan: the bold names of the bullets under "## Competências". */
+export function competenciasDoPlano(corpo: string): string[] {
+  const m = /^##\s+Competências\s*$([\s\S]*?)(?=^##\s|(?![\s\S]))/m.exec(corpo);
+  return m ? [...m[1].matchAll(/^-\s+\*\*(.+?)\*\*/gm)].map((x) => x[1].trim()) : [];
+}

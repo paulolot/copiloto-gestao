@@ -54,10 +54,12 @@ Legenda: **[código]** pode ser feito numa sessão na nuvem · **[Paulo]** depen
   - **v1 montada em 22/10/2026** a partir dos guias de execução e do insight enviados pelo Paulo: `vault-template/papeis/tech-lead.md` e `scrum-master.md` (copiar para `papeis/` do vault real, revisar e marcar `revisado: true`). O material não define níveis nem cargos: os três níveis (Em desenvolvimento, Consolidado, Referência) e a trilha são **proposta** do Claude, marcados no texto, e a carreira formal fica como `[a completar]`.
   - Pronto quando: os dois planos estão no vault real, revisados, e `papel_ler` os devolve.
 
-- [ ] **T2.4 PDI** [código] (RF-21) — depende de T2.2 e T2.3
+- [~] **T2.4 PDI** [código] (RF-21) — depende de T2.2 e T2.3
   - Formato do PDI com ações estruturadas (descrição, competência do plano do papel, prazo, status). Ferramentas restritas `pdi_ler`, `pdi_atualizar` (sozinho, área restrita) e `pdi_atrasados` (ações vencidas e revisões de PDI vencidas).
   - Compartilhar o PDI com a pessoa **sempre** vira item da fila de aprovações (`pede_ok`, sem handler de envio por enquanto: o Paulo copia o texto aprovado).
   - Skill do Coach (T2.10) monta o rascunho de PDI a partir do plano do papel; nasce `revisado: false`.
+  - Entregue (23/10/2026): `pdi_ler`, `pdi_atualizar` (criar, adicionar, atualizar, revisar), `pdi_atrasados` e `pdi_compartilhar` (sempre `pede_ok`, só se `revisado: true`, sem as "Notas internas"). Ações no formato `- [A1] **descrição** — competência: … — prazo: AAAA-MM-DD — status: aberta`; competência conferida contra o plano do papel; revisão a cada 6 meses (`PDI_REVISAO_MESES`). Toda edição do Copiloto volta o PDI para `revisado: false`. O texto aprovado aparece em `#aprovacoes` (servidor privado do Paulo).
+  - Falta: a parte do Coach que monta o rascunho (T2.10, depende da persona).
   - Pronto quando: testes cobrem criação, atualização, atraso e a fila de aprovação ao compartilhar.
 
 - [x] **T2.5 Lembretes de 1:1 e PDI atrasados** [código] (RF-24) — depende de T2.2
@@ -77,7 +79,7 @@ Legenda: **[código]** pode ser feito numa sessão na nuvem · **[Paulo]** depen
   - Rotina `grok/rotinas/preparador-reuniao.md` (a cada 30 min, 7h às 19h): lê a agenda, prepara as reuniões da próxima hora, grava a nota em `reunioes/` (`tipo: preparacao`, `revisado: false`) e posta no `#reunioes` com pauta sugerida e pendências. 1:1 vai pelo fluxo do T2.6, nunca por aqui.
   - Pronto quando: testes do contexto e do controle de duplicidade; texto da rotina pronto para colar.
 
-- [ ] **T2.8 Reuniões: quem convidar** [código] (RF-12) — **redesenhada em 23/10/2026**: o Paulo não quer critérios para dispensar ou delegar (acompanha as dailies; quando não for, lê a transcrição, fase 3). O texto abaixo é o desenho antigo e será reescrito quando o Paulo confirmar o sentido de "convidar" — depende de T2.0 e T2.7
+- [ ] **T2.8 Reuniões: quem convidar** [código] (RF-12) — **redesenhada em 23/10/2026**: o Paulo não quer critérios para dispensar ou delegar (acompanha as dailies; quando não for, lê a transcrição, fase 3). **Sentido confirmado (23/10/2026, opção A):** ao preparar uma reunião, o Copiloto sugere **quem convidar** (assunto, decisões e tarefas anteriores, times envolvidos), com a fonte; nunca sugere dispensar nem delegar, e as dailies não entram. O texto abaixo é o desenho antigo e será reescrito antes de a T2.8 começar — depende de T2.0 e T2.7
   - Ferramenta `reuniao_historico(titulo)`: ocorrências anteriores com nota, quantas geraram decisão ou tarefa, última vez que o Paulo falou ou decidiu.
   - A rotina do briefing aplica os critérios definidos em T2.0 e lista, com o **motivo**, as reuniões do dia que podem ser delegadas ou dispensadas. Só sugere; nunca recusa nem aceita convite (isso pede OK).
   - Pronto quando: testes do histórico; critérios escritos no prompt do briefing.
