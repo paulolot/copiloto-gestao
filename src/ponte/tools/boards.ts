@@ -10,6 +10,8 @@ import { acharTime, timesAtivos, type TimeEscopo } from '../azure/escopo.js';
 import { sincronizarTime } from '../azure/sync.js';
 import { metricasColaboradores } from '../azure/metricas-pessoa.js';
 import { marcoDefinir, marcoListar, marcoObter, sinaisDeMarcos, statusDoMarco, tagsEmUso, type EntradaMarco } from '../azure/marcos.js';
+import { dataHoraSp, gargalosDoTime, TIPOS_PADRAO_GARGALOS } from '../azure/gargalos.js';
+import { tiposContados } from '../azure/escopo.js';
 import { avaliarTime, itensProblema, sinaisAtivos, type TipoProblema } from '../azure/alertas.js';
 
 export interface BoardsDeps {
@@ -65,6 +67,33 @@ export function boardsItensProblema(db: Database, time: string, tipo: TipoProble
   const [t] = resolverTimes(time);
   exigirDados(db, t);
   return JSON.stringify({ time: t.nome, tipo, fonte: fonte(db, t), itens: itensProblema(db, t.id, tipo, agora) }, null, 2);
+}
+
+/** Where items pile up per column and for how long (business days). Read only; owners are item data, never ranked. */
+export function boardsGargalos(
+  db: Database,
+  opts: { time?: string; limiteDiasUteis?: number; tipos?: string[]; top?: number; incluirBacklog?: boolean } = {},
+  agora = new Date(),
+): string {
+  const times = resolverTimes(opts.time);
+  times.forEach((t) => exigirDados(db, t));
+  const tipos = opts.tipos?.length ? opts.tipos : TIPOS_PADRAO_GARGALOS;
+  // Only for types the caller asked for: the default list names Task, which the sync does not bring (AZDO_TIPOS)
+  const naoSincronizados = (opts.tipos ?? []).filter((t) => !tiposContados().some((c) => c.toLowerCase() === t.trim().toLowerCase()));
+  return JSON.stringify({
+    parametros: { limite_dias_uteis: opts.limiteDiasUteis ?? 3, tipos, top: opts.top ?? 5, incluir_backlog: !!opts.incluirBacklog, fuso: 'America/Sao_Paulo' },
+    ...(naoSincronizados.length ? { aviso: `Tipos que o sync não traz (AZDO_TIPOS): ${naoSincronizados.join(', ')}; não aparecem na análise.` } : {}),
+    squads: times.map((t) => {
+      const f = fonte(db, t);
+      const g = gargalosDoTime(db, t.id, { ...opts, agora });
+      return {
+        time: t.nome,
+        fonte: { ...f, sincronizadoEm: f.sincronizadoEm ? dataHoraSp(new Date(f.sincronizadoEm)) : null },
+        ...g,
+        ...(g.itens_sem_data_de_coluna ? { aviso: `${g.itens_sem_data_de_coluna} itens sem mudança de coluna nas revisões (ainda não buscadas ou nunca mudaram): contados desde a última mudança de estado ou alteração (campo data_origem). Rode boards_sincronizar.` } : {}),
+      };
+    }),
+  }, null, 2);
 }
 
 /** `atual` recomputes now; `historico` returns the stored snapshots (RF-03). */

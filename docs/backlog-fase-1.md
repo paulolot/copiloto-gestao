@@ -33,7 +33,7 @@ Premissas: o Azure DevOps é acessado só por leitura com PAT; Squad Fiscal prim
   - Pronto quando: testes cobrem cada alerta, a linha de base e a data do primeiro sinal.
 
 - [x] **T1.5 Ferramentas MCP de boards** [código] — depende de T1.4
-  - `boards_sincronizar`, `boards_saude(time?)`, `boards_alertas(time?)`, `boards_itens_problema(time, tipo)`, `metricas_time(time, periodo)`; nível `sozinho` (leitura), todas pelo log de auditoria.
+  - `boards_sincronizar`, `boards_saude(time?)`, `boards_alertas(time?)`, `boards_itens_problema(time, tipo)`, `boards_gargalos(time?, limite_dias_uteis?, tipos?, top?, incluir_backlog?)`, `metricas_time(time, periodo)`; nível `sozinho` (leitura), todas pelo log de auditoria.
   - Pronto quando: cliente MCP de teste chama cada uma e o log registra.
 
 - [x] **T1.6 Sincronização agendada e alertas no Discord** [código] — depende de T1.4 (RNF-01)

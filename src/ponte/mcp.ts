@@ -19,7 +19,7 @@ import { papelLer } from './tools/papeis.js';
 import { pessoaPerfil } from './tools/pessoa-perfil.js';
 import { vaultListar, vaultLer, vaultBuscar, vaultCriarNota, pessoaRegistrar, pessoaListar, pessoaLer, TIPOS_REGISTRO_PESSOA } from './tools/vault.js';
 import { CANAIS_CONVERSA, discordLerNovas, discordMarcarLido, discordPostar, type DiscordCanal } from './tools/discord.js';
-import { boardsMarcoDefinir, boardsMarcos, boardsTags, metricasColaborador, boardsAlertas, boardsItensProblema, boardsSaude, boardsSincronizar, metricasTime, type BoardsDeps } from './tools/boards.js';
+import { boardsMarcoDefinir, boardsMarcos, boardsTags, metricasColaborador, boardsAlertas, boardsGargalos, boardsItensProblema, boardsSaude, boardsSincronizar, metricasTime, type BoardsDeps } from './tools/boards.js';
 import { tarefaConcluir, tarefaCriar, tarefaListar } from './tools/tarefas.js';
 import { mensagemTarefasAbertas } from './discord/tarefas.js';
 import { CAMPOS_REUNIAO, DIAS_SEMANA, FREQUENCIAS, reuniaoRecorrenteAjustar, reuniaoRecorrenteCadastrar, reuniaoRecorrenteHoje, reuniaoRecorrenteListar, reuniaoRecorrenteMarcarPreparada, reuniaoRecorrenteRemover } from './tools/reunioes-recorrentes.js';
@@ -272,6 +272,19 @@ export function createMcpServer(db: Database, deps: McpDeps = {}): McpServer {
     'Work items parados, bloqueados, sem dono ou sem estimativa de um time',
     { time: z.string().describe('Time: fiscal, desktop ou retaguarda'), tipo: z.enum(TIPOS_PROBLEMA as [string, ...string[]]) },
     ({ time, tipo }) => audited(db, 'boards_itens_problema', { time, tipo }, () => boardsItensProblema(db, time, tipo as (typeof TIPOS_PROBLEMA)[number])),
+  );
+
+  mcp.tool(
+    'boards_gargalos',
+    'Onde os work items se acumulam no board: por squad e por coluna, quantidade, itens acima do limite, média, mediana e maior tempo parado em dias úteis, os mais antigos e o ranking das colunas. Somente leitura; todos os números vêm calculados',
+    {
+      time: z.string().optional().describe('Squad: fiscal, desktop ou retaguarda, ou o nome (ex.: "Squad Fiscal"); sem ele, todas as ativas'),
+      limite_dias_uteis: z.number().int().min(0).default(3).describe('Itens com mais dias úteis que isto na coluna contam como acima do limite'),
+      tipos: z.array(z.string()).optional().describe('Tipos de work item (padrão: User Story, Bug e Task)'),
+      top: z.number().int().min(0).max(50).default(5).describe('Quantos itens mais antigos listar por coluna'),
+      incluir_backlog: z.boolean().default(false).describe('Incluir as colunas iniciais de backlog (Ideias, Backlog)'),
+    },
+    (args) => audited(db, 'boards_gargalos', args, () => boardsGargalos(db, { time: args.time, limiteDiasUteis: args.limite_dias_uteis, tipos: args.tipos, top: args.top, incluirBacklog: args.incluir_backlog })),
   );
 
   // Marcos de entrega (os times não usam sprints): uma data + os work items marcados por uma tag

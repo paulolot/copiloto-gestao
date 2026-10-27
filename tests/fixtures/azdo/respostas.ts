@@ -32,6 +32,7 @@ export const ITENS = [
 
 /** Column history of the finished items: when each one entered "Fazendo Análise". */
 export const REVISOES: Record<number, { col: string; estado?: string; dias: number }[]> = {
+  1: [{ col: 'Disponível para Dev', dias: 15 }, { col: 'Dev implementando', estado: 'Active', dias: 9 }, { col: 'Dev implementando', estado: 'Active', dias: 3 }], // column since 9 days ago
   4: [{ col: 'Ideias', dias: 12 }, { col: 'Backlog', dias: 10 }, { col: 'Fazendo Análise', dias: 9 }, { col: 'Dev implementando', estado: 'Active', dias: 6 }, { col: 'Concluído', estado: 'Closed', dias: 2 }],
   5: [{ col: 'Disponível para Dev', dias: 8 }, { col: 'Concluído', estado: 'Closed', dias: 6 }],
 };

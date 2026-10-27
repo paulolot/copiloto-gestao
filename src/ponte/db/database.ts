@@ -82,7 +82,11 @@ function initSchema(db: Database): void {
       pronto_em TEXT,     -- Pronto pra release ou depois (ou estado Resolved): fim do cycle time
       marcos_em TEXT,
       dono TEXT,          -- só para WIP agregado; nenhuma ferramenta devolve este campo
-      dono_nome TEXT      -- nome de exibição; só aparece em #alertas se ALERTAS_COM_RESPONSAVEL estiver ligado
+      dono_nome TEXT,     -- nome de exibição; só aparece em #alertas se ALERTAS_COM_RESPONSAVEL estiver ligado
+      -- Entrada na coluna atual (revisões do item), para boards_gargalos; coluna_checada_em = alterado_em quando foi buscada
+      coluna_desde TEXT,
+      estado_desde TEXT,
+      coluna_checada_em TEXT
     );
     CREATE INDEX IF NOT EXISTS idx_wi_time ON work_items(time_id, estado);
 
@@ -216,6 +220,11 @@ function migrate(db: Database): void {
     db.run('ALTER TABLE sinais ADD COLUMN avisado_dia TEXT');
     // What was announced before this column existed counts as announced today: the first repeat comes tomorrow, not all at once.
     db.run("UPDATE sinais SET avisado_dia = strftime('%Y-%m-%d', 'now', '-3 hours') WHERE avisado = 1");
+  }
+  if (!cols.includes('coluna_desde')) {
+    for (const c of ['coluna_desde', 'estado_desde', 'coluna_checada_em']) db.run(`ALTER TABLE work_items ADD COLUMN ${c} TEXT`);
+    // The column dates only come with a fetch: force a full load on the next sync.
+    if (db.exec("SELECT name FROM sqlite_master WHERE name = 'sync_estado'")[0]) db.run('UPDATE sync_estado SET ultimo_sync = NULL');
   }
   if (!cols.includes('dono_nome')) {
     db.run('ALTER TABLE work_items ADD COLUMN dono_nome TEXT');

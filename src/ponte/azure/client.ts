@@ -41,6 +41,14 @@ export interface Marcos {
   prontoEm?: string;
 }
 
+/** When the item entered its current board column, from the revisions. */
+export interface EntradaColuna {
+  /** Last revision in which System.BoardColumn changed to the current value. */
+  colunaDesde?: string;
+  /** Last revision in which System.State changed (fallback when the column never changed). */
+  estadoDesde?: string;
+}
+
 export interface Commit {
   id: string;
   data: string;
@@ -155,6 +163,30 @@ export class AzdoClient {
       if (!m.prontoEm && (terminouCiclo(coluna) || estado === 'Resolved' || estado === 'Closed')) m.prontoEm = quando;
     }
     return m;
+  }
+
+  /**
+   * Revisions are in order. The column date is the last revision whose BoardColumn differs from the previous one
+   * (the first revision counts when it already has a column); a column moved away and back resets the clock.
+   */
+  async entradaNaColuna(id: number): Promise<EntradaColuna> {
+    const r = await this.request<{ value: { fields: Record<string, unknown> }[] }>(`/_apis/wit/workitems/${id}/revisions?${API}`);
+    const out: EntradaColuna = {};
+    let col: string | undefined;
+    let estado: string | undefined;
+    for (const rev of r.value) {
+      const quando = rev.fields['System.ChangedDate'];
+      if (typeof quando !== 'string') continue;
+      const c = rev.fields['System.BoardColumn'];
+      const e = rev.fields['System.State'];
+      const coluna = typeof c === 'string' ? c : undefined;
+      const est = typeof e === 'string' ? e : undefined;
+      if (coluna !== undefined && coluna !== col) out.colunaDesde = quando;
+      if (est !== undefined && est !== estado) out.estadoDesde = quando;
+      if (coluna !== undefined) col = coluna;
+      if (est !== undefined) estado = est;
+    }
+    return out;
   }
 
   async commits(projeto: string, repo: string, desde: string): Promise<Commit[]> {

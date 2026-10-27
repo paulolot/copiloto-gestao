@@ -103,18 +103,19 @@ describe('colunas no sync e nas métricas', () => {
     expect(s.bugRate).toBe(200);
   });
 
-  it('fetches the cycle start only for finished items, once, and keeps it across syncs', async () => {
+  it('fetches the milestones of finished items and the column entry of open ones, once each, and keeps them across syncs', async () => {
     const chamadas: { url: string }[] = [];
     const c = client(chamadas);
     await sincronizarTime(db, c, TIMES[0], AGORA);
     const revisoes = () => chamadas.filter((x) => x.url.includes('/revisions')).map((x) => x.url.match(/workitems\/(\d+)/)![1]);
-    expect(revisoes().sort()).toEqual(['4', '5']); // only items that reached Resolved or Closed
+    expect(revisoes().sort()).toEqual(['1', '2', '3', '4', '5', '6', '7', '8']); // 4 and 5: milestones (finished); the rest: column entry (open)
     const analise = (id: number) => db.exec('SELECT analise_em FROM work_items WHERE id = ?', [id])[0].values[0][0];
     expect(analise(4)).toBeTruthy();
     expect(analise(1)).toBeNull();
 
     await sincronizarTime(db, c, TIMES[0], new Date(AGORA.getTime() + 3_600_000));
-    expect(revisoes()).toHaveLength(2); // not fetched again
+    expect(revisoes()).toHaveLength(8); // not fetched again
+    expect(db.exec('SELECT coluna_desde FROM work_items WHERE id = 1')[0].values[0][0]).toBeTruthy();
     expect(analise(4)).toBeTruthy(); // the upsert did not wipe it
   });
 

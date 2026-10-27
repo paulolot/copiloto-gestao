@@ -82,6 +82,7 @@ export async function sincronizarTime(db: Database, client: AzdoClient, time: Ti
       throw e;
     }
     await completarMarcos(db, client, time.id, agora);
+    await completarEntradasNaColuna(db, client, time.id);
     persist(db);
     return { time: time.id, workItems: itens.length, commits: totalCommits, pullRequests: prs.length, incremental };
   } catch (e) {
@@ -112,6 +113,27 @@ async function completarMarcos(db: Database, client: AzdoClient, timeId: string,
       const m = await client.marcos(id);
       db.run('UPDATE work_items SET backlog_em = ?, analise_em = ?, pronto_em = ?, marcos_em = ? WHERE id = ?',
         [m.backlogEm ?? null, m.analiseEm ?? null, m.prontoEm ?? null, agora.toISOString(), id]);
+    } catch {
+      // keep going; retried next time
+    }
+  }
+}
+
+/**
+ * Open items need the date they entered their current column (boards_gargalos). It is fetched when the item
+ * is new to us or changed since the last fetch (`alterado_em` differs from `coluna_checada_em`). Same rules
+ * as the milestones: a failure on one item never fails the sync, and the rest waits for the next run.
+ */
+async function completarEntradasNaColuna(db: Database, client: AzdoClient, timeId: string): Promise<void> {
+  const linhas = db.exec(
+    `SELECT id, alterado_em FROM work_items
+       WHERE time_id = ? AND estado NOT IN ('Closed','Done','Removed') AND (coluna_checada_em IS NULL OR coluna_checada_em <> alterado_em)
+       ORDER BY alterado_em DESC LIMIT ${MAX_REVISOES_POR_SYNC}`, [timeId])[0]?.values ?? [];
+  for (const [id, alterado] of linhas as [number, string][]) {
+    try {
+      const e = await client.entradaNaColuna(id);
+      db.run('UPDATE work_items SET coluna_desde = ?, estado_desde = ?, coluna_checada_em = ? WHERE id = ?',
+        [e.colunaDesde ?? null, e.estadoDesde ?? null, alterado, id]);
     } catch {
       // keep going; retried next time
     }
