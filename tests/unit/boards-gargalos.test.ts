@@ -9,7 +9,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { createApp } from '../../src/ponte/app.js';
 import { AzdoClient } from '../../src/ponte/azure/client.js';
-import { diasUteisSp, gargalosDoTime } from '../../src/ponte/azure/gargalos.js';
+import { diasUteisSp, feriadosNacionais, gargalosDoTime } from '../../src/ponte/azure/gargalos.js';
 import { queryAudit } from '../../src/ponte/db/audit.js';
 import { AGORA, fakeFetch } from '../fixtures/azdo/respostas.js';
 import { makeTestDb } from './helpers.js';
@@ -23,9 +23,21 @@ describe('diasUteisSp', () => {
     expect(diasUteisSp(new Date('2026-10-21T15:00:00Z'), AGORA_SP)).toBe(0);
     expect(diasUteisSp(new Date('2026-10-20T15:00:00Z'), AGORA_SP)).toBe(1);
     expect(diasUteisSp(new Date('2026-10-16T15:00:00Z'), AGORA_SP)).toBe(3); // Fri -> Wed: Mon, Tue, Wed
-    expect(diasUteisSp(new Date('2026-10-10T15:00:00Z'), AGORA_SP)).toBe(8); // Sat
+    expect(diasUteisSp(new Date('2026-10-10T15:00:00Z'), AGORA_SP)).toBe(7); // Sat -> Wed, minus Mon 12/10 (Nossa Senhora Aparecida)
     // 22:00 in São Paulo on Oct 20 is already Oct 21 in UTC: still counts as Oct 20
     expect(diasUteisSp(new Date('2026-10-21T01:00:00Z'), AGORA_SP)).toBe(1);
+  });
+});
+
+describe('feriados', () => {
+  it('lists the national holidays, with Good Friday and Consciência Negra from 2024', () => {
+    expect(feriadosNacionais(2026)).toEqual(['2026-01-01', '2026-04-03', '2026-04-21', '2026-05-01', '2026-09-07', '2026-10-12', '2026-11-02', '2026-11-15', '2026-12-25'].concat('2026-11-20').sort());
+    expect(feriadosNacionais(2023)).not.toContain('2023-11-20');
+    expect(feriadosNacionais(2025)).toContain('2025-04-18');
+  });
+  it('skips holidays and the extra days given', () => {
+    expect(diasUteisSp(new Date('2026-04-01T15:00:00Z'), new Date('2026-04-07T15:00:00Z'), [])).toBe(3); // Thu 2, Mon 6, Tue 7 (Fri 3 is Good Friday)
+    expect(diasUteisSp(new Date('2026-04-01T15:00:00Z'), new Date('2026-04-07T15:00:00Z'), ['2026-04-06'])).toBe(2);
   });
 });
 
@@ -42,7 +54,7 @@ describe('gargalosDoTime', () => {
 
   beforeAll(async () => {
     db = await makeTestDb();
-    ins(1, { coluna_desde: '2026-10-09T15:00:00Z', dono: 'ana@x.com', dono_nome: 'Ana' }); // Fri 9/10 -> 8 business days
+    ins(1, { coluna_desde: '2026-10-09T15:00:00Z', dono: 'ana@x.com', dono_nome: 'Ana' }); // Fri 9/10 -> 7 business days (12/10 is a holiday)
     ins(2, { coluna_desde: '2026-10-20T15:00:00Z' }); // 1
     ins(3, { coluna_desde: '2026-10-16T15:00:00Z', tipo: 'Bug' }); // 3 (not above limit 3)
     ins(4, { coluna: 'Diponível Revisão de Código', coluna_desde: '2026-10-14T15:00:00Z' }); // 5, unmapped
@@ -57,17 +69,25 @@ describe('gargalosDoTime', () => {
 
   it('builds the columns in board order with the numbers and the unmapped column flagged', () => {
     const r = gargalosDoTime(db, 'fiscal', { agora: AGORA_SP });
-    expect(r.colunas.map((c) => c.coluna)).toEqual(['Dev implementando', 'Testando', 'Diponível Revisão de Código']);
+    expect(r.colunas.map((c) => c.coluna)).toEqual(['Dev implementando', 'Diponível Revisão de Código', 'Testando']); // the misspelled column sits next to Disponível Revisão de Código
     const dev = r.colunas[0];
-    expect(dev).toMatchObject({ itens: 4, itens_acima_do_limite: 1, maior_tempo_dias_uteis: 8, mediana_dias_uteis: 2.5, media_dias_uteis: 3.5 });
-    expect(dev.itens_mais_antigos.map((i) => [i.id, i.dias_uteis_na_coluna])).toEqual([[1, 8], [3, 3], [11, 2], [2, 1]]);
+    expect(dev).toMatchObject({ itens: 4, itens_acima_do_limite: 1, maior_tempo_dias_uteis: 7, mediana_dias_uteis: 2.5, media_dias_uteis: 3.3 });
+    expect(dev.itens_mais_antigos.map((i) => [i.id, i.dias_uteis_na_coluna])).toEqual([[1, 7], [3, 3], [11, 2], [2, 1]]);
     expect(dev.itens_mais_antigos[0]).toMatchObject({ responsavel: 'Ana', tipo: 'User Story', data_origem: 'mudanca_de_coluna' });
     expect(dev.itens_mais_antigos[1].responsavel).toBe('sem responsável');
     expect(dev).not.toHaveProperty('coluna_nao_mapeada');
-    expect(r.colunas[2]).toMatchObject({ coluna_nao_mapeada: true, itens: 1, itens_acima_do_limite: 1 });
-    const teste = r.colunas[1];
+    expect(r.colunas[1]).toMatchObject({ coluna_nao_mapeada: true, itens: 1, itens_acima_do_limite: 1 });
+    const teste = r.colunas[2];
     expect(teste.itens_mais_antigos.map((i) => [i.id, i.dias_uteis_na_coluna, i.data_origem])).toEqual([[5, 2, 'mudanca_de_estado'], [6, 1, 'ultima_alteracao']]);
     expect(r.itens_sem_data_de_coluna).toBe(2);
+  });
+
+  it('puts UX between Ideias and Backlog', () => {
+    ins(12, { coluna: 'UX', coluna_desde: '2026-10-19T15:00:00Z' });
+    const r = gargalosDoTime(db, 'fiscal', { agora: AGORA_SP, incluirBacklog: true });
+    expect(r.colunas.map((c) => c.coluna).slice(0, 3)).toEqual(['Ideias', 'UX', 'Backlog']);
+    expect(r.colunas.find((c) => c.coluna === 'UX')).not.toHaveProperty('coluna_nao_mapeada');
+    db.run('DELETE FROM work_items WHERE id = 12');
   });
 
   it('ranks columns by items above the limit, then by longest time, and honors limit, top, tipos and backlog', () => {

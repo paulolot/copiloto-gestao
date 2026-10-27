@@ -27,6 +27,10 @@ Este é o roteiro único para cadastrar no Grok Bot. Cada rotina tem um arquivo 
 | Observador de boards | `boards_alertas`, `boards_itens_problema`, `discord_postar` |
 | Porta-voz do CTO | `cto_pauta_dados`, `cto_pauta_salvar`, `ponto_atencao_listar`, `ponto_atencao_candidatos`, `decisao_cto_listar`, `boards_marcos`, `metricas_time`, `vault_ler`, `mensagem_propor`, `aprovacao_consultar`, `discord_postar` |
 
+### Consulta sob demanda: gargalos dos boards
+
+A ferramenta `boards_gargalos` não pertence a nenhuma rotina; o Grok Bot a chama quando você pergunta. Exemplo de pedido: "Chame `boards_sincronizar` e depois `boards_gargalos` da Squad Fiscal com limite de 3 dias úteis. Mostre, por coluna, itens, itens acima do limite, média, mediana, maior tempo e os itens mais antigos; depois o ranking das colunas. Não faça contas: use os números da ferramenta e cite a fonte e o horário do último sync."
+
 ## 2. Skill já pronta
 
 | Skill | Arquivo | Uso |

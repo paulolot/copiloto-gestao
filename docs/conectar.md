@@ -35,6 +35,7 @@ Abra `.env` e preencha:
 | `AZDO_CAMPO_PARALISADO` / `AZDO_CAMPO_TIPO_BUG` | Nome técnico dos campos Paralisado e Tipo Bug (padrão `Custom.Status` e `Custom.TipoBug`) |
 | `AZDO_COLUNAS_IGNORADAS` | Colunas fora de toda métrica (padrão `Ideias,UX`) |
 | `AZDO_TIPOS` | Tipos de work item que entram nas métricas (padrão `User Story,Bug`) |
+| `FERIADOS_EXTRAS` | Dias não úteis além dos feriados nacionais em `boards_gargalos` (Carnaval, Corpus Christi, feriados locais), `AAAA-MM-DD` separados por vírgula |
 | `AZDO_TIMES` | Times sincronizados, separados por vírgula, pelo id (`fiscal`, `desktop`, `retaguarda`) ou pelo nome da área no Azure DevOps (`Squad Fiscal`, `Squad Desktop`, `Squad Retaguarda WEB`). Padrão: só `fiscal`. Nome desconhecido dá erro |
 | `ALERTAS_COM_RESPONSAVEL` | Nome de quem é dono de cada card nos avisos de `#alertas` (padrão ligado; `nao` desliga) |
 

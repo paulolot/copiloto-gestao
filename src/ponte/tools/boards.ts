@@ -10,7 +10,7 @@ import { acharTime, timesAtivos, type TimeEscopo } from '../azure/escopo.js';
 import { sincronizarTime } from '../azure/sync.js';
 import { metricasColaboradores } from '../azure/metricas-pessoa.js';
 import { marcoDefinir, marcoListar, marcoObter, sinaisDeMarcos, statusDoMarco, tagsEmUso, type EntradaMarco } from '../azure/marcos.js';
-import { dataHoraSp, gargalosDoTime, TIPOS_PADRAO_GARGALOS } from '../azure/gargalos.js';
+import { dataHoraSp, feriadosExtras, gargalosDoTime, TIPOS_PADRAO_GARGALOS } from '../azure/gargalos.js';
 import { tiposContados } from '../azure/escopo.js';
 import { avaliarTime, itensProblema, sinaisAtivos, type TipoProblema } from '../azure/alertas.js';
 
@@ -81,7 +81,7 @@ export function boardsGargalos(
   // Only for types the caller asked for: the default list names Task, which the sync does not bring (AZDO_TIPOS)
   const naoSincronizados = (opts.tipos ?? []).filter((t) => !tiposContados().some((c) => c.toLowerCase() === t.trim().toLowerCase()));
   return JSON.stringify({
-    parametros: { limite_dias_uteis: opts.limiteDiasUteis ?? 3, tipos, top: opts.top ?? 5, incluir_backlog: !!opts.incluirBacklog, fuso: 'America/Sao_Paulo' },
+    parametros: { limite_dias_uteis: opts.limiteDiasUteis ?? 3, tipos, top: opts.top ?? 5, incluir_backlog: !!opts.incluirBacklog, fuso: 'America/Sao_Paulo', feriados: 'nacionais' + (feriadosExtras().length ? ` e extras (${feriadosExtras().join(', ')})` : ''), },
     ...(naoSincronizados.length ? { aviso: `Tipos que o sync não traz (AZDO_TIPOS): ${naoSincronizados.join(', ')}; não aparecem na análise.` } : {}),
     squads: times.map((t) => {
       const f = fonte(db, t);
